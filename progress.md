@@ -13,6 +13,13 @@ Essentially, we simply perform the processing of the benchmark, in order to get 
 Q: doesn't it make more sense to just use ICUSTAY to directly link with the patients?
 A: possibly. Instead, we have the X. The X is important since we have PATIENTS that are tracked longitudinally ; it doesn't make that much sense to track everything as a sequence of independent events!
 
+Indeed, I think that explains everything. For mortality prediction: it is 48 hours. Note that everyone dies in the end. 
+
+However, we *should* still be able to join things back and forth! In particular: we have specific ICUSTAYS and the notes correspond directly to those times! 
+
+Indeed, because we want to do first-48 hour ICU mortality prediction, then that is reason enough for a) the time based approach (instead of joining directly on the ICUSTAY. Note that we can do various SQL optimization, like filter before join etc.). and b) the reason for why we don't just look at icustay, but instead at the patient. 
+
+
 Timeseries, is kind of like the PURE data. We can also measure the trajectories then. 
 Staged: classification + regression => First a network predicts whether or not the time will happen, and then next, another network predicts time; loss is only computed if the first network gets it wrong, essentially. 
 
