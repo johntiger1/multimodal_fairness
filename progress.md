@@ -10,6 +10,12 @@ Therefore, we will set up the notebook, in order to make our SQL queries to exam
 
 Essentially, we simply perform the processing of the benchmark, in order to get preprocessed (better?: dubious) data. 
 
+Q: doesn't it make more sense to just use ICUSTAY to directly link with the patients?
+A: possibly. Instead, we have the X. The X is important
+
+Timeseries, is kind of like the PURE data. We can also measure the trajectories then. 
+Staged: classification + regression => First a network predicts whether or not the time will happen, and then next, another network predicts time; loss is only computed if the first network gets it wrong, essentially. 
+
 # May 4
 
 Currently running:
