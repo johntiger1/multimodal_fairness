@@ -31,7 +31,7 @@ The key takeaways:
 This github seems like exactly what I want: just merging the TF-IDF stuff on top of it. 
 https://github.com/kaggarwal/ClinicalNotesICU
 
-(defending work: fairness novelty. as well as more technical analysis of the word embeddings. )
+(defending work: fairness novelty. as well as more technical analysis of the word embeddings. Their work was not initially novel, because of work by Horng et al. and so we can argue we use better and more word embeddings (deep contextualized ones, for instance) )
 
 # May 4
 
