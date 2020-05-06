@@ -33,6 +33,8 @@ https://github.com/kaggarwal/ClinicalNotesICU
 
 (defending work: fairness novelty. as well as more technical analysis of the word embeddings. Their work was not initially novel, because of work by Horng et al. and so we can argue we use better and more word embeddings (deep contextualized ones, for instance) )
 
+But more word embeddings means we should stick to pytorch, OK
+
 # May 4
 
 Currently running:
