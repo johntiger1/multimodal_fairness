@@ -33,7 +33,15 @@ https://github.com/kaggarwal/ClinicalNotesICU
 
 (defending work: fairness novelty. as well as more technical analysis of the word embeddings. Their work was not initially novel, because of work by Horng et al. and so we can argue we use better and more word embeddings (deep contextualized ones, for instance) )
 
-But more word embeddings means we should stick to pytorch, OK
+But more word embeddings means we should stick to pytorch, OK.
+And it would be good learning, anyways. (in particular if we want to extend the work later)
+
+Also:
+The readers pretty directly provide the data we want to work with. Features, and the label. 
+But what about the timesteps? They are also all there! 
+
+Therefore: 
+N * T * K (where K is simply the number of variables we have, T is the number of timesteps, N is the number of rows/patients we have)
 
 # May 4
 
