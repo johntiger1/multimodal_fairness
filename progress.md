@@ -23,6 +23,16 @@ Indeed, because we want to do first-48 hour ICU mortality prediction, then that 
 Timeseries, is kind of like the PURE data. We can also measure the trajectories then. 
 Staged: classification + regression => First a network predicts whether or not the time will happen, and then next, another network predicts time; loss is only computed if the first network gets it wrong, essentially. 
 
+The key takeaways:
+- we understand how the data is preprocessed
+- AND how we can train a model to use it
+- that is for mortality, then we can do it for phenotyping, and decompensation prediction 
+
+This github seems like exactly what I want: just merging the TF-IDF stuff on top of it. 
+https://github.com/kaggarwal/ClinicalNotesICU
+
+(defending work: fairness novelty. as well as more technical analysis of the word embeddings. )
+
 # May 4
 
 Currently running:
