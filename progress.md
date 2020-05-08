@@ -4,7 +4,7 @@ OK, so now let's just work on it easily. Essentially, we can run the baseline, a
 Why this is simple:
 - we are doing time series prediction. we just read in the csv files, as readers, to get the features, and then we need to do the joins to get all the notes. And we can leverage Haoran's code to do it.
 
-Note that https://github.com/kaggarwal/ClinicalNotesICU only does the 3 tasks (and NOT phenotyping). Therefore, just doing phenotyping is by itself novel, plus the fairness. 
+Note that https://github.com/kaggarwal/ClinicalNotesICU only does the 3 tasks (and NOT phenotyping). Therefore, just doing phenotyping is by itself novel, plus the fairness.  We also provide open-source code which allows for flexible generation and combination of text with the mimic data, allowing for reproducible builds, and further opening the door for future joint text-numeric analysis. 
 
 Potential blockers:
 1. want to get the joins in one shot: i.e. one framework for joining the notes and the outcome, for all things, as per Haoran's code. One thing is that a time series immediately destroys the nice matching, since we can have multiple correspondences to a single event. 
@@ -13,6 +13,7 @@ yet here is another perspective. We can ensure we do not have any note from AFTE
 
 Potential issues: in the note, it says Patient died. 
 But the actual mortality event is not recorded for several hours later. 
+Is that an issue in practice? Is there causal leakage? If so, the check if KAgg also addresses it.
 
 
 2. ensuring no causal leakage, as per KAgg and Haoran 
