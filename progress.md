@@ -1,3 +1,6 @@
+# May 6 
+Mainly was working on the seq2seq and other fairness stuff. 
+
 # May 5 
 Finished all the preprocessing commands. Going to do the following:
 1. Re-import the original notebook for dataprocessing.
