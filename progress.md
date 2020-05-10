@@ -4,6 +4,7 @@
 - Gensim is awesome, really reduces barriers to leveraging things. 
 - And just has so much functionality and use cases already in the box
 - we can use a full model, or simply a keyed-vectors. The Keyed-vectors allows us to simply look up stuff, treating it as fixed features for lookup!
+- Therefore, we will use gensim FASTTEXT and then not have to worry about OOV words
 
 # May 9
 Two possible pathways:
