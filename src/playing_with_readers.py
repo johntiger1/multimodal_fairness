@@ -1,5 +1,9 @@
 from mimic3benchmark.readers import DecompensationReader, InHospitalMortalityReader
-
+import pandas as pd
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.debug("hello")
 # reader = DecompensationReader(dataset_dir='data/decompensation/train',
 #                               listfile='data/decompensation/train/listfile.csv')
 
@@ -26,6 +30,7 @@ with open(os.path.join(MIMIC_ROOT, patient_id, "stays.csv"), "r") as file:
           "For instance! the stay may have been < 48 hours"
           "but the decompensation prediction episode for examples uses 2 episodes")
 
+    print("now, we will do some interesting joining!")
 
 # with open(os.path.join(MIMIC_ROOT, str(99999), "stays.csv"), "r") as file:
 #     print("finding relevant info for {}".format(99999))
