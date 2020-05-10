@@ -6,6 +6,10 @@
 - we can use a full model, or simply a keyed-vectors. The Keyed-vectors allows us to simply look up stuff, treating it as fixed features for lookup!
 - Therefore, we will use gensim FASTTEXT and then not have to worry about OOV words
 
+OK, so the paths forward. 
+1. Use the newer version of gensim, curl/wget the zip file, unzip, and then load the bin. OK
+2. Keep trying with the OG version, and trying to co-erce the loading. We can even try going to FastText *github* and then working with those
+
 # May 9
 Two possible pathways:
 1. Text focus: how do the word embeddings play with the performance. In particular, if we use w2vec embeddings, we *must* switch to a neural network approach. This risks broadening the scope to an empirical analysis of word embeddings (no it doesn't. But `Research question: a general framework for employing word embeddings with traditional neural network architectures. ` IS a possibility (_option_) , but we don't need to exercise it. In particular, we can either drop the BOW model completely, or simply include them as additional results, without focusing in-depth on the performance differences. Additionally/finally, by switching to word embeddings, then we also have all NN-based fairness approaches, which are transferrable to Transformer stuff. 
