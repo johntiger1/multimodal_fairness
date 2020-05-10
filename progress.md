@@ -18,6 +18,8 @@ Mostly figured out, but can we have multiple icustay for a single hosp adm? Poss
 For a single hospital stay, seems like there can be multiple ICU stays. -- try running a group by query!
 https://mimic.physionet.org/mimictables/transfers/
 
+The subject IDs are LITERALLY the subject ids in MIMIC too!
+
 # May 7
 OK, so now let's just work on it easily. Essentially, we can run the baseline, and see what result we get. That is quite simple! 
 
