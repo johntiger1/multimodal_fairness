@@ -11,7 +11,7 @@ Important:
 and think about principled approaches to leveraging word embeddings. If out of vocab, then what happens? We _could_ use the scikit learn Log reg to transform it, and then it would just give us OOV, which is fine. And we can see the performance. yes, this is a good first approach. 
 
 Listfile.csv simply is a pointer to the actual file with the data. But otherwise it is meaningless, we will need to go and open the OG data to get HADM info and so forth
-
+It seems they are partitioned so that the patients don't appear in both the train and test split. And also, one visit may be discounted/discarded *for one task*
 # May 7
 OK, so now let's just work on it easily. Essentially, we can run the baseline, and see what result we get. That is quite simple! 
 
