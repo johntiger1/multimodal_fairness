@@ -6,7 +6,9 @@ Another possibility could be empirical fairness eval when switching from ML mode
 
 2. Principled focus: just trying to set up the data pipeline. But 1 will eventually need to be addressed regardless. 
 
-
+Important:
+1. debiased word embeddings. 
+and think about principled approaches to leveraging word embeddings. If out of vocab, then what happens? We _could_ use the scikit learn Log reg to transform it, and then it would just give us OOV, which is fine. And we can see the performance. yes, this is a good first approach. 
 
 # May 7
 OK, so now let's just work on it easily. Essentially, we can run the baseline, and see what result we get. That is quite simple! 
