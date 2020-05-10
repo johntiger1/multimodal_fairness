@@ -12,6 +12,12 @@ and think about principled approaches to leveraging word embeddings. If out of v
 
 Listfile.csv simply is a pointer to the actual file with the data. But otherwise it is meaningless, we will need to go and open the OG data to get HADM info and so forth
 It seems they are partitioned so that the patients don't appear in both the train and test split. And also, one visit may be discounted/discarded *for one task*
+
+Mostly figured out, but can we have multiple icustay for a single hosp adm? Possibly
+
+For a single hospital stay, seems like there can be multiple ICU stays. -- try running a group by query!
+https://mimic.physionet.org/mimictables/transfers/
+
 # May 7
 OK, so now let's just work on it easily. Essentially, we can run the baseline, and see what result we get. That is quite simple! 
 
@@ -28,7 +34,6 @@ yet here is another perspective. We can ensure we do not have any note from AFTE
 Potential issues: in the note, it says Patient died. 
 But the actual mortality event is not recorded for several hours later. 
 Is that an issue in practice? Is there causal leakage? If so, the check if KAgg also addresses it.
-
 
 2. ensuring no causal leakage, as per KAgg and Haoran 
 
