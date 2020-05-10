@@ -5,6 +5,7 @@
 - And just has so much functionality and use cases already in the box
 - we can use a full model, or simply a keyed-vectors. The Keyed-vectors allows us to simply look up stuff, treating it as fixed features for lookup!
 - Therefore, we will use gensim FASTTEXT and then not have to worry about OOV words
+- Tempered Gensim: it is good, and active, but not production/industrial quality. Lots of issues with integrations with FastText
 
 OK, so the paths forward. 
 1. Use the newer version of gensim, curl/wget the zip file, unzip, and then load the bin. OK
