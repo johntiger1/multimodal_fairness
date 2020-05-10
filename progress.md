@@ -1,3 +1,13 @@
+# May 9
+Two possible pathways:
+1. Text focus: how do the word embeddings play with the performance. In particular, if we use w2vec embeddings, we *must* switch to a neural network approach. This risks broadening the scope to an empirical analysis of word embeddings (no it doesn't. But `Research question: a general framework for employing word embeddings with traditional neural network architectures. ` IS a possibility (_option_) , but we don't need to exercise it. In particular, we can either drop the BOW model completely, or simply include them as additional results, without focusing in-depth on the performance differences. Additionally/finally, by switching to word embeddings, then we also have all NN-based fairness approaches, which are transferrable to Transformer stuff. 
+
+Another possibility could be empirical fairness eval when switching from ML models to neural models. How does the language modelling process produce useful, zero-tuning embeddings for a variety of classification tasks. 
+
+2. Principled focus: just trying to set up the data pipeline. But 1 will eventually need to be addressed regardless. 
+
+
+
 # May 7
 OK, so now let's just work on it easily. Essentially, we can run the baseline, and see what result we get. That is quite simple! 
 
