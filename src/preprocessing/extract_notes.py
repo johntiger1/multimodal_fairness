@@ -1,7 +1,7 @@
 from mimic3benchmark.readers import DecompensationReader, InHospitalMortalityReader
 import pandas as pd
 import logging
-
+import glob
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.debug("hello")
@@ -19,38 +19,12 @@ notes).
 
 
 '''
-
+Extracts notes, going over the TOTAL dataset
 '''
-def extract_notes():
+def extract_notes(data_path="data/root"):
 
-    reader = InHospitalMortalityReader(dataset_dir='data/in-hospital-mortality/train',
-                                       listfile='data/in-hospital-mortality/train/listfile.csv')
-    total_examples = reader.get_number_of_examples()
-    for i in range(total_examples):
-        reader.read_example(i)
-    # print("we have 100k indices, and they get split between train and test. ")
-    # print("we also have different episodes split as well")
-    # # print("Contains all the pertinent info for rejoining everything")
-    # print(reader.read_example(10))
-    #
-    # print("so we have this 10th example. Now, what do we do to it?")
-    # print(reader.read_example(10)["name"])
-    # patient_id = reader.read_example(10)["name"].split("_")[0]
-    # MIMIC_ROOT = "data/root/train/"
-    # MIMIC_og_data_ROOT = "data/physionet.org/files/mimiciii/1.4/"
-    # notes_table = "NOTEEVENTS.csv"
-    # import os
-    #
-    # with open(os.path.join(MIMIC_ROOT, patient_id, "stays.csv"), "r") as file:
-    #     print("finding relevant info for {}".format(patient_id))
-    #     entries = []
-    #     for line in file:
-    #         stuff = line.split(",")
-    #         print(stuff)
-    #         entries.append(stuff[0:3])
-    #     entries = entries[1:]
-    # pass
-    #
+    for filepath in glob.iglob(data_path):
+        print(filepath)
 
 
 
