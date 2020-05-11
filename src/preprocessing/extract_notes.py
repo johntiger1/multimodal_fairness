@@ -38,28 +38,72 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
     total = 0
     for dir, subdir, file in os.walk(data_path):
         total+=1
-        for split in tqdm(subdir, total=100000):
+        splits = {"train": 35000, "test": 5000}
+        curr_dir = dir.split(os.path.pathsep)[-1]
+        for split in tqdm(subdir, total=splits[curr_dir]):
             if split.isdigit():
                 patient_id = int(split)
-
+                patient_hadm2episode_mapping = {}
                 with open(os.path.join(dir, split, "stays.csv")) as stays_file:
-                    stays_file.readline() #consume the first line
-                    hadm_id = int(stays_file.readline().split(",")[1])
-                relevant_notes_idx = (notes_table["HADM_ID"] == hadm_id) &\
-                                     (notes_table["SUBJECT_ID"] == patient_id)
+                    for idx, line in enumerate(stays_file):
+                        if idx > 0:
+                            hadm_id = int(line.split(",")[1])
+                            patient_hadm2episode_mapping[hadm_id] = idx
+
+                patient_notes_idx = (notes_table["SUBJECT_ID"] == patient_id)
+                patient_notes = notes_table[ patient_notes_idx]
+
+                patient_notes["EPISODES"] = patient_notes["HADM_ID"].map(patient_hadm2episode_mapping)
+
+                logger.error("{} null values encountered in patient {}".format(
+                    patient_notes["EPISODES"].isnull().sum(), patient_id))
+
 
                 output_subdir = os.path.join(output_dir, str(patient_id))
                 if not os.path.exists(output_subdir):
                     os.makedirs(output_subdir, exist_ok=True)
 
                 output_location = os.path.join(output_subdir, "notes.pkl")
-                notes_table[ relevant_notes_idx].to_pickle(output_location)
+                patient_notes.to_pickle(output_location)
 
 
         logging.info("{} entries processed".format(total))
 
+'''
+Tests that we can load and merge everything
+Note that os.walk will "visit" paths and nodes repeatedly
+For instance, if we have a sub-directory, then it will be traversed twice:
+Once as a subdirectory, and then once as a main directory
 
+In particular, it will always split it such that there is a dir, subdir and file
+Root must be given, otherwise the others can be empty
+they may be empty, but the format must be maintained
 
+We cannot walk the directories directly. That is, for each of the directories, we would like to 
+immediately, get the list of all their fles, but this is not possible!
+
+SINCE it is not a 3 way! It is just 2 levels. We need the dirs AND the files! 
+i.e. the files in the same level
+'''
+def test_merge(notes_path = "data/extracted_notes", vitals_path = "data/in-hospital-mortality",
+               hadm2index_path =""
+               ):
+
+    for dir, subdir, file in os.walk(vitals_path):
+        logger.debug("{},{},{}".format(dir,subdir,file))
+        pardir_name = dir.split(os.path.sep)[-1]
+        logger.info(pardir_name)
+        # if pardir_name== "train":
+        #     for fil in file:
+        #         print(fil)
+
+        # if subdir.isdigit():
+        #     pass
+
+        pass
+
+    pass
 
 if __name__ == "__main__":
-    extract_notes()
+    # extract_notes()
+    test_merge()
