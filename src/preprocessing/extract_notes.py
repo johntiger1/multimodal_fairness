@@ -35,21 +35,16 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
         os.makedirs(output_dir, exist_ok=True)
 
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
-    # logging.debug(notes_table.dtypes)
     total = 0
     for dir, subdir, file in os.walk(data_path):
         total+=1
         for split in tqdm(subdir, total=100000):
             if split.isdigit():
                 patient_id = int(split)
-                # logging.debug("{} {} {}".format(dir,subdir, file))
-                # logging.info("{} {}".format(dir, patient_id))
-        #         now, for each specific episode, extract the hadm
+
                 with open(os.path.join(dir, split, "stays.csv")) as stays_file:
                     stays_file.readline() #consume the first line
-                    # for line in stays_file:
                     hadm_id = int(stays_file.readline().split(",")[1])
-                        # break
                 relevant_notes_idx = (notes_table["HADM_ID"] == hadm_id) &\
                                      (notes_table["SUBJECT_ID"] == patient_id)
 
@@ -63,8 +58,6 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
         logging.info("{} entries processed".format(total))
 
-        # patient_id = subdir.split(os.path.pathsep)[-1]
-        # print(patient_id)
 
 
 
