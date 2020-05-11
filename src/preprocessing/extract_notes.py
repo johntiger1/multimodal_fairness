@@ -36,15 +36,16 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
     total = 0
-    for dir, subdir, file in os.walk(data_path):
+    for root, dir, file in os.walk(data_path):
         total+=1
         splits = {"train": 35000, "test": 5000}
-        curr_dir = dir.split(os.path.pathsep)[-1]
-        for split in tqdm(subdir, total=splits[curr_dir]):
-            if split.isdigit():
+        curr_dir = root.split(os.path.sep)[-1]
+        if curr_dir in splits:
+            for split in tqdm(dir, total=splits[curr_dir]):
+
                 patient_id = int(split)
                 patient_hadm2episode_mapping = {}
-                with open(os.path.join(dir, split, "stays.csv")) as stays_file:
+                with open(os.path.join(root, split, "stays.csv")) as stays_file:
                     for idx, line in enumerate(stays_file):
                         if idx > 0:
                             hadm_id = int(line.split(",")[1])
@@ -67,7 +68,7 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
                 patient_notes.to_pickle(output_location)
 
 
-        logging.info("{} entries processed".format(total))
+    logging.info("{} entries processed".format(total))
 
 '''
 Tests that we can load and merge everything
@@ -105,5 +106,5 @@ def test_merge(notes_path = "data/extracted_notes", vitals_path = "data/in-hospi
     pass
 
 if __name__ == "__main__":
-    # extract_notes()
-    test_merge()
+    extract_notes()
+    # test_merge()
