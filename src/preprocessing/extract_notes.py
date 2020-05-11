@@ -2,10 +2,11 @@ from mimic3benchmark.readers import DecompensationReader, InHospitalMortalityRea
 import pandas as pd
 import logging
 import glob
+import os
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.debug("hello")
-
 '''
 This script will extract all the notes for the patients.
 
@@ -23,8 +24,11 @@ Extracts notes, going over the TOTAL dataset
 '''
 def extract_notes(data_path="data/root"):
 
-    for filepath in glob.iglob(data_path):
-        print(filepath)
+    for dir, subdir, file in os.walk(data_path):
+        for split in subdir:
+            print(split)
+        # patient_id = subdir.split(os.path.pathsep)[-1]
+        # print(patient_id)
 
 
 
