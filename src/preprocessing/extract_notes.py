@@ -133,8 +133,17 @@ def test_merge(notes_path = "data/extracted_notes", vitals_path = "data/in-hospi
 
     pass
 
+def get_mappings(output_dir="data/extracted_notes"):
+    pickle.load(os.path.join(output_dir, "patient2hadm.dict"))
+    return
+
 if __name__ == "__main__":
-    # extract_notes()
+    extract_notes()
     # test_merge()
-    df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
-    print(df)
+    # df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
+    # print(df)
+    output_dir = "data/extracted_notes"
+    with open(os.path.join(output_dir, "patient2hadm.dict")) as file:
+        p2hadm = pickle.load(file)
+    print(p2hadm)
+
