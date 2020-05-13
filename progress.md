@@ -14,7 +14,7 @@ https://github.com/allenai/allennlp-models
 - fairseq 
 - pytorch-nlp (*just* the CNN encoder)
 
-Therefore, we will spend two hours investigating fairseq. 
+Therefore, we will spend two hours investigating fairseq. One thing is that it is obtuse to begin. But this time may be different...
 
 # May 10
 
