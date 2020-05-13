@@ -4,7 +4,7 @@ import logging
 import glob
 import os
 import pandas as pd
-
+import pickle
 from tqdm.auto import  tqdm
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -25,17 +25,26 @@ notes).
 Extracts notes, going over the TOTAL dataset
 '''
 def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
+    '''
 
     '''
-    load a copy of the notes CSV for processing
-
-    '''
+    from collections import defaultdict
+    stats = {}
+    import numpy as np
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
+
+    logger.warning("Dropping rows where HADM_ID is null: {} {}".format(len(notes_table), len(notes_table[notes_table["HADM_ID"].notna()])))
+    notes_table = notes_table[notes_table["HADM_ID"].notna()]
+
     total = 0
+
+    patient2hadm = defaultdict(list)     # "patient" -> ["hadm1", "hadm2"...]
+    hadm2episode = {} # hadm1 -> eps1
+
     for root, dir, file in os.walk(data_path):
         total+=1
         splits = {"train": 35000, "test": 5000}
@@ -49,10 +58,15 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
                     for idx, line in enumerate(stays_file):
                         if idx > 0:
                             hadm_id = int(line.split(",")[1])
+                            patient2hadm[patient_id].append(hadm_id)
+                            if hadm_id in hadm2episode:
+                                logger.error("oops")
+                            hadm2episode[hadm_id] = idx
                             patient_hadm2episode_mapping[hadm_id] = idx
 
                 patient_notes_idx = (notes_table["SUBJECT_ID"] == patient_id)
                 patient_notes = notes_table[ patient_notes_idx]
+
 
                 patient_notes["EPISODES"] = patient_notes["HADM_ID"].map(patient_hadm2episode_mapping)
 
@@ -67,29 +81,33 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
                 output_location = os.path.join(output_subdir, "notes.pkl")
                 patient_notes.to_pickle(output_location)
 
+    # save the hadm2episode index. Note that, it is also useful to have the specific patient as well
+
+    pickle.dump(patient2hadm, open(os.path.join(output_dir, "patient2hadm.dict")))
+    pickle.dump(hadm2episode, open(os.path.join(output_dir, "hadm2episode.dict")))
 
     logging.info("{} entries processed".format(total))
 
-'''
-Tests that we can load and merge everything
-Note that os.walk will "visit" paths and nodes repeatedly
-For instance, if we have a sub-directory, then it will be traversed twice:
-Once as a subdirectory, and then once as a main directory
 
-In particular, it will always split it such that there is a dir, subdir and file
-Root must be given, otherwise the others can be empty
-they may be empty, but the format must be maintained
-
-We cannot walk the directories directly. That is, for each of the directories, we would like to 
-immediately, get the list of all their fles, but this is not possible!
-
-SINCE it is not a 3 way! It is just 2 levels. We need the dirs AND the files! 
-i.e. the files in the same level
-'''
 def test_merge(notes_path = "data/extracted_notes", vitals_path = "data/in-hospital-mortality",
                hadm2index_path =""
                ):
+    '''
+    Tests that we can load and merge everything
+    Note that os.walk will "visit" paths and nodes repeatedly
+    For instance, if we have a sub-directory, then it will be traversed twice:
+    Once as a subdirectory, and then once as a main directory
 
+    In particular, it will always split it such that there is a dir, subdir and file
+    Root must be given, otherwise the others can be empty
+    they may be empty, but the format must be maintained
+
+    We cannot walk the directories directly. That is, for each of the directories, we would like to
+    immediately, get the list of all their fles, but this is not possible!
+
+    SINCE it is not a 3 way! It is just 2 levels. We need the dirs AND the files!
+    i.e. the files in the same level
+    '''
     for dir, subdir, file in os.walk(vitals_path):
         logger.debug("{},{},{}".format(dir,subdir,file))
         pardir_name = dir.split(os.path.sep)[-1]
