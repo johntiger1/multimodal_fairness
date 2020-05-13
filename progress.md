@@ -3,6 +3,11 @@ Essentially, we should have a data reader, which iterates over both streams of d
 
 And in general, just need to build a simple LSTM.
 
+Relevant libraries and packages:
+- torchtext
+- pytorch-nlp
+- huggingface
+
 # May 10
 
 # may 10 Appendix 
