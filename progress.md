@@ -5,6 +5,9 @@ The goal is limited, and achievable. Essentially, we want to do: make a fairseq 
 
 We will need to either build the dict ourselves, or use the built-in preproc tool. This preproc tool: will auto build it from corpora. But we need the corpora in the right format. 
 
+FairSeq is NOT plug and play, we will need to implement and satisfy an implementation for an interface, defining a task, architecture, and so forth. 
+___
+
 Essentially, we should have a data reader, which iterates over both streams of data. And then, provide this data to a model, which will then train.
 
 And in general, just need to build a simple LSTM.
