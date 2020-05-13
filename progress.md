@@ -1,3 +1,8 @@
+# May 13
+Essentially, we should have a data reader, which iterates over both streams of data. And then, provide this data to a model, which will then train.
+
+And in general, just need to build a simple LSTM.
+
 # May 10
 
 # may 10 Appendix 
