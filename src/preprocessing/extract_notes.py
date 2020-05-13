@@ -36,9 +36,9 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
         os.makedirs(output_dir, exist_ok=True)
 
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
-
-    logger.warning("Dropping rows where HADM_ID is null: {} {}".format(len(notes_table), len(notes_table[notes_table["HADM_ID"].notna()])))
-    notes_table = notes_table[notes_table["HADM_ID"].notna()]
+    hadm_notes = notes_table[notes_table["HADM_ID"].notna()]
+    logger.warning("Dropping rows where HADM_ID is null: {} {}".format(len(notes_table), len(hadm_notes)))
+    del notes_table
 
     total = 0
 
@@ -64,8 +64,8 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
                             hadm2episode[hadm_id] = idx
                             patient_hadm2episode_mapping[hadm_id] = idx
 
-                patient_notes_idx = (notes_table["SUBJECT_ID"] == patient_id)
-                patient_notes = notes_table[ patient_notes_idx]
+                patient_notes_idx = (hadm_notes["SUBJECT_ID"] == patient_id)
+                patient_notes = hadm_notes[ patient_notes_idx]
 
 
                 patient_notes["EPISODES"] = patient_notes["HADM_ID"].map(patient_hadm2episode_mapping)
