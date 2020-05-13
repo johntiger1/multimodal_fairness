@@ -17,10 +17,11 @@ from mimic3benchmark.readers import Reader
 import os 
 import pandas as pd
 import numpy as np
+import logging
 
 
 class MultiInHospitalMortalityReader(Reader):
-    def __init__(self, dataset_dir, text_data_dir="", listfile=None, period_length=48.0):
+    def __init__(self, dataset_dir, text_data_dir="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes", listfile=None, period_length=48.0):
         """ Reader for in-hospital moratality prediction task.
 
         :param dataset_dir:   Directory where timeseries files are stored.
@@ -29,10 +30,23 @@ class MultiInHospitalMortalityReader(Reader):
         :param period_length: Length of the period (in hours) from which the prediction is done.
         """
         Reader.__init__(self, dataset_dir, listfile)
+        self.patient2idx = {}
+        for idx, elt in enumerate (self._data):
+            pat_id = elt.split("_")[0]
+            self.patient2idx[int(pat_id)]  = idx
         self._data = [line.split(',') for line in self._data]
+
+        # self.patient2idx = {pat_id:idx for a.split("_") for entry in self._data }
         self._data = [(x, int(y)) for (x, y) in self._data]
         self._period_length = period_length
         self.textdata_dir = text_data_dir
+
+    '''finds the idx for the given patient'''
+    def patient2idx(self, pat_id):
+
+        # for i,
+        # pass
+        pass
 
     def _read_timeseries(self, ts_filename):
         ret = []
@@ -70,9 +84,9 @@ class MultiInHospitalMortalityReader(Reader):
         y = self._data[index][1]
         (X, header) = self._read_timeseries(name)
         
-        patient_id = int(name.split("_")[0])
+        patient_id = (name.split("_")[0])
         hadm_id = None #TODO, fill this in with the mapping
-        episode = int(name.split("_")[1])
+        episode = None # episode1 => need a re; int(name.split("_")[1])
         relevant_patient_notes = pd.read_pickle(os.path.join(self.textdata_dir, patient_id, "notes.pkl"))
         text = relevant_patient_notes.iloc[0] #TODO: fill this in with the mapping
         return {"X": X,
@@ -81,3 +95,18 @@ class MultiInHospitalMortalityReader(Reader):
                 "header": header,
                 "name": name, 
                 "text": text}
+
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+
+
+    dual_reader  = MultiInHospitalMortalityReader (dataset_dir='data/in-hospital-mortality/test',
+                                                   text_data_dir="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
+                              listfile='data/in-hospital-mortality/test/listfile.csv')
+    idx = dual_reader.patient2idx[1819]
+    datum = dual_reader.read_example(idx )
+    logger.info(datum)
+    pass
