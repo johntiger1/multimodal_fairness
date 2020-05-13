@@ -87,9 +87,9 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
                 output_location = os.path.join(output_subdir, "notes.pkl")
                 patient_notes.to_pickle(output_location)
-                print (output_location)
-                break
-            break
+            #     print (output_location)
+            #     break
+            # break
 
     # save the hadm2episode index. Note that, it is also useful to have the specific patient as well
 
@@ -144,6 +144,6 @@ if __name__ == "__main__":
     # print(df)
     output_dir = "data/extracted_notes"
     with open(os.path.join(output_dir, "patient2hadm.dict")) as file:
-        p2hadm = pickle.load(file)
+        p2hadm = pd.read_pickle(os.path.join(output_dir, "patient2hadm.dict"))
     print(p2hadm)
 
