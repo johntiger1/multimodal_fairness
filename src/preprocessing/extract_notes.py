@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(1, "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness")
 from mimic3benchmark.readers import DecompensationReader, InHospitalMortalityReader
 import pandas as pd
 import logging
@@ -6,6 +8,8 @@ import os
 import pandas as pd
 import pickle
 from tqdm.auto import  tqdm
+
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.debug("hello")
@@ -35,6 +39,7 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
+    #TODO: simply only take in the hadm ids, found in stays.csv!
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
     hadm_notes = notes_table[notes_table["HADM_ID"].notna()]
     logger.warning("Dropping rows where HADM_ID is null: {} {}".format(len(notes_table), len(hadm_notes)))
