@@ -70,8 +70,10 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
                 patient_notes["EPISODES"] = patient_notes["HADM_ID"].map(patient_hadm2episode_mapping)
 
-                logger.error("{} null values encountered in patient {}".format(
-                    patient_notes["EPISODES"].isnull().sum(), patient_id))
+                no_eps_mapping = patient_notes["EPISODES"].isnull().sum()
+                if no_eps_mapping > 0:
+                    logger.info("{} null values encountered in patient {}".format(
+                        no_eps_mapping, patient_id))
 
 
                 output_subdir = os.path.join(output_dir, str(patient_id))
