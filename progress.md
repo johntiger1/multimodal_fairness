@@ -7,6 +7,9 @@ Relevant libraries and packages:
 - torchtext
 - pytorch-nlp
 - huggingface
+
+For these last two: changes to their built-in models (on a local version) *should* also be reflected in the local version as well! 
+https://github.com/allenai/allennlp-models
 - allennlp
 - fairseq 
 
