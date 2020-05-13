@@ -1,4 +1,5 @@
 # May 13
+OK, switching to AllenNLP, since I want to try a new library.
 
 Fairseq Prog:
 The goal is limited, and achievable. Essentially, we want to do: make a fairseq ConvEncoder, that will simply predict the target sequence (0/1), from the given vocab. of texts. Therefore, all we need to do is build the dictionary, and then leverage word embeddings etc.
