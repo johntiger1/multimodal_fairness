@@ -16,6 +16,8 @@ https://github.com/allenai/allennlp-models
 
 Therefore, we will spend two hours investigating fairseq. One thing is that it is obtuse to begin. But this time may be different...
 
+Instead, let us try and use allennlp, which has an attractive and useful tutorial. 
+
 # May 10
 
 # may 10 Appendix 
