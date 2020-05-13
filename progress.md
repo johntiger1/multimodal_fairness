@@ -12,6 +12,9 @@ For these last two: changes to their built-in models (on a local version) *shoul
 https://github.com/allenai/allennlp-models
 - allennlp
 - fairseq 
+- pytorch-nlp (*just* the CNN encoder)
+
+Therefore, we will spend two hours investigating fairseq. 
 
 # May 10
 
