@@ -52,7 +52,7 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
     for root, dir, file in os.walk(data_path):
         total+=1
-        splits = {"train": 35000, "test": 5000}
+        splits = {"train": 29000, "test": 5000}
         curr_dir = root.split(os.path.sep)[-1]
         if curr_dir in splits:
             for split in tqdm(dir, total=splits[curr_dir]):
@@ -87,11 +87,14 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
                 output_location = os.path.join(output_subdir, "notes.pkl")
                 patient_notes.to_pickle(output_location)
+                print (output_location)
+                break
+            break
 
     # save the hadm2episode index. Note that, it is also useful to have the specific patient as well
 
-    pickle.dump(patient2hadm, open(os.path.join(output_dir, "patient2hadm.dict")))
-    pickle.dump(hadm2episode, open(os.path.join(output_dir, "hadm2episode.dict")))
+    pickle.dump(patient2hadm, open(os.path.join(output_dir, "patient2hadm.dict"), "wb"))
+    pickle.dump(hadm2episode, open(os.path.join(output_dir, "hadm2episode.dict"), "wb"))
 
     logging.info("{} entries processed".format(total))
 
@@ -131,5 +134,7 @@ def test_merge(notes_path = "data/extracted_notes", vitals_path = "data/in-hospi
     pass
 
 if __name__ == "__main__":
-    extract_notes()
+    # extract_notes()
     # test_merge()
+    df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
+    print(df)
