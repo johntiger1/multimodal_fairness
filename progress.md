@@ -7,6 +7,8 @@ Relevant libraries and packages:
 - torchtext
 - pytorch-nlp
 - huggingface
+- allennlp
+- fairseq 
 
 # May 10
 
