@@ -1,3 +1,33 @@
+# May 13
+OK, switching to AllenNLP, since I want to try a new library.
+
+Fairseq Prog:
+The goal is limited, and achievable. Essentially, we want to do: make a fairseq ConvEncoder, that will simply predict the target sequence (0/1), from the given vocab. of texts. Therefore, all we need to do is build the dictionary, and then leverage word embeddings etc.
+
+We will need to either build the dict ourselves, or use the built-in preproc tool. This preproc tool: will auto build it from corpora. But we need the corpora in the right format. 
+
+FairSeq is NOT plug and play, we will need to implement and satisfy an implementation for an interface, defining a task, architecture, and so forth. 
+___
+
+Essentially, we should have a data reader, which iterates over both streams of data. And then, provide this data to a model, which will then train.
+
+And in general, just need to build a simple LSTM.
+
+Relevant libraries and packages:
+- torchtext
+- pytorch-nlp
+- huggingface
+
+For these last two: changes to their built-in models (on a local version) *should* also be reflected in the local version as well! 
+https://github.com/allenai/allennlp-models
+- allennlp
+- fairseq 
+- pytorch-nlp (*just* the CNN encoder)
+
+Therefore, we will spend two hours investigating fairseq. One thing is that it is obtuse to begin. But this time may be different...
+
+Instead, let us try and use allennlp, which has an attractive and useful tutorial. Anything that has a pre-trained model, must also provide us the functionality to dynamically edit and load it from scratch locally
+
 # May 10
 
 # may 10 Appendix 
