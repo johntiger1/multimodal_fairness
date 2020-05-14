@@ -9,7 +9,15 @@ AllenNLP: datasetReader and Model
 (as expected)
 
 A little more depth: (Thankfully for my prior background)
- 1. When we have Instances, they are composed of Fields. These Fields are internally used by the model, which does the standard processing (text => tokenization => embedding look-up). Note that text => tokenization is not directly handled by either the model OR the reader; rather, this is served by a config. 
+ 1. When we have Instances, they are composed of Fields. These Fields are internally used by the model, which does the standard processing (text => tokenization => embedding look-up). Note that text => tokenization is not directly handled by either the model OR the reader; rather, this is served by a config.
+ 2. That's it!
+ 
+The next part involves some more Seq2Vec interfaces, which seems plug and play wrt the BERT/LSTM etc. 
+ ```
+ The first step is changing the strings in the input text into token ids. This is handled by the SingleIdTokenIndexer that we used previously, during part of our data processing pipeline that you don’t have to write code for.
+ ```
+ 
+ 
  2. 
  
 Strong choices: loss is computed right in the *forward* pass of the model! More on that later...
