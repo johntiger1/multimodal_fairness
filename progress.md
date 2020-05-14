@@ -4,15 +4,19 @@ Doubling down:
 AllenNLP: datasetReader and Model
 1. DatasetReader: defines a read method
   read: yields Instances, which are composed of named fields.
-2. Model: defines a forward; just like a regular PyTorch module
+2. Model: defines a forward; just like a regular PyTorch module. The output should be a dict with a "loss' key
 
 (as expected)
 
 A little more depth: (Thankfully for my prior background)
  1. When we have Instances, they are composed of Fields. These Fields are internally used by the model, which does the standard processing (text => tokenization => embedding look-up). Note that text => tokenization is not directly handled by either the model OR the reader; rather, this is served by a config.
- 2. That's it!
+ 2. That's it! 
  
 The next part involves some more Seq2Vec interfaces, which seems plug and play wrt the BERT/LSTM etc. 
+ 
+ Finally, the data processing pipeline is highly integrate with the model definition. 
+ Model definition: requires a language, embedding mechanism, and so forth. So when we talk about Model specifics, then we don't want to hide all this additional complexity. 
+ 
  ```
  The first step is changing the strings in the input text into token ids. This is handled by the SingleIdTokenIndexer that we used previously, during part of our data processing pipeline that you don’t have to write code for.
  ```
