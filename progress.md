@@ -1,4 +1,19 @@
 # May 14
+
+OK, going back to fairseq:
+fairseq => should follow simple principles
+
+Model, Reader
+
+Instead, it is a bit more granular: 5 plug-ins. 
+Model and Task mainly correspond to one another. 
+
+Ultimately, these frameworks must answer difficult questions:
+1. where does the text => tokens occur?
+2. where does the token => embedding occur (UNIVERSALLY, in the model arch)
+3. where is the loss computed? Is there a predict method, or an evaluate?
+
+
 Doubling down:
 
 AllenNLP: datasetReader and Model
