@@ -9,10 +9,15 @@ Instead, it is a bit more granular: 5 plug-ins.
 Model and Task mainly correspond to one another. 
 
 Ultimately, these frameworks must answer difficult questions:
-1. where does the text => tokens occur?
+1. where does the text => tokens occur? 
 2. where does the token => embedding occur (UNIVERSALLY, in the model arch)
 3. where is the loss computed? Is there a predict method, or an evaluate?
 
+To summarize: (tokenization-vocabularization), (embedding), (vocabularization)
+
+
+With FairSeq: 
+they skimp on data prep, which is one of the more important parts. How we go from (data instances) and get *Instances* from them is totally skimped over, along with vocab building etc.
 
 Doubling down:
 
