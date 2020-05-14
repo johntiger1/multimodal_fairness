@@ -8,7 +8,7 @@ AllenNLP: datasetReader and Model
 
 (as expected)
 
-A little more depth:
+A little more depth: (Thankfully for my prior background)
  1. When we have Instances, they are composed of Fields. These Fields are internally used by the model, which does the standard processing (text => tokenization => embedding look-up). Note that text => tokenization is not directly handled by either the model OR the reader; rather, this is served by a config. 
  2. 
  
