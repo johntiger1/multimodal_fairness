@@ -1,3 +1,10 @@
+
+# Multimodal Fairness
+
+1. Get the data set-up as described below.
+2. Run `python src/preprocessing/extract_notes.py` to get all the notes for the (patient, episode) pairs. 
+3. Construct a reader. This reader will 
+
 MIMIC-III Benchmarks
 =========================
 
