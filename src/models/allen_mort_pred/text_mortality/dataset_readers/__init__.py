@@ -1,0 +1,2 @@
+# this import wont work in pycharm. But it will work from where you actually call it (the allen mort pred, where you want to import the library)
+from text_mortality.dataset_readers.SemanticScholarDatasetReader import SemanticScholarDatasetReader

@@ -1,0 +1,1 @@
+from text_mortality.models.academic_paper_classifier import AcademicPaperClassifier

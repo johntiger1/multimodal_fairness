@@ -27,7 +27,7 @@ from allennlp.nn.util import get_text_field_mask, sequence_cross_entropy_with_lo
 
 from allennlp.training.metrics import CategoricalAccuracy
 
-from allennlp.data.iterators import BucketIterator
+from allennlp.data.dataloader import BucketIterator
 
 from allennlp.training.trainer import Trainer
 

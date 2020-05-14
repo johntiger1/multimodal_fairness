@@ -1,14 +1,20 @@
 from allennlp.common.testing import AllenNlpTestCase
 
 from allennlp.common.util import ensure_list
+from allennlp.common.file_utils import cached_path
+
 import sys
 
-from src.models.allen_mort_pred.text_mortality.dataset_readers import PatientNoteReader
+from src.models.allen_mort_pred.text_mortality.dataset_readers.SemanticScholarDatasetReader import SemanticScholarDatasetReader
 PATH_OFFSET = "src/models/allen_mort_pred/"
 class TestPatientNoteReader(AllenNlpTestCase):
+    def __init__(self):
+        # cached_path("https://github.com/allenai/allennlp-as-a-library-example/blob/master/tests/fixtures/s2_papers.jsonl")
+        pass
+
     def test_read_from_file(self):
-        reader = PatientNoteReader()
-        instances = ensure_list(reader.read(PATH_OFFSET + "tests/fixtures/s2_papers.json1"))
+        reader = SemanticScholarDatasetReader()
+        instances = ensure_list(reader.read(PATH_OFFSET + "tests/fixtures/s2_papers.jsonl"))
         instance1 = {"title": ["Interferring", "Discourse", "Relations", "in", "Context"],
                      "abstract": ["We", "investigate", "various", "contextual", "effects"],
                      "venue": "ACL"}
@@ -35,3 +41,9 @@ class TestPatientNoteReader(AllenNlpTestCase):
         assert [t.text for t in fields["title"].tokens] == instance3["title"]
         assert [t.text for t in fields["abstract"].tokens[:5]] == instance3["abstract"]
         assert fields["label"].label == instance3["venue"]
+
+'''ghetto pytest runner'''
+if __name__ == "__main__":
+    test = TestPatientNoteReader()
+    test.test_read_from_file()
+    print("done")
