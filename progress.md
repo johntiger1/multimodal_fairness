@@ -1,3 +1,22 @@
+# May 14
+Doubling down:
+
+AllenNLP: datasetReader and Model
+1. DatasetReader: defines a read method
+  read: yields Instances, which are composed of named fields.
+2. Model: defines a forward; just like a regular PyTorch module
+
+(as expected)
+
+A little more depth:
+ 1. When we have Instances, they are composed of Fields. These Fields are internally used by the model, which does the standard processing (text => tokenization => embedding look-up). Note that text => tokenization is not directly handled by either the model OR the reader; rather, this is served by a config. 
+ 2. 
+ 
+Strong choices: loss is computed right in the *forward* pass of the model! More on that later...
+( directly goes against the 4-part PyTorch coding approach )
+
+
+
 # May 13
 OK, switching to AllenNLP, since I want to try a new library.
 
