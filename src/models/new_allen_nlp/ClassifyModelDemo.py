@@ -173,6 +173,8 @@ def run_training_loop(use_gpu=False):
 
     return model, dataset_reader
 
+print("we are running with the following info")
+print("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda, torch.cuda.is_available()))
 # We've copied the training loop from an earlier example, with updated model
 # code, above in the Setup section. We run the training loop to get a trained
 # model.
