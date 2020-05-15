@@ -172,7 +172,8 @@ def run_training_loop(use_gpu=False):
         trainer.train()
 
     return model, dataset_reader
-
+import time
+start_time = time.time()
 print("we are running with the following info")
 print("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda, torch.cuda.is_available()))
 # We've copied the training loop from an earlier example, with updated model
@@ -190,3 +191,8 @@ data_loader = DataLoader(test_data, batch_size=8)
 
 # will cause an exception due to outdated cuda driver? Not anymore!
 results = evaluate(model, data_loader, 0, None)
+
+print("we succ fulfilled it")
+with open("nice_srun_time.txt", "w") as file:
+    file.write("it is done\n{}\nTook {}".format(results, time.time()-start_time))
+
