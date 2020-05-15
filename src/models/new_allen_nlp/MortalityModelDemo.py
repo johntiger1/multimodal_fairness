@@ -26,9 +26,9 @@ class MortalityReader(DatasetReader):
                  lazy: bool = False,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
-                 max_tokens: int = None,
-                 listfile: str = None,
-                 notes_dir: str = None,
+                 max_tokens: int = 512,
+                 listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
+                 notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
@@ -45,7 +45,7 @@ class MortalityReader(DatasetReader):
                 info = info_filename.split("_")
                 patient_id = info[0]
                 eps = ("".join([c for c in info[1] if c.isdigit()]))
-                notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id))
+                notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
 
                 text = notes[notes["EPISODES"] == eps]["text"]
                 tokens = self.tokenizer.tokenize(text)
@@ -56,13 +56,156 @@ class MortalityReader(DatasetReader):
                 yield Instance(fields)
 
 
-        with open(file_path, 'r') as lines:
-            for line in lines:
-                text, sentiment = line.strip().split('\t')
-                tokens = self.tokenizer.tokenize(text)
-                if self.max_tokens:
-                    tokens = tokens[:self.max_tokens]
-                text_field = TextField(tokens, self.token_indexers)
-                label_field = LabelField(sentiment)
-                fields = {'text': text_field, 'label': label_field}
-                yield Instance(fields)
+
+# class SimpleClassifier(Model):
+#     def __init__(self,
+#                  vocab: Vocabulary,
+#                  embedder: TextFieldEmbedder,
+#                  encoder: Seq2VecEncoder):
+#         super().__init__(vocab)
+#         self.embedder = embedder
+#         self.encoder = encoder
+#         num_labels = vocab.get_vocab_size("labels")
+#         self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
+#         self.accuracy = CategoricalAccuracy()
+#
+#     def forward(self,
+#                 text: Dict[str, torch.Tensor],
+#                 label: torch.Tensor) -> Dict[str, torch.Tensor]:
+#         # Shape: (batch_size, num_tokens, embedding_dim)
+#         embedded_text = self.embedder(text)
+#         # Shape: (batch_size, num_tokens)
+#         mask = util.get_text_field_mask(text)
+#         # Shape: (batch_size, encoding_dim)
+#         encoded_text = self.encoder(embedded_text, mask)
+#         # Shape: (batch_size, num_labels)
+#         logits = self.classifier(encoded_text)
+#         # Shape: (batch_size, num_labels)
+#         probs = torch.nn.functional.softmax(logits)
+#         # Shape: (1,)
+#         loss = torch.nn.functional.cross_entropy(logits, label)
+#         self.accuracy(logits, label)
+#         output = {'loss': loss, 'probs': probs}
+#         return output
+#
+#     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
+#         return {"accuracy": self.accuracy.get_metric(reset)}
+#
+#
+# def build_dataset_reader() -> DatasetReader:
+#     return MortalityReader()
+#
+# def read_data(
+#     reader: DatasetReader
+# ) -> Tuple[Iterable[Instance], Iterable[Instance]]:
+#     print("Reading data")
+#     training_data = reader.read("quick_start/data/movie_review/train.tsv")
+#     validation_data = reader.read("quick_start/data/movie_review/dev.tsv")
+#     return training_data, validation_data
+#
+# def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
+#     print("Building the vocabulary")
+#     return Vocabulary.from_instances(instances)
+#
+# def build_model(vocab: Vocabulary) -> Model:
+#     print("Building the model")
+#     vocab_size = vocab.get_vocab_size("tokens")
+#     embedder = BasicTextFieldEmbedder(
+#         {"tokens": Embedding(embedding_dim=10, num_embeddings=vocab_size)})
+#     encoder = BagOfEmbeddingsEncoder(embedding_dim=10)
+#     return SimpleClassifier(vocab, embedder, encoder)
+#
+# def build_data_loaders(
+#     train_data: torch.utils.data.Dataset,
+#     dev_data: torch.utils.data.Dataset,
+# ) -> Tuple[allennlp.data.DataLoader, allennlp.data.DataLoader]:
+#     # Note that DataLoader is imported from allennlp above, *not* torch.
+#     # We need to get the allennlp-specific collate function, which is
+#     # what actually does indexing and batching.
+#     train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
+#     dev_loader = DataLoader(dev_data, batch_size=8, shuffle=False)
+#     return train_loader, dev_loader
+#
+# def build_trainer(
+#     model: Model,
+#     serialization_dir: str,
+#     train_loader: DataLoader,
+#     dev_loader: DataLoader
+# ) -> Trainer:
+#     parameters = [
+#         [n, p]
+#         for n, p in model.named_parameters() if p.requires_grad
+#     ]
+#     optimizer = AdamOptimizer(parameters)
+#     trainer = GradientDescentTrainer(
+#         model=model,
+#         serialization_dir=serialization_dir,
+#         data_loader=train_loader,
+#         validation_data_loader=dev_loader,
+#         num_epochs=5,
+#         optimizer=optimizer,
+#         cuda_device=0
+#     )
+#     return trainer
+#
+# def run_training_loop(use_gpu=False):
+#     dataset_reader = build_dataset_reader()
+#
+#     # These are a subclass of pytorch Datasets, with some allennlp-specific
+#     # functionality added.
+#     train_data, dev_data = read_data(dataset_reader)
+#
+#     vocab = build_vocab(train_data + dev_data)
+#     model = build_model(vocab)
+#
+#     # move the model over, if necessary, and possible
+#     gpu_device = torch.device("cuda:0" if use_gpu  else "cpu")
+#     model = model.to(gpu_device)
+#
+#     # This is the allennlp-specific functionality in the Dataset object;
+#     # we need to be able convert strings in the data to integers, and this
+#     # is how we do it.
+#     train_data.index_with(vocab)
+#     dev_data.index_with(vocab)
+#
+#     # These are again a subclass of pytorch DataLoaders, with an
+#     # allennlp-specific collate function, that runs our indexing and
+#     # batching code.
+#     train_loader, dev_loader = build_data_loaders(train_data, dev_data)
+#
+#     # You obviously won't want to create a temporary file for your training
+#     # results, but for execution in binder for this course, we need to do this.
+#     with tempfile.TemporaryDirectory() as serialization_dir:
+#         trainer = build_trainer(
+#             model,
+#             serialization_dir,
+#             train_loader,
+#             dev_loader
+#         )
+#         trainer.train()
+#
+#     return model, dataset_reader
+# import time
+# start_time = time.time()
+# print("we are running with the following info")
+# print("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda, torch.cuda.is_available()))
+# # We've copied the training loop from an earlier example, with updated model
+# # code, above in the Setup section. We run the training loop to get a trained
+# # model.
+# model, dataset_reader = run_training_loop(use_gpu=True)
+#
+# # Now we can evaluate the model on a new dataset.
+# test_data = dataset_reader.read('quick_start/data/movie_review/test.tsv')
+# test_data.index_with(model.vocab)
+# data_loader = DataLoader(test_data, batch_size=8)
+#
+# # results = evaluate(model, data_loader, -1, None)
+# # print(results)
+#
+# # will cause an exception due to outdated cuda driver? Not anymore!
+# results = evaluate(model, data_loader, 0, None)
+#
+# print("we succ fulfilled it")
+# with open("nice_srun_time.txt", "w") as file:
+#     file.write("it is done\n{}\nTook {}".format(results, time.time()-start_time))
+#
