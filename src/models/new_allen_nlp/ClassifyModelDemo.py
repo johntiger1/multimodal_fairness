@@ -1,23 +1,21 @@
 import tempfile
 from typing import Dict, Iterable, List, Tuple
 
+import allennlp
 import torch
-
-from allennlp.data import DataLoader, DatasetReader, Instance
-from allennlp.data import Vocabulary
+from allennlp.data import DataLoader, DatasetReader, Instance, Vocabulary
 from allennlp.data.fields import LabelField, TextField
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
 from allennlp.models import Model
 from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
-from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
-from allennlp.modules.token_embedders import Embedding
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder
+from allennlp.modules.token_embedders import Embedding
+from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.nn import util
-from allennlp.training import GradientDescentTrainer, Trainer
-from allennlp.training.metrics import CategoricalAccuracy
+from allennlp.training.trainer import GradientDescentTrainer, Trainer
 from allennlp.training.optimizers import AdamOptimizer
-from allennlp.training.util import evaluate
+from allennlp.training.metrics import CategoricalAccuracy
 
 
 class ClassificationTsvReader(DatasetReader):
@@ -54,11 +52,11 @@ class SimpleClassifier(Model):
         self.encoder = encoder
         num_labels = vocab.get_vocab_size("labels")
         self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
-        self.accuracy = CategoricalAccuracy()
 
     def forward(self,
                 text: Dict[str, torch.Tensor],
                 label: torch.Tensor) -> Dict[str, torch.Tensor]:
+        # print("In model.forward(); printing here just because binder is so slow")
         # Shape: (batch_size, num_tokens, embedding_dim)
         embedded_text = self.embedder(text)
         # Shape: (batch_size, num_tokens)
@@ -68,19 +66,14 @@ class SimpleClassifier(Model):
         # Shape: (batch_size, num_labels)
         logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
-        probs = torch.nn.functional.softmax(logits)
+        probs = torch.nn.functional.softmax(logits, dim=-1)
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
-        self.accuracy(logits, label)
-        output = {'loss': loss, 'probs': probs}
-        return output
-
-    def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        return {"accuracy": self.accuracy.get_metric(reset)}
+        return {'loss': loss, 'probs': probs}
 
 
 def build_dataset_reader() -> DatasetReader:
-    return ClassificationTsvReader(max_tokens=64)
+    return ClassificationTsvReader()
 
 def read_data(
     reader: DatasetReader
@@ -102,10 +95,47 @@ def build_model(vocab: Vocabulary) -> Model:
     encoder = BagOfEmbeddingsEncoder(embedding_dim=10)
     return SimpleClassifier(vocab, embedder, encoder)
 
-def build_data_loader(
+
+def run_training_loop():
+    dataset_reader = build_dataset_reader()
+
+    # These are a subclass of pytorch Datasets, with some allennlp-specific
+    # functionality added.
+    train_data, dev_data = read_data(dataset_reader)
+
+    vocab = build_vocab(train_data + dev_data)
+    model = build_model(vocab)
+
+    # This is the allennlp-specific functionality in the Dataset object;
+    # we need to be able convert strings in the data to integers, and this
+    # is how we do it.
+    train_data.index_with(vocab)
+    dev_data.index_with(vocab)
+
+    # These are again a subclass of pytorch DataLoaders, with an
+    # allennlp-specific collate function, that runs our indexing and
+    # batching code.
+    train_loader, dev_loader = build_data_loaders(train_data, dev_data)
+
+    # You obviously won't want to create a temporary file for your training
+    # results, but for execution in binder for this course, we need to do this.
+    with tempfile.TemporaryDirectory() as serialization_dir:
+        trainer = build_trainer(
+            model,
+            serialization_dir,
+            train_loader,
+            dev_loader
+        )
+        print("Starting training")
+        trainer.train()
+        print("Finished training")
+
+# The other `build_*` methods are things we've seen before, so they are
+# in the setup section above.
+def build_data_loaders(
     train_data: torch.utils.data.Dataset,
     dev_data: torch.utils.data.Dataset,
-) -> Tuple[DataLoader,DataLoader]:
+) -> Tuple[allennlp.data.DataLoader, allennlp.data.DataLoader]:
     # Note that DataLoader is imported from allennlp above, *not* torch.
     # We need to get the allennlp-specific collate function, which is
     # what actually does indexing and batching.
@@ -134,51 +164,5 @@ def build_trainer(
     )
     return trainer
 
-def run_training_loop():
-    dataset_reader = build_dataset_reader()
-    print("running this code")
-    print(dataset_reader)
-    # These are a subclass of pytorch Datasets, with some allennlp-specific
-    # functionality added.
-    train_data, dev_data = read_data(dataset_reader)
 
-    vocab = build_vocab(train_data + dev_data)
-    model = build_model(vocab)
-
-    # This is the allennlp-specific functionality in the Dataset object;
-    # we need to be able convert strings in the data to integers, and this
-    # is how we do it.
-    train_data.index_with(vocab)
-    dev_data.index_with(vocab)
-
-    # These are again a subclass of pytorch DataLoaders, with an
-    # allennlp-specific collate function, that runs our indexing and
-    # batching code.
-    train_loader, dev_loader = build_data_loader(train_data, dev_data)
-
-    # You obviously won't want to create a temporary file for your training
-    # results, but for execution in binder for this course, we need to do this.
-    with tempfile.TemporaryDirectory() as serialization_dir:
-        trainer = build_trainer(
-            model,
-            serialization_dir,
-            train_loader,
-            dev_loader
-        )
-        trainer.train()
-
-    return model, dataset_reader
-
-
-if __name__ == "__main__":
-    # We've copied the training loop from an earlier example, with updated model
-    # code, above in the Setup section. We run the training loop to get a trained
-    # model.
-    model, dataset_reader = run_training_loop()
-
-    # Now we can evaluate the model on a new dataset.
-    test_data = dataset_reader.read('quick_start/data/movie_review/test.tsv')
-    data_loader = DataLoader(test_data, batch_size=8)
-
-    results = evaluate(model, data_loader, -1 , None)
-    print(results)
+run_training_loop()
