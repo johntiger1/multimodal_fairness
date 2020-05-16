@@ -164,6 +164,17 @@ def build_data_loaders(
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     dev_loader = DataLoader(dev_data, batch_size=batch_size, shuffle=False)
     return train_loader, dev_loader
+
+
+def build_data_loaders_from_reader(dataset_reader, vocab, batch_size=64):
+    train_data, dev_data = read_data(dataset_reader)
+
+    train_data.index_with(vocab)
+    dev_data.index_with(vocab)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    dev_loader = DataLoader(dev_data, batch_size=batch_size, shuffle=False)
+    return train_loader, dev_loader
+
 #
 def build_trainer(
     model: Model,
@@ -186,17 +197,11 @@ def build_trainer(
         cuda_device=0
     )
     return trainer
-#
-def run_training_loop(use_gpu=False):
-    dataset_reader = build_dataset_reader()
 
-    # These are a subclass of pytorch Datasets, with some allennlp-specific
-    # functionality added.
-    train_data, dev_data = read_data(dataset_reader)
-
-    vocab = build_vocab(train_data + dev_data)
-    model = build_model(vocab)
-
+'''
+we pass in the vocab to ensure that we are speaking the same language!
+'''
+def run_training_loop(model, dataset_reader, vocab, use_gpu=False):
     # move the model over, if necessary, and possible
     gpu_device = torch.device("cuda:0" if use_gpu  else "cpu")
     model = model.to(gpu_device)
@@ -204,6 +209,9 @@ def run_training_loop(use_gpu=False):
     # This is the allennlp-specific functionality in the Dataset object;
     # we need to be able convert strings in the data to integers, and this
     # is how we do it.
+
+    train_data, dev_data = read_data(dataset_reader)
+
     train_data.index_with(vocab)
     dev_data.index_with(vocab)
 
@@ -225,34 +233,52 @@ def run_training_loop(use_gpu=False):
 
     return model, dataset_reader
 
+def main():
+    import time
 
-# if __name__ == __name__:
-import time
+    start_time = time.time()
+    # mr = MortalityReader()
+    # instances = mr.read("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
+    # for inst in instances[:10]:
+    #     print(inst)
+    print("we are running with the following info")
+    print("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda,
+                                                                       torch.cuda.is_available()))
+    # We've copied the training loop from an earlier example, with updated model
+    # code, above in the Setup section. We run the training loop to get a trained
+    # model.
 
-start_time = time.time()
-# mr = MortalityReader()
-# instances = mr.read("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
-# for inst in instances[:10]:
-#     print(inst)
-print("we are running with the following info")
-print("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda, torch.cuda.is_available()))
-# We've copied the training loop from an earlier example, with updated model
-# code, above in the Setup section. We run the training loop to get a trained
-# model.
-model, dataset_reader = run_training_loop(use_gpu=True)
+    dataset_reader = build_dataset_reader()
 
-# Now we can evaluate the model on a new dataset.
-test_data = dataset_reader.read('/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
-test_data.index_with(model.vocab)
-data_loader = DataLoader(test_data, batch_size=64)
+    # These are a subclass of pytorch Datasets, with some allennlp-specific
+    # functionality added.
+    train_data, dev_data = read_data(dataset_reader)
 
-# results = evaluate(model, data_loader, -1, None)
-# print(results)
+    vocab = build_vocab(train_data + dev_data)
+    model = build_model(vocab)
 
-# will cause an exception due to outdated cuda driver? Not anymore!
-results = evaluate(model, data_loader, 0, None)
+    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True)
 
-print("we succ fulfilled it")
-with open("nice_srun_time.txt", "w") as file:
-    file.write("it is done\n{}\nTook {}".format(results, time.time()-start_time))
+    # Now we can evaluate the model on a new dataset.
+    test_data = dataset_reader.read(
+        '/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
+    test_data.index_with(model.vocab)
+    data_loader = DataLoader(test_data, batch_size=64)
 
+    # results = evaluate(model, data_loader, -1, None)
+    # print(results)
+
+    # will cause an exception due to outdated cuda driver? Not anymore!
+    results = evaluate(model, data_loader, 0, None)
+
+    print("we succ fulfilled it")
+    with open("nice_srun_time.txt", "w") as file:
+        file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
+
+
+pass
+
+
+
+if __name__ == __name__:
+    main()
