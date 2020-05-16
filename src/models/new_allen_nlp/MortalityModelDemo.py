@@ -130,7 +130,10 @@ def build_model(vocab: Vocabulary) -> Model:
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
         {"tokens": Embedding(embedding_dim=300, num_embeddings=vocab_size)})
-    encoder = CnnEncoder(embedding_dim=300)
+    encoder = CnnEncoder(embedding_dim=300, ngram_filter_sizes = (2,3,4,5),
+                         num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
+    
+    # the output dim is just the num filters *len(ngram_filter_sizes)
     return SimpleClassifier(vocab, embedder, encoder)
 #
 def build_data_loaders(
