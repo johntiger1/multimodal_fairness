@@ -49,7 +49,7 @@ class MortalityReader(DatasetReader):
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
                 info_filename, label = line.split(",")
-                self.stats[label] +=1
+                self.stats[int(label)] +=1
         return self.stats
 
 
@@ -245,10 +245,17 @@ def main():
 
     dataset_reader = build_dataset_reader()
 
+    dataset_reader.get_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
+    for key,val in dataset_reader.stats.items():
+        print("{} {}".format(key,val))
+    dataset_reader.get_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
+
+    for key,val in dataset_reader.stats.items():
+        print("{} {}".format(key,val))
+    return
     # These are a subclass of pytorch Datasets, with some allennlp-specific
     # functionality added.
     train_data, dev_data = read_data(dataset_reader)
-
     vocab = build_vocab(train_data + dev_data)
     model = build_model(vocab)
 
