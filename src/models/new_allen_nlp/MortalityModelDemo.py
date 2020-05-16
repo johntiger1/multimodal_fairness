@@ -210,15 +210,10 @@ def run_training_loop(model, dataset_reader, vocab, use_gpu=False):
     # we need to be able convert strings in the data to integers, and this
     # is how we do it.
 
-    train_data, dev_data = read_data(dataset_reader)
-
-    train_data.index_with(vocab)
-    dev_data.index_with(vocab)
-
     # These are again a subclass of pytorch DataLoaders, with an
     # allennlp-specific collate function, that runs our indexing and
     # batching code.
-    train_loader, dev_loader = build_data_loaders(train_data, dev_data)
+    train_loader, dev_loader = build_data_loaders_from_reader(dataset_reader,vocab)
 
     # You obviously won't want to create a temporary file for your training
     # results, but for execution in binder for this course, we need to do this.
