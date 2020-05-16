@@ -1,5 +1,6 @@
 import tempfile
 from typing import Dict, Iterable, List, Tuple
+from overrides import overrides
 
 import torch
 
@@ -21,9 +22,108 @@ from allennlp.training.util import evaluate
 
 import pandas as pd
 import os
+import gc
+'''
+We should throw out the X, where X is not good
+'''
+
+'''
+Reimplementation of the AUC metric. However, we are simply not calling it correctly.
+We need to actually do it in the forward pass
+'''
+# class Auc(Metric):
+#     """
+#     The AUC Metric measures the area under the receiver-operating characteristic
+#     (ROC) curve for binary classification problems.
+#     """
+#
+#     def __init__(self, positive_label=1):
+#         super().__init__()
+#         self._positive_label = positive_label
+#         self._all_predictions = torch.FloatTensor()
+#         self._all_gold_labels = torch.LongTensor()
+#
+#     def __call__(
+#         self,
+#         predictions: torch.Tensor,
+#         gold_labels: torch.Tensor,
+#         mask: Optional[torch.BoolTensor] = None,
+#     ):
+#         """
+#         # Parameters
+#         predictions : `torch.Tensor`, required.
+#             A one-dimensional tensor of prediction scores of shape (batch_size).
+#         gold_labels : `torch.Tensor`, required.
+#             A one-dimensional label tensor of shape (batch_size), with {1, 0}
+#             entries for positive and negative class. If it's not binary,
+#             `positive_label` should be passed in the initialization.
+#         mask : `torch.BoolTensor`, optional (default = None).
+#             A one-dimensional label tensor of shape (batch_size).
+#         """
+#
+#         predictions, gold_labels, mask = self.detach_tensors(predictions, gold_labels, mask)
+#
+#         # Sanity checks.
+#         if gold_labels.dim() != 1:
+#             raise ConfigurationError(
+#                 "gold_labels must be one-dimensional, "
+#                 "but found tensor of shape: {}".format(gold_labels.size())
+#             )
+#         if predictions.dim() != 1:
+#             raise ConfigurationError(
+#                 "predictions must be one-dimensional, "
+#                 "but found tensor of shape: {}".format(predictions.size())
+#             )
+#
+#         unique_gold_labels = torch.unique(gold_labels)
+#         if unique_gold_labels.numel() > 2:
+#             raise ConfigurationError(
+#                 "AUC can be used for binary tasks only. gold_labels has {} unique labels, "
+#                 "expected at maximum 2.".format(unique_gold_labels.numel())
+#             )
+#
+#         gold_labels_is_binary = set(unique_gold_labels.tolist()) <= {0, 1}
+#         if not gold_labels_is_binary and self._positive_label not in unique_gold_labels:
+#             raise ConfigurationError(
+#                 "gold_labels should be binary with 0 and 1 or initialized positive_label "
+#                 "{} should be present in gold_labels".format(self._positive_label)
+#             )
+#
+#         if mask is None:
+#             batch_size = gold_labels.shape[0]
+#             mask = torch.ones(batch_size, device=gold_labels.device).bool()
+#
+#         self._all_predictions = self._all_predictions.to(predictions.device)
+#         self._all_gold_labels = self._all_gold_labels.to(gold_labels.device)
+#
+#         self._all_predictions = torch.cat(
+#             [self._all_predictions, torch.masked_select(predictions, mask).float()], dim=0
+#         )
+#         self._all_gold_labels = torch.cat(
+#             [self._all_gold_labels, torch.masked_select(gold_labels, mask).long()], dim=0
+#         )
+#
+#     def get_metric(self, reset: bool = False):
+#         if self._all_gold_labels.shape[0] == 0:
+#             return 0.5
+#         false_positive_rates, true_positive_rates, _ = metrics.roc_curve(
+#             self._all_gold_labels.cpu().numpy(),
+#             self._all_predictions.cpu().numpy(),
+#             pos_label=self._positive_label,
+#         )
+#         auc = metrics.auc(false_positive_rates, true_positive_rates)
+#         if reset:
+#             self.reset()
+#         return auc
+#
+#     @overrides
+#     def reset(self):
+#         self._all_predictions = torch.FloatTensor()
+#         self._all_gold_labels = torch.LongTensor()
+
 class MortalityReader(DatasetReader):
     def __init__(self,
-                 lazy: bool = False,
+                 lazy: bool = True,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
                  max_tokens: int = 512,
@@ -52,7 +152,7 @@ class MortalityReader(DatasetReader):
                 self.stats[int(label)] +=1
         return self.stats
 
-
+    @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''Expect: one instance per line'''
         with open(file_path, "r") as file:
@@ -105,6 +205,8 @@ class MortalityClassifier(Model):
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
         self.accuracy(logits, label)
+        preds = logits.argmax(-1)
+        self.auc(preds, label)
         output = {'loss': loss, 'probs': probs}
         return output
 
@@ -118,7 +220,9 @@ def build_dataset_reader() -> DatasetReader:
 #
 
 # "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
-
+'''
+The issue is that this may for somereason read everything into memory
+'''
 def read_data(
     reader: DatasetReader
 ) -> Tuple[Iterable[Instance], Iterable[Instance]]:
@@ -213,8 +317,9 @@ def run_training_loop(model, dataset_reader, vocab, use_gpu=False, batch_size =3
     # These are again a subclass of pytorch DataLoaders, with an
     # allennlp-specific collate function, that runs our indexing and
     # batching code.
-    train_loader, dev_loader = build_data_loaders_from_reader(dataset_reader,vocab, batch_size=batch_size)
+    gc.collect()
 
+    train_loader, dev_loader = build_data_loaders_from_reader(dataset_reader,vocab, batch_size=batch_size)
     # You obviously won't want to create a temporary file for your training
     # results, but for execution in binder for this course, we need to do this.
     with tempfile.TemporaryDirectory() as serialization_dir:
@@ -225,10 +330,15 @@ def run_training_loop(model, dataset_reader, vocab, use_gpu=False, batch_size =3
             dev_loader
         )
         trainer.train()
-
+    del train_loader
+    del dev_loader
+    gc.collect()
     return model, dataset_reader
 
 def main():
+
+    args = lambda x: None
+    args.batch_size = 64
     import time
 
     start_time = time.time()
@@ -260,13 +370,13 @@ def main():
     del dev_data
     model = build_model(vocab)
 
-    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True, batch_size=32)
+    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True, batch_size=args.batch_size)
 
     # Now we can evaluate the model on a new dataset.
     test_data = dataset_reader.read(
         '/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
     test_data.index_with(model.vocab)
-    data_loader = DataLoader(test_data, batch_size=32)
+    data_loader = DataLoader(test_data, batch_size=args.batch_size)
 
     # results = evaluate(model, data_loader, -1, None)
     # print(results)
@@ -279,7 +389,6 @@ def main():
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
 
 
-pass
 
 
 
