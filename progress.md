@@ -1,3 +1,14 @@
+# May 15
+Finally got the AllenNLP working! But there are still some questions: generation?
+
+Nahh, that's not relevant for this project! (might be useful for the other one). 
+
+Indeed for this one, we COULD probably hack together a model (to accept both modalities). 
+
+The only question is the data flow. Can it yield instances? If the answer is yes, then we can build an architecture that operates over multiple modalities. 
+
+So therefore, such architectures shall be trivial to implement. We simply need to yield Fields where appropriate. We can yield raw numeric data!
+
 # May 14
 
 OK, going back to fairseq:
