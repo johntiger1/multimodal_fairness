@@ -216,7 +216,7 @@ class MortalityClassifier(Model):
 #
 #
 def build_dataset_reader() -> DatasetReader:
-    return MortalityReader()
+    return MortalityReader(lazy=True)
 #
 
 # "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
@@ -275,7 +275,7 @@ def build_data_loaders_from_reader(dataset_reader, vocab, batch_size=64):
 
     train_data.index_with(vocab)
     dev_data.index_with(vocab)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False)
     dev_loader = DataLoader(dev_data, batch_size=batch_size, shuffle=False)
     return train_loader, dev_loader
 
