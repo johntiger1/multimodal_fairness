@@ -37,6 +37,22 @@ class MortalityReader(DatasetReader):
         self.listfile = listfile
         self.notes_dir = notes_dir
 
+    def get_stats(self, file_path: str):
+        '''
+
+        '''
+        # get stats on the dataset listed at _path_
+        from collections import defaultdict
+        self.stats = defaultdict(int)
+
+        with open(file_path, "r") as file:
+            file.readline() # could also pandas readcsv and ignore first line
+            for line in file:
+                info_filename, label = line.split(",")
+                self.stats[label] +=1
+        return self.stats
+
+
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''Expect: one instance per line'''
         with open(file_path, "r") as file:
@@ -93,7 +109,8 @@ class MortalityClassifier(Model):
         return output
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        return {"accuracy": self.accuracy.get_metric(reset)}
+        return {"accuracy": self.accuracy.get_metric(reset),
+                "auc":self.auc.get_metric(reset)}
 #
 #
 def build_dataset_reader() -> DatasetReader:
@@ -207,7 +224,11 @@ def run_training_loop(use_gpu=False):
         trainer.train()
 
     return model, dataset_reader
+
+
+# if __name__ == __name__:
 import time
+
 start_time = time.time()
 # mr = MortalityReader()
 # instances = mr.read("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
