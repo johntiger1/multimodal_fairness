@@ -14,7 +14,7 @@ from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.modules.token_embedders import Embedding
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder, CnnEncoder
 from allennlp.nn import util
-from allennlp.training.metrics import CategoricalAccuracy
+from allennlp.training.metrics import CategoricalAccuracy, Auc
 from allennlp.training.optimizers import AdamOptimizer
 from allennlp.training.trainer import Trainer, GradientDescentTrainer
 from allennlp.training.util import evaluate
@@ -60,7 +60,7 @@ class MortalityReader(DatasetReader):
 
 
 
-class SimpleClassifier(Model):
+class MortalityClassifier(Model):
     def __init__(self,
                  vocab: Vocabulary,
                  embedder: TextFieldEmbedder,
@@ -71,6 +71,7 @@ class SimpleClassifier(Model):
         num_labels = vocab.get_vocab_size("labels")
         self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
         self.accuracy = CategoricalAccuracy()
+        self.auc = Auc()
 
     def forward(self,
                 text: Dict[str, torch.Tensor],
@@ -132,9 +133,9 @@ def build_model(vocab: Vocabulary) -> Model:
         {"tokens": Embedding(embedding_dim=300, num_embeddings=vocab_size)})
     encoder = CnnEncoder(embedding_dim=300, ngram_filter_sizes = (2,3,4,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
-    
+
     # the output dim is just the num filters *len(ngram_filter_sizes)
-    return SimpleClassifier(vocab, embedder, encoder)
+    return MortalityClassifier(vocab, embedder, encoder)
 #
 def build_data_loaders(
     train_data: torch.utils.data.Dataset,
