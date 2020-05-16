@@ -201,7 +201,7 @@ def build_trainer(
 '''
 we pass in the vocab to ensure that we are speaking the same language!
 '''
-def run_training_loop(model, dataset_reader, vocab, use_gpu=False):
+def run_training_loop(model, dataset_reader, vocab, use_gpu=False, batch_size =32):
     # move the model over, if necessary, and possible
     gpu_device = torch.device("cuda:0" if use_gpu  else "cpu")
     model = model.to(gpu_device)
@@ -213,7 +213,7 @@ def run_training_loop(model, dataset_reader, vocab, use_gpu=False):
     # These are again a subclass of pytorch DataLoaders, with an
     # allennlp-specific collate function, that runs our indexing and
     # batching code.
-    train_loader, dev_loader = build_data_loaders_from_reader(dataset_reader,vocab)
+    train_loader, dev_loader = build_data_loaders_from_reader(dataset_reader,vocab, batch_size=batch_size)
 
     # You obviously won't want to create a temporary file for your training
     # results, but for execution in binder for this course, we need to do this.
@@ -246,26 +246,27 @@ def main():
     dataset_reader = build_dataset_reader()
 
     dataset_reader.get_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
-    for key,val in dataset_reader.stats.items():
-        print("{} {}".format(key,val))
+    for key in sorted(dataset_reader.stats.keys()):
+        print("{} {}".format(key,dataset_reader.stats[key]))
     dataset_reader.get_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
 
-    for key,val in dataset_reader.stats.items():
-        print("{} {}".format(key,val))
-    return
+    for key in sorted(dataset_reader.stats.keys()):
+        print("{} {}".format(key,dataset_reader.stats[key]))
     # These are a subclass of pytorch Datasets, with some allennlp-specific
     # functionality added.
     train_data, dev_data = read_data(dataset_reader)
     vocab = build_vocab(train_data + dev_data)
+    del train_data
+    del dev_data
     model = build_model(vocab)
 
-    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True)
+    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True, batch_size=32)
 
     # Now we can evaluate the model on a new dataset.
     test_data = dataset_reader.read(
         '/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
     test_data.index_with(model.vocab)
-    data_loader = DataLoader(test_data, batch_size=64)
+    data_loader = DataLoader(test_data, batch_size=32)
 
     # results = evaluate(model, data_loader, -1, None)
     # print(results)
