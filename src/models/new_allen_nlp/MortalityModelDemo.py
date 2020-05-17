@@ -14,6 +14,8 @@ from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.modules.token_embedders import Embedding
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder, CnnEncoder
+from allennlp.modules.seq2vec_encoders import BertPooler
+
 from allennlp.nn import util
 from allennlp.training.metrics import CategoricalAccuracy, Auc
 from allennlp.training.optimizers import AdamOptimizer
@@ -249,12 +251,13 @@ def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
 def build_model(vocab: Vocabulary) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
+    BERT_DIMS = 768
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
-        {"tokens": Embedding(embedding_dim=300, num_embeddings=vocab_size)})
+        {"tokens": Embedding(embedding_dim=BERT_DIMS, num_embeddings=vocab_size)})
     encoder = CnnEncoder(embedding_dim=300, ngram_filter_sizes = (2,3,4,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
-
+    encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
     return MortalityClassifier(vocab, embedder, encoder)
 #
