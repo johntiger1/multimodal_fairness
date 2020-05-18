@@ -201,9 +201,11 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
     '''
 
     '''
+
     stats = {}
     import numpy as np
-    patient_notes_ctr = defaultdict(int)
+    no_note_patients = []
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
@@ -253,6 +255,13 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
                     patient_notes.to_pickle(output_location)
                 else:
                     logger.warning("{} had no notes".format(patient_id))
+                    no_note_patients.append(patient_id)
+
+    with open(os.path.join(output_dir,"null_patients.txt", "a")) as null_file:
+        for pat_id in no_note_patients:
+            null_file.write("{}\n".format(pat_id))
+
+
     logging.info("{} entries processed".format(total))
 
 if __name__ == "__main__":
