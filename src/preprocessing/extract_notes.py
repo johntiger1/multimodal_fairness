@@ -90,7 +90,7 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
                 no_eps_mapping = patient_notes["EPISODES"].isnull().sum()
                 if no_eps_mapping > 0:
                     logger.info("{} notes that don't correspond to episode encountered in patient {}".format(
-                        no_eps_mapping, patient_id))
+                        no_eps_mapping, patient_id)) # technically we could train on these, but not necessary
 
 
                 output_subdir = os.path.join(output_dir, str(patient_id))
@@ -195,11 +195,67 @@ def build_mapping_dicts(data_path="data/root", output_dir ="data/extracted_notes
                             hadm2episode[hadm_id] = idx
                             patient_hadm2episode_mapping[hadm_id] = idx
 
+    return patient2hadm, hadm2episode
 
+def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", output_dir ="data/extracted_notes"):
+    '''
+
+    '''
+    stats = {}
+    import numpy as np
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+
+    #TODO: simply only take in the hadm ids, found in stays.csv!
+    notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
+    multi_filter = (notes_table[notes_table["SUBJECT_ID"].isin(relevant_patients)]) & \
+                   (notes_table[notes_table["HADM_ID"].isin(relevant_hadm)])
+
+    relevant_notes = notes_table[multi_filter]
+
+
+    total = 0
+
+    for root, dir, file in os.walk(data_path):
+        total+=1
+        splits = {"train": 29000, "test": 5000}
+        curr_dir = root.split(os.path.sep)[-1]
+        if curr_dir in splits:
+            for split in tqdm(dir, total=splits[curr_dir]):
+
+                patient_id = int(split)
+                patient_hadm2episode_mapping = {}
+                with open(os.path.join(root, split, "stays.csv")) as stays_file:
+                    for idx, line in enumerate(stays_file):
+                        if idx > 0:
+                            hadm_id = int(line.split(",")[1])
+                            patient_hadm2episode_mapping[hadm_id] = idx
+
+                patient_notes_idx = (relevant_notes["SUBJECT_ID"] == patient_id)
+                patient_notes = relevant_notes[ patient_notes_idx]
+
+
+                patient_notes["EPISODES"] = patient_notes["HADM_ID"].map(patient_hadm2episode_mapping)
+
+                no_eps_mapping = patient_notes["EPISODES"].isnull().sum()
+                if no_eps_mapping > 0:
+                    logger.info("{} notes that don't correspond to episode encountered in patient {}".format(
+                        no_eps_mapping, patient_id)) # technically we could train on these, but not necessary
+                    logger.error("this should not happen, if we already filtered on hadm/eps")
+
+                output_subdir = os.path.join(output_dir, str(patient_id))
+                if not os.path.exists(output_subdir):
+                    os.makedirs(output_subdir, exist_ok=True)
+
+                output_location = os.path.join(output_subdir, "notes.pkl")
+                patient_notes.to_pickle(output_location)
+    logging.info("{} entries processed".format(total))
 
 if __name__ == "__main__":
     # extract_notes()
-    build_mapping_dicts()
+    pat2hadm, hadm2eps = build_mapping_dicts()
+    extract_notes_v2(pat2hadm.keys(), hadm2eps.keys())
     # test_merge()
     # df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
     # print(df)
