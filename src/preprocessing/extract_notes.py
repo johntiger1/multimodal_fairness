@@ -190,7 +190,7 @@ def build_mapping_dicts(data_path="data/root", output_dir ="data/extracted_notes
                         if idx > 0:
                             hadm_id = int(line.split(",")[1])
                             patient2hadm[patient_id].append(hadm_id)
-                            if hadm_id not in hadm2episode:
+                            if hadm_id in hadm2episode:
                                 logger.error("oops")
                             hadm2episode[hadm_id] = idx
                             patient_hadm2episode_mapping[hadm_id] = idx
@@ -210,8 +210,8 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
         os.makedirs(output_dir, exist_ok=True)
 
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
-    multi_filter = (notes_table[notes_table["SUBJECT_ID"].isin(relevant_patients)]) & \
-                   (notes_table[notes_table["HADM_ID"].isin(relevant_hadm)])
+    multi_filter = (notes_table["SUBJECT_ID"].isin(relevant_patients)) & \
+                   (notes_table["HADM_ID"].isin(relevant_hadm))
 
     relevant_notes = notes_table[multi_filter]
 
@@ -257,7 +257,7 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
                     logger.warning("{} had no notes".format(patient_id))
                     no_note_patients.append(patient_id)
 
-    with open(os.path.join(output_dir,"null_patients.txt", "a")) as null_file:
+    with open(os.path.join(output_dir,"null_patients.txt"), "a") as null_file:
         for pat_id in no_note_patients:
             null_file.write("{}\n".format(pat_id))
 
@@ -267,7 +267,7 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
 if __name__ == "__main__":
     # extract_notes()
     pat2hadm, hadm2eps = build_mapping_dicts()
-    extract_notes_v2(pat2hadm.keys(), hadm2eps.keys())
+    extract_notes_v2(list(pat2hadm.keys()), list(hadm2eps.keys()))
     # test_merge()
     # df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
     # print(df)
