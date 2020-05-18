@@ -89,7 +89,7 @@ def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
 
                 no_eps_mapping = patient_notes["EPISODES"].isnull().sum()
                 if no_eps_mapping > 0:
-                    logger.info("{} null values encountered in patient {}".format(
+                    logger.info("{} notes that don't correspond to episode encountered in patient {}".format(
                         no_eps_mapping, patient_id))
 
 
@@ -163,9 +163,15 @@ def load_map():
 
 Build mapping dictionaries. 
 
-patient2hadm:   
-hadm2eps: 
+patient2hadm: {patient:hadm}  
+hadm2eps:  {hadm: eps}
 
+(we verified the veracity of this)
+Now, we just need to do the following: get all the notes corresponding to an episode, 
+or equivalently to an hadm.
+ 
+Additionally, join all the notes corresponding to a mortality event (up to 512 tokens).
+ 
 '''
 def build_mapping_dicts(data_path="data/root", output_dir ="data/extracted_notes"):
     total = 0
