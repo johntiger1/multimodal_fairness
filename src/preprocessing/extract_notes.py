@@ -8,11 +8,17 @@ import os
 import pandas as pd
 import pickle
 from tqdm.auto import  tqdm
-
+from collections import defaultdict
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.debug("hello")
+# logger.setLevel(level=logging.INFO)
+
+'''
+logging info: Debug is roughly the lowest level
+
+'''
 '''
 This script will extract all the notes for the patients.
 
@@ -26,13 +32,19 @@ notes).
 
 
 '''
-Extracts notes, going over the TOTAL dataset
+Extracts notes, going over the TOTAL dataset.
+It also generates a mapping: {patient: hadm_id}
+and {hadm_id: eps}.
+
+FOR an episode, it corresponds to potentially a series of hadm_ids 
+
+Therefore, we want to ensure 1:1 correspondence with hadm_id to eps 
+
 '''
 def extract_notes(data_path="data/root", output_dir ="data/extracted_notes"):
     '''
 
     '''
-    from collections import defaultdict
     stats = {}
     import numpy as np
 
@@ -137,13 +149,53 @@ def get_mappings(output_dir="data/extracted_notes"):
     pickle.load(os.path.join(output_dir, "patient2hadm.dict"))
     return
 
-if __name__ == "__main__":
-    extract_notes()
-    # test_merge()
-    # df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
-    # print(df)
+'''
+Loads a mapping. 
+'''
+def load_map():
     output_dir = "data/extracted_notes"
     with open(os.path.join(output_dir, "patient2hadm.dict")) as file:
         p2hadm = pd.read_pickle(os.path.join(output_dir, "patient2hadm.dict"))
     print(p2hadm)
+    pass
+
+'''
+
+Build mapping dictionaries. 
+
+patient2hadm:   
+hadm2eps: 
+
+'''
+def build_mapping_dicts(data_path="data/root", output_dir ="data/extracted_notes"):
+    total = 0
+    patient2hadm = defaultdict(list)     # "patient" -> ["hadm1", "hadm2"...]
+    hadm2episode = {} # hadm1 -> eps1
+    for root, dir, file in os.walk(data_path):
+        total+=1
+        splits = {"train": 28728, "test": 5000}
+        curr_dir = root.split(os.path.sep)[-1]
+        if curr_dir in splits:
+            for split in tqdm(dir, total=splits[curr_dir]):
+                patient_id = int(split)
+                patient_hadm2episode_mapping = {}
+                with open(os.path.join(root, split, "stays.csv")) as stays_file:
+                    for idx, line in enumerate(stays_file):
+                        if idx > 0:
+                            hadm_id = int(line.split(",")[1])
+                            patient2hadm[patient_id].append(hadm_id)
+                            if hadm_id not in hadm2episode:
+                                logger.error("oops")
+                            hadm2episode[hadm_id] = idx
+                            patient_hadm2episode_mapping[hadm_id] = idx
+
+
+
+if __name__ == "__main__":
+    # extract_notes()
+    build_mapping_dicts()
+    # test_merge()
+    # df = pd.read_pickle("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/1819/notes.pkl")
+    # print(df)
+
 
