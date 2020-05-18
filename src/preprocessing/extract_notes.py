@@ -203,11 +203,10 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
     '''
     stats = {}
     import numpy as np
-
+    patient_notes_ctr = defaultdict(int)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    #TODO: simply only take in the hadm ids, found in stays.csv!
     notes_table = pd.read_csv("data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv")
     multi_filter = (notes_table[notes_table["SUBJECT_ID"].isin(relevant_patients)]) & \
                    (notes_table[notes_table["HADM_ID"].isin(relevant_hadm)])
@@ -244,12 +243,16 @@ def extract_notes_v2(relevant_patients, relevant_hadm, data_path="data/root", ou
                         no_eps_mapping, patient_id)) # technically we could train on these, but not necessary
                     logger.error("this should not happen, if we already filtered on hadm/eps")
 
-                output_subdir = os.path.join(output_dir, str(patient_id))
-                if not os.path.exists(output_subdir):
-                    os.makedirs(output_subdir, exist_ok=True)
+                if len(patient_notes) > 0:
 
-                output_location = os.path.join(output_subdir, "notes.pkl")
-                patient_notes.to_pickle(output_location)
+                    output_subdir = os.path.join(output_dir, str(patient_id))
+                    if not os.path.exists(output_subdir):
+                        os.makedirs(output_subdir, exist_ok=True)
+
+                    output_location = os.path.join(output_subdir, "notes.pkl")
+                    patient_notes.to_pickle(output_location)
+                else:
+                    logger.warning("{} had no notes".format(patient_id))
     logging.info("{} entries processed".format(total))
 
 if __name__ == "__main__":
