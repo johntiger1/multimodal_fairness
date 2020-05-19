@@ -43,10 +43,11 @@ class MortalityReader(DatasetReader):
                  lazy: bool = True,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
-                 max_tokens: int = 512,
+                 max_tokens: int = 768,
                  listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
-                 skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt"
+                 skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
+                 stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/note_lengths.txt"
                  ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
@@ -59,7 +60,7 @@ class MortalityReader(DatasetReader):
         with open(skip_patients_file, "r") as file:
             for line in file:
                 self.null_patients.append(line.strip())
-
+        self.stats_write_dir = stats_write_dir
         # self.null_patients
 
     def get_stats(self, file_path: str):
@@ -77,6 +78,9 @@ class MortalityReader(DatasetReader):
                 self.stats[int(label)] +=1
         return self.stats
 
+    def myfile(self):
+        pass
+
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''Expect: one instance per line'''
@@ -88,7 +92,7 @@ class MortalityReader(DatasetReader):
                 patient_id = info[0]
 
                 # verify string inside a list of string
-                if patient_id not in self.null_patients:
+                if patient_id not in self.null_patients: # could also just do try except here
 
                     eps = int("".join([c for c in info[1] if c.isdigit()]))
                     notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
@@ -101,12 +105,25 @@ class MortalityReader(DatasetReader):
 
                     # now, let's sort the notes
                     episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
+
+                    # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
+
                     if len(episode_specific_notes) > 0:
+
                         text_df = episode_specific_notes
-                        # text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
+                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
+
+                        xs = ""
+                        if len(episode_specific_notes) > 1:
+
+                        # lets try to join both of them
+                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        else:
+                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+                        text = text + " " + xs
 
                         # join the texts together, or simply use the first one (according to starttime)
                         tokens = self.tokenizer.tokenize(text)
@@ -242,7 +259,7 @@ def build_trainer(
         serialization_dir=serialization_dir,
         data_loader=train_loader,
         validation_data_loader=dev_loader,
-        num_epochs=5,
+        num_epochs=25,
         optimizer=optimizer,
         cuda_device=0
     )
