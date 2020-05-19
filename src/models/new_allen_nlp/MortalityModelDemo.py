@@ -46,6 +46,7 @@ class MortalityReader(DatasetReader):
                  max_tokens: int = 512,
                  listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
+                 skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt"
                  ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
@@ -53,6 +54,13 @@ class MortalityReader(DatasetReader):
         self.max_tokens = max_tokens
         self.listfile = listfile
         self.notes_dir = notes_dir
+
+        self.null_patients = []
+        with open(skip_patients_file, "r") as file:
+            for line in file:
+                self.null_patients.append(line.strip())
+
+        # self.null_patients
 
     def get_stats(self, file_path: str):
         '''
@@ -78,33 +86,37 @@ class MortalityReader(DatasetReader):
                 info_filename, label = line.split(",")
                 info = info_filename.split("_")
                 patient_id = info[0]
-                eps = int("".join([c for c in info[1] if c.isdigit()]))
-                notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
 
-                # fill in the time, do two passes. Any not caught in the first pass will get helped by second
-                notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
-                notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["CHARTDATE"] + pd.TimeDelta(days=1) -pd.TimeDelta(seconds=1)  )
+                # verify string inside a list of string
+                if patient_id not in self.null_patients:
 
-                assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
+                    eps = int("".join([c for c in info[1] if c.isdigit()]))
+                    notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
+                    notes[["CHARTTIME", "STORETIME", "CHARTDATE"]] = notes[["CHARTTIME", "STORETIME", "CHARTDATE"]].apply(pd.to_datetime)
+                    # fill in the time, do two passes. Any not caught in the first pass will get helped by second
+                    notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
+                    notes["CHARTTIME"] = notes["CHARTTIME"].fillna(value=notes["CHARTDATE"].map(lambda x: pd.Timestamp(x) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)))
 
-                # now, let's sort the notes
+                    assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
 
-                if len(notes[notes["EPISODES"] == eps]) > 0:
-                    text_df = notes[notes["EPISODES"] == eps]
-                    text_df.sort_values(notes["CHARTTIME"], ascending=True, inplace=True)  # we want them sorted by increasing time
+                    # now, let's sort the notes
+                    episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
+                    if len(episode_specific_notes) > 0:
+                        text_df = episode_specific_notes
+                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
 
-                    # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
-                    text = text_df["TEXT"].iloc[0] #assuming sorted order
+                        # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
+                        text = text_df["TEXT"].iloc[0] #assuming sorted order
 
-                    # join the texts together, or simply use the first one (according to starttime)
-                    tokens = self.tokenizer.tokenize(text)
+                        # join the texts together, or simply use the first one (according to starttime)
+                        tokens = self.tokenizer.tokenize(text)
 
-                    text_field = TextField(tokens, self.token_indexers)
-                    label_field = LabelField(label)
-                    fields = {'text': text_field, 'label': label_field}
-                    yield Instance(fields)
-                else:
-                    logger.warning("No text found for patient {}".format(patient_id))
+                        text_field = TextField(tokens, self.token_indexers)
+                        label_field = LabelField(label)
+                        fields = {'text': text_field, 'label': label_field}
+                        yield Instance(fields)
+                    else:
+                        logger.warning("No text found for patient {}".format(patient_id))
 
 
 
