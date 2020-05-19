@@ -194,11 +194,11 @@ def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
 def build_model(vocab: Vocabulary) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
-    BERT_DIMS = 768
+    EMBED_DIMS = 300
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
-        {"tokens": Embedding(embedding_dim=BERT_DIMS, num_embeddings=vocab_size)})
-    encoder = CnnEncoder(embedding_dim=300, ngram_filter_sizes = (2,3,4,5),
+        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
+    encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,4,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
