@@ -129,10 +129,10 @@ class MortalityReader(DatasetReader):
 
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
-            sorted_keys = [tup[0] for tup in sorted(self.note_stats.items(), key=lambda tup: tup[1])]
-            for elt in sorted_keys:
-                pass
-        pass
+            sorted_dict = sorted(self.note_stats.items(), key=lambda tup: tup[1])
+            for tup in sorted_dict:
+                note_length_file.write("{} {}\n".format(tup[1], tup[0]))
+
 
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
