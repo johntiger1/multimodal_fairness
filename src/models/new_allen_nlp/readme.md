@@ -7,3 +7,8 @@ For instance,
 `/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp`
 
 Then, `python MortalityModelDemo.py`
+
+# Monitoring
+Tensorboard is working for free! In the experiments folder, simply do 
+
+`tensorbaord --logdir . `
