@@ -1,3 +1,4 @@
 it is done
-{'accuracy': 0.885891472868217, 'auc': 0.503060637992145, 'loss': 0.34099427771334556}
-Took 1626.5883646011353
+These results are with 25 epochs, and standard first patient note only.
+{'accuracy': 0.8868217054263566, 'auc': 0.5, 'loss': 0.34025437808504294}
+Took 6301.5935752391815
