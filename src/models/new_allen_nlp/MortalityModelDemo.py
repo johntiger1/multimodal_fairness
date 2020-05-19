@@ -47,7 +47,7 @@ class MortalityReader(DatasetReader):
                  listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
-                 stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/note_lengths.txt"
+                 stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/"
                  ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
@@ -78,7 +78,60 @@ class MortalityReader(DatasetReader):
                 self.stats[int(label)] +=1
         return self.stats
 
-    def myfile(self):
+    '''
+    Gets stats for the data listed at the datapath
+    '''
+    def get_stats(self, file_path):
+        self.note_stats = {}
+
+        with open(file_path, "r") as file, \
+                open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
+            file.readline() # could also pandas readcsv and ignore first line
+            for line in file:
+                info_filename, label = line.split(",")
+                info = info_filename.split("_")
+                patient_id = info[0]
+
+                # verify string inside a list of string
+                if patient_id not in self.null_patients: # could also just do try except here
+
+                    eps = int("".join([c for c in info[1] if c.isdigit()]))
+                    notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
+                    notes[["CHARTTIME", "STORETIME", "CHARTDATE"]] = notes[["CHARTTIME", "STORETIME", "CHARTDATE"]].apply(pd.to_datetime)
+                    # fill in the time, do two passes. Any not caught in the first pass will get helped by second
+                    notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
+                    notes["CHARTTIME"] = notes["CHARTTIME"].fillna(value=notes["CHARTDATE"].map(lambda x: pd.Timestamp(x) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)))
+
+                    assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
+
+                    # now, let's sort the notes
+                    episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
+
+                    # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
+
+                    if len(episode_specific_notes) > 0:
+
+                        text_df = episode_specific_notes
+                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
+
+                        # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
+                        text = text_df["TEXT"].iloc[0] #assuming sorted order
+                        tokens = self.tokenizer.tokenize(text)
+                        self.note_stats[patient_id] = len(tokens)
+
+                        xs = ""
+                        if len(episode_specific_notes) > 1:
+
+                        # lets try to join both of them
+                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        else:
+                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+
+                    else:
+                        logger.warning("No text found for patient {}".format(patient_id))
+            sorted_keys = [tup[0] for tup in sorted(self.note_stats.items(), key=lambda tup: tup[1])]
+            for elt in sorted_keys:
+                pass
         pass
 
     @overrides
