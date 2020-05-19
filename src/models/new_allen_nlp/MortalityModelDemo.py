@@ -103,7 +103,7 @@ class MortalityReader(DatasetReader):
                     episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
                     if len(episode_specific_notes) > 0:
                         text_df = episode_specific_notes
-                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
+                        # text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
@@ -317,7 +317,7 @@ def main():
     model = build_model(vocab)
 
     model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True, batch_size=args.batch_size)
-
+    logger.warning("We have finished training")
     # Now we can evaluate the model on a new dataset.
     test_data = dataset_reader.read(
         '/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
@@ -327,7 +327,6 @@ def main():
     # results = evaluate(model, data_loader, -1, None)
     # print(results)
 
-    # will cause an exception due to outdated cuda driver? Not anymore!
     results = evaluate(model, data_loader, 0, None)
 
     print("we succ fulfilled it")
