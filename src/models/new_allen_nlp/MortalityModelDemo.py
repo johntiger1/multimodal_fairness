@@ -63,9 +63,9 @@ class MortalityReader(DatasetReader):
         self.stats_write_dir = stats_write_dir
         # self.null_patients
 
-    def get_stats(self, file_path: str):
+    def get_label_stats(self, file_path: str):
         '''
-
+        Gets label (mortality) stats
         '''
         # get stats on the dataset listed at _path_
         from collections import defaultdict
@@ -81,7 +81,7 @@ class MortalityReader(DatasetReader):
     '''
     Gets stats for the data listed at the datapath
     '''
-    def get_stats(self, file_path):
+    def get_note_stats(self, file_path):
         self.note_stats = {}
 
         with open(file_path, "r") as file, \
@@ -130,9 +130,11 @@ class MortalityReader(DatasetReader):
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
             sorted_dict = sorted(self.note_stats.items(), key=lambda tup: tup[1])
+            note_length_file.write("For this file {}\n".format(file_path))
             for tup in sorted_dict:
                 note_length_file.write("{} {}\n".format(tup[1], tup[0]))
 
+        return self.note_stats
 
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
@@ -371,10 +373,10 @@ def main():
 
     dataset_reader = build_dataset_reader()
 
-    dataset_reader.get_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
+    dataset_reader.get_label_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
     for key in sorted(dataset_reader.stats.keys()):
         print("{} {}".format(key,dataset_reader.stats[key]))
-    dataset_reader.get_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
+    dataset_reader.get_label_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
 
     for key in sorted(dataset_reader.stats.keys()):
         print("{} {}".format(key,dataset_reader.stats[key]))
@@ -404,8 +406,21 @@ def main():
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
 
 
-
+'''
+get the stats of the preprocessed notes
+'''
+def get_preprocessed_stats():
+    dataset_reader = build_dataset_reader()
+    train_note_stats = dataset_reader.get_note_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
+    test_note_stats = dataset_reader.get_note_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
+    # merge the dictionaries
+    all_note_stats = {**train_note_stats, **test_note_stats}
+    sorted_dict = sorted(all_note_stats.items(), key=lambda tup: tup[1])
+    with open("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/note_lengths.txt", "a") as note_length_file:
+        for tup in sorted_dict:
+            note_length_file.write("{} {}\n".format(tup[1], tup[0]))
 
 
 if __name__ == __name__:
-    main()
+    # main()
+    get_preprocessed_stats()
