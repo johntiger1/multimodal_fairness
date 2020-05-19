@@ -118,6 +118,9 @@ class MortalityReader(DatasetReader):
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
                         tokens = self.tokenizer.tokenize(text)
                         self.note_stats[patient_id] = len(tokens)
+                        if patient_id%1000==0:
+                            logger.info("text for patient {} \n:".format(text))
+
 
                         xs = ""
                         if len(episode_specific_notes) > 1:
@@ -323,10 +326,18 @@ def build_trainer(
 '''
 we pass in the vocab to ensure that we are speaking the same language!
 '''
-def run_training_loop(model, dataset_reader, vocab, use_gpu=False, batch_size =32):
+def run_training_loop(model, dataset_reader, vocab, args, use_gpu=False, batch_size =32,
+                      serialization_dir = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments"):
     # move the model over, if necessary, and possible
     gpu_device = torch.device("cuda:0" if use_gpu  else "cpu")
     model = model.to(gpu_device)
+
+    experiment_dir = os.path.join(serialization_dir, args.run_name)
+
+    if not os.path.exists(experiment_dir):
+        os.makedirs(experiment_dir, exist_ok=True)
+
+    serialization_dir = experiment_dir
 
     # This is the allennlp-specific functionality in the Dataset object;
     # we need to be able convert strings in the data to integers, and this
@@ -340,14 +351,13 @@ def run_training_loop(model, dataset_reader, vocab, use_gpu=False, batch_size =3
     train_loader, dev_loader = build_data_loaders_from_reader(dataset_reader,vocab, batch_size=batch_size)
     # You obviously won't want to create a temporary file for your training
     # results, but for execution in binder for this course, we need to do this.
-    with tempfile.TemporaryDirectory() as serialization_dir:
-        trainer = build_trainer(
-            model,
-            serialization_dir,
-            train_loader,
-            dev_loader
-        )
-        trainer.train()
+    trainer = build_trainer(
+        model,
+        serialization_dir,
+        train_loader,
+        dev_loader
+    )
+    trainer.train()
     del train_loader
     del dev_loader
     gc.collect()
@@ -357,6 +367,7 @@ def main():
 
     args = lambda x: None
     args.batch_size = 64
+    args.run_name = "1"
     import time
 
     start_time = time.time()
@@ -388,7 +399,7 @@ def main():
     del dev_data
     model = build_model(vocab)
 
-    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, use_gpu=True, batch_size=args.batch_size)
+    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, args, use_gpu=True, batch_size=args.batch_size)
     logger.warning("We have finished training")
     # Now we can evaluate the model on a new dataset.
     test_data = dataset_reader.read(
