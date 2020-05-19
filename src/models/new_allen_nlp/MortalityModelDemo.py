@@ -118,9 +118,9 @@ class MortalityReader(DatasetReader):
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
                         tokens = self.tokenizer.tokenize(text)
                         self.note_stats[patient_id] = len(tokens)
-                        if patient_id%1000==0:
-                            logger.info("text for patient {} \n:".format(text))
-
+                        if int(patient_id)%1000==0:
+                            logger.info("text for patient {} \n: {}".format(patient_id,text))
+                            logger.info("end of text for patient {} \n".format(patient_id))
 
                         xs = ""
                         if len(episode_specific_notes) > 1:
@@ -169,18 +169,18 @@ class MortalityReader(DatasetReader):
                     if len(episode_specific_notes) > 0:
 
                         text_df = episode_specific_notes
-                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
+                        text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
 
                         xs = ""
-                        if len(episode_specific_notes) > 1:
-
-                        # lets try to join both of them
-                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
-                        else:
-                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+                        # if len(episode_specific_notes) > 1:
+                        #
+                        # # lets try to join both of them
+                        #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        # else:
+                        #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
                         text = text + " " + xs
 
                         # join the texts together, or simply use the first one (according to starttime)
