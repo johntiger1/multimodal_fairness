@@ -33,6 +33,11 @@ We should throw out the X, where X is not good
 Reimplementation of the AUC metric. However, we are simply not calling it correctly.
 We need to actually do it in the forward pass
 '''
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.debug("hello")
+
 class MortalityReader(DatasetReader):
     def __init__(self,
                  lazy: bool = True,
@@ -76,15 +81,31 @@ class MortalityReader(DatasetReader):
                 eps = int("".join([c for c in info[1] if c.isdigit()]))
                 notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
 
+                # fill in the time, do two passes. Any not caught in the first pass will get helped by second
+                notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
+                notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["CHARTDATE"] + pd.TimeDelta(days=1) -pd.TimeDelta(seconds=1)  )
+
+                assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
+
+                # now, let's sort the notes
+
                 if len(notes[notes["EPISODES"] == eps]) > 0:
-                    text = notes[notes["EPISODES"] == eps]["TEXT"].iloc[0]
-                    # join the texts together, or simply use the first one
+                    text_df = notes[notes["EPISODES"] == eps]
+                    text_df.sort_values(notes["CHARTTIME"], ascending=True, inplace=True)  # we want them sorted by increasing time
+
+                    # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
+                    text = text_df["TEXT"].iloc[0] #assuming sorted order
+
+                    # join the texts together, or simply use the first one (according to starttime)
                     tokens = self.tokenizer.tokenize(text)
 
                     text_field = TextField(tokens, self.token_indexers)
                     label_field = LabelField(label)
                     fields = {'text': text_field, 'label': label_field}
                     yield Instance(fields)
+                else:
+                    logger.warning("No text found for patient {}".format(patient_id))
+
 
 
 
@@ -167,7 +188,7 @@ def build_model(vocab: Vocabulary) -> Model:
         {"tokens": Embedding(embedding_dim=BERT_DIMS, num_embeddings=vocab_size)})
     encoder = CnnEncoder(embedding_dim=300, ngram_filter_sizes = (2,3,4,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
-    encoder = BertPooler("bert-base-cased")
+    # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
     return MortalityClassifier(vocab, embedder, encoder)
 #
