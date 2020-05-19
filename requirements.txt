@@ -14,3 +14,18 @@ openpyxl==2.5.3
 spacy==2.2.1
 scispacy==0.2.2
 https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.2.4/en_core_sci_md-0.2.4.tar.gz
+
+# ian's requirements (below)
+# Requirements for the Keras backend, with python 2
+# For Vector set: LD_LIBRARY_PATH=/pkgs/cuda-9.0/lib64:/pkgs/cudnn-9.2-v7.1/lib64:$LD_LIBRARY_PATH
+wheel
+tensorflow-gpu==1.5.0
+h5py==2.10.0
+cython==0.29.17
+#Original Requirements
+Keras==2.1.2
+# numpy==1.13.1
+# scikit-learn==0.18.2
+pandas==0.23.4
+tqdm
+
