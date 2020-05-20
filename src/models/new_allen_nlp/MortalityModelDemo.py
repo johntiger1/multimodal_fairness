@@ -306,7 +306,7 @@ class MortalityClassifier(Model):
 #
 #
 def build_dataset_reader(**kwargs) -> DatasetReader:
-    return MortalityReader(**kwargs, lazy=True)
+    return MortalityReader(**kwargs, lazy=False)
 #
 
 # "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
@@ -448,7 +448,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 64
-    args.run_name = "3"
+    args.run_name = "3-eager"
     import time
 
     start_time = time.time()
