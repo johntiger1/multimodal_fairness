@@ -237,12 +237,12 @@ class MortalityReader(DatasetReader):
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
 
                         xs = ""
-                        if len(time_episode_specific_notes) > 1:
-
-                        # lets try to join both of them
-                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
-                        else:
-                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+                        # if len(time_episode_specific_notes) > 1:
+                        #
+                        # # lets try to join both of them
+                        #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        # else:
+                        #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
                         text = text + " " + xs
 
                         # join the texts together, or simply use the first one (according to starttime)
