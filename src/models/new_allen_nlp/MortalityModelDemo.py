@@ -64,6 +64,7 @@ class MortalityReader(DatasetReader):
                 self.null_patients.append(line.strip())
         self.stats_write_dir = stats_write_dir
         self.all_stays_path = all_stays
+        self.all_stays_df = self.get_all_stays()
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -109,6 +110,18 @@ class MortalityReader(DatasetReader):
 
                     # now, let's sort the notes
                     episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
+
+                    hadm_id = episode_specific_notes.groupby(["HADM_ID"]).agg({""}) # hadm ids seem to 1-to1 correspond to episodes
+                    assert len(hadm_id) == 1
+
+                    icu_intime = self.all_stays_df[ self.all_stays_df["HADM_ID"] == hadm_id.iloc[0].loc["HADM_ID"]]
+                    # filter all of them, based on the all stays info
+                    # do the episode and patient, associate to a specific hadm? i.e. are there 1 to 1 mappings here
+
+
+                    # first, get the icu intime
+                    # then, get the
+                    # icu_intime = self.all_stays_df[]
 
                     # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
 
@@ -445,7 +458,7 @@ def get_preprocessed_stats():
 
 if __name__ == __name__:
     # main()
-    # get_preprocessed_stats()
-    dataset_reader = build_dataset_reader(all_stays="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv")
-    stays_df = dataset_reader.get_all_stays()
-    print(len(stays_df))
+    get_preprocessed_stats()
+    # dataset_reader = build_dataset_reader(all_stays="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv")
+    # stays_df = dataset_reader.get_all_stays()
+    # print(len(stays_df))
