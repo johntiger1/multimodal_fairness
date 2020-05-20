@@ -25,6 +25,7 @@ from allennlp.training.util import evaluate
 import pandas as pd
 import os
 import gc
+from tqdm.auto import tqdm
 '''
 We should throw out the X, where X is not good
 '''
@@ -87,11 +88,11 @@ class MortalityReader(DatasetReader):
     '''
     def get_note_stats(self, file_path):
         self.note_stats = {}
-
+        exclusions = 0
         with open(file_path, "r") as file, \
                 open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
             file.readline() # could also pandas readcsv and ignore first line
-            for line in file:
+            for line in tqdm(file):
                 info_filename, label = line.split(",")
                 info = info_filename.split("_")
                 patient_id = info[0]
@@ -114,7 +115,7 @@ class MortalityReader(DatasetReader):
                     # hadm_id = episode_specific_notes.groupby(["HADM_ID"]).agg({""}) # hadm ids seem to 1-to1 correspond to episodes
                     hadm_id = episode_specific_notes["HADM_ID"]
                     one_hadm_id = hadm_id.unique()
-                    print(type(one_hadm_id))
+                    logger.info(type(one_hadm_id))
                     assert (one_hadm_id.shape[0]) == 1
                     assert len(one_hadm_id) == 1
 
@@ -122,14 +123,14 @@ class MortalityReader(DatasetReader):
 
                     # we are assuming that the intime is not null
                     intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[0]) # iloc will automatically extract once you get to the base element
-                    print(type(intime_date))
+                    logger.info(type(intime_date))
                     intime_date_plus_two_days = pd.Timestamp(intime_date) + pd.Timedelta(days=2)
 
                     # all notes up to two days. Including potentially previous events.
                     mask = ( episode_specific_notes["CHARTTIME"] > intime_date) & (episode_specific_notes["CHARTTIME"] <= intime_date_plus_two_days)
                     all_mask = (episode_specific_notes["CHARTTIME"] <= intime_date_plus_two_days)
 
-                    time_episode_specific_notes = episode_specific_notes[mask]
+                    time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
 
                     logger.debug("Went from {} to {} notes\n".format(len(episode_specific_notes), len(time_episode_specific_notes)))
                     # filter all of them, based on the all stays info
@@ -142,9 +143,9 @@ class MortalityReader(DatasetReader):
 
                     # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
 
-                    if len(episode_specific_notes) > 0:
+                    if len(time_episode_specific_notes) > 0:
 
-                        text_df = episode_specific_notes
+                        text_df = time_episode_specific_notes
                         text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
@@ -158,7 +159,7 @@ class MortalityReader(DatasetReader):
                             logger.info("end of text for patient {} \n".format(patient_id))
 
                         xs = ""
-                        if len(episode_specific_notes) > 1:
+                        if len(time_episode_specific_notes) > 1:
 
                         # lets try to join both of them
                             xs = text_df["TEXT"].iloc[1] #assuming sorted order
@@ -167,11 +168,13 @@ class MortalityReader(DatasetReader):
 
                     else:
                         logger.warning("No text found for patient {}. This is with the 48 hour\n. ".format(patient_id))
+                        exclusions +=1
             sorted_dict = sorted(self.note_stats.items(), key=lambda tup: tup[1])
             note_length_file.write("For this file {}\n".format(file_path))
             for tup in sorted_dict:
                 note_length_file.write("{} {}\n".format(tup[1], tup[0]))
 
+        logger.critical("With 48 hour windowing, removed {}\n".format(exclusions))
         return self.note_stats
 
     def get_all_stays(self):
@@ -248,6 +251,7 @@ class MortalityReader(DatasetReader):
                         yield Instance(fields)
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
+                        # in this case, we ignore the patient
 
 
 
@@ -478,6 +482,7 @@ def main():
 get the stats of the preprocessed notes
 '''
 def get_preprocessed_stats():
+    logger.setLevel(logging.CRITICAL)
     dataset_reader = build_dataset_reader()
     train_note_stats = dataset_reader.get_note_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
     test_note_stats = dataset_reader.get_note_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
@@ -490,8 +495,8 @@ def get_preprocessed_stats():
 
 
 if __name__ == __name__:
-    main()
-    # get_preprocessed_stats()
+    # main()
+    get_preprocessed_stats()
     # dataset_reader = build_dataset_reader(all_stays="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv")
     # stays_df = dataset_reader.get_all_stays()
     # print(len(stays_df))
