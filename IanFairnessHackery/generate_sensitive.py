@@ -55,18 +55,23 @@ benchmark_df = benchmark_df[["SUBJECT_ID","ETHNICITY","GENDER"]]
 # Process to ensure SUBJECT_ID unique, and truncate descriptors
 benchmark_df = benchmark_df.groupby("SUBJECT_ID").agg(unk_if_diff)
 benchmark_df= benchmark_df.applymap(clean)
-print(benchmark_df)
+#print(benchmark_df)
 
 # Load sensitive features from mimic, repeat processing
 mimic_df = pd.read_csv(PATH_TO_MIMIC_ADMISSIONS)
 mimic_df = mimic_df[["SUBJECT_ID","INSURANCE","RELIGION", "MARITAL_STATUS"]]
 mimic_df = mimic_df.groupby("SUBJECT_ID").agg(unk_if_diff)
 mimic_df = mimic_df.applymap(clean)
-print(mimic_df)
+#print(mimic_df)
 
 # Do a join to get all of the sensitive attributes in a single dataframe
 joined = benchmark_df.merge(mimic_df, on="SUBJECT_ID", how="inner", validate="one_to_one")
-print(joined)
+#print(joined)
+joined.to_csv("full_detail_sensitive.csv")
+
+
+# Post-processing, merge ethnicities into WHITE & NON_WHITE
+joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x == "WHITE" else "NON_WHITE")
 
 # My sanity checking
 print("Ethnicities in data:")
