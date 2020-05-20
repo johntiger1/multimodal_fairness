@@ -21,6 +21,10 @@ from mimic3models import common_utils
 
 
 
+# UGLY HACK FLAG, TODO: REFACTOR
+TEST_ON_TRAIN = True
+
+
 #CODE MODIFIED FROM utils.py
 def load_data(reader, discretizer, normalizer, return_names=False):
     N = reader.get_number_of_examples()
@@ -133,9 +137,14 @@ if args.load_state != "":
 # ensure that the code uses test_reader
 del train_reader
 
-test_reader = InHospitalMortalityReader(dataset_dir=os.path.join(args.data, 'test'),
-                                        listfile=os.path.join(args.data, 'test_listfile.csv'),
-                                        period_length=48.0)
+if TEST_ON_TRAIN:
+    test_reader = InHospitalMortalityReader(dataset_dir=os.path.join(args.data, 'train'),
+                                         listfile=os.path.join(args.data, 'train_listfile.csv'),
+                                         period_length=48.0)
+else:
+    test_reader = InHospitalMortalityReader(dataset_dir=os.path.join(args.data, 'test'),
+                                            listfile=os.path.join(args.data, 'test_listfile.csv'),
+                                            period_length=48.0)
 ret = load_data(test_reader, discretizer, normalizer, return_names=True)
 
 data = ret["data"][0]
@@ -146,7 +155,11 @@ predictions = model.predict(data, batch_size=args.batch_size, verbose=1)
 predictions = np.array(predictions)[:, 0]
 metrics.print_metrics_binary(labels, predictions)
 
-path = os.path.join(args.output_dir, "test_predictions", os.path.basename(args.load_state)) + "_id_ep_fmt.csv"
+if TEST_ON_TRAIN:
+    path = os.path.join(args.output_dir, "test_predictions", "train_"+os.path.basename(args.load_state)) + "_id_ep_fmt.csv"
+else:
+    path = os.path.join(args.output_dir, "test_predictions", os.path.basename(args.load_state)) + "_id_ep_fmt.csv"
+
 save_results(names, predictions, labels, path)
 
 

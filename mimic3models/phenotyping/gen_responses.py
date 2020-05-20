@@ -24,6 +24,9 @@ import threading
 import random
 import os
 
+# UGLY HACK TODO: Refactor
+TEST_ON_TRAIN = True
+
 PRED_TASKS = {
     1: "Acute and unspecified renal failure",
     2: "Acute cerebrovascular disease",
@@ -294,8 +297,12 @@ elif args.mode == 'test':
     del train_data_gen
     del val_data_gen
 
-    test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'test'),
-                                    listfile=os.path.join(args.data, 'test_listfile.csv'))
+    if TEST_ON_TRAIN:
+        test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'train'),
+                                 listfile=os.path.join(args.data, 'train_listfile.csv'))
+    else:
+        test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'test'),
+                                        listfile=os.path.join(args.data, 'test_listfile.csv'))
 
     test_data_gen = BatchGen(test_reader, discretizer,
                                    normalizer, args.batch_size,
@@ -323,6 +330,8 @@ elif args.mode == 'test':
     metrics.print_metrics_multilabel(labels, predictions)
     dirname = os.path.join(args.output_dir, "test_predictions")
     filename = os.path.basename(args.load_state) + "_id_ep_fmt.csv"
+    if TEST_ON_TRAIN:
+        filename = "train_" + filename
     save_results(names, ts, predictions, labels, dirname, filename)
 
 else:

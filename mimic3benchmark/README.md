@@ -6,6 +6,8 @@ I will commit the weights I used/trained
 
 You shouldn't need to generate the predictions again, but just in case:
 
+NOTE: I've added a hack hard-coded flag to run test on the train data (go to code and set TEST_ON_TRAIN to false). Will refactor when there is time
+
 To generate the in-hospital mortality test results run (update --load_state if you want to use a different weights checkpoint):
 
 python -um mimic3models.in_hospital_mortality.gen_responses --data data/in-hospital-mortality/ --timestep 1.0  --network mimic3models/keras_models/lstm.py  --batch_size 8 --load_state mimic3models/in_hospital_mortality/keras_states/k_lstm.n16.d0.3.dep2.bs8.ts1.0.epoch28.test0.286221665488.state  --output_dir mimic3models/in_hospital_mortality --dim 16  --depth 2 --dropout 0.3
