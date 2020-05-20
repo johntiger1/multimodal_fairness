@@ -495,8 +495,8 @@ def get_preprocessed_stats():
 
 
 if __name__ == __name__:
-    # main()
-    get_preprocessed_stats()
+    main()
+    # get_preprocessed_stats()
     # dataset_reader = build_dataset_reader(all_stays="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv")
     # stays_df = dataset_reader.get_all_stays()
     # print(len(stays_df))
