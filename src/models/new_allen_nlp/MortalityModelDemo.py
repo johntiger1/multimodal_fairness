@@ -117,6 +117,8 @@ class MortalityReader(DatasetReader):
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
                         tokens = self.tokenizer.tokenize(text)
+                        if patient_id in self.note_stats:
+                            logger.warning("Encountering the patient another time, for another episode {} {}".format(patient_id, eps))
                         self.note_stats[patient_id] = len(tokens)
                         if int(patient_id)%1000==0:
                             logger.info("text for patient {} \n: {}".format(patient_id,text))
@@ -230,6 +232,7 @@ class MortalityClassifier(Model):
         output = {'loss': loss, 'probs': probs}
         return output
 
+    '''this is called'''
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         return {"accuracy": self.accuracy.get_metric(reset),
                 "auc":self.auc.get_metric(reset)}
