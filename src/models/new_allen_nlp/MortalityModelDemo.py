@@ -290,7 +290,7 @@ class MortalityClassifier(Model):
         logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=-1)
-        reg_loss = self.get_regularization_penalty()
+        reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
         self.accuracy(logits, label)
