@@ -202,14 +202,30 @@ class MortalityReader(DatasetReader):
                     assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
 
                     # now, let's sort the notes
-                    episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
+                    episode_specific_notes = notes[notes["EPISODES"] == eps]
 
+                    hadm_id = episode_specific_notes["HADM_ID"]
+                    one_hadm_id = hadm_id.unique()
+
+
+                    icu_intime = self.all_stays_df[self.all_stays_df["HADM_ID"] == one_hadm_id[0]]
+
+                    # we are assuming that the intime is not null
+                    intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[
+                                                   0])  # iloc will automatically extract once you get to the base element
+                    intime_date_plus_two_days = pd.Timestamp(intime_date) + pd.Timedelta(days=2)
+
+                    # all notes up to two days. Including potentially previous events.
+                    mask = (episode_specific_notes["CHARTTIME"] > intime_date) & (
+                                episode_specific_notes["CHARTTIME"] <= intime_date_plus_two_days)
+
+                    time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
                     # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
 
-                    if len(episode_specific_notes) > 0:
+                    if len(time_episode_specific_notes) > 0:
 
-                        text_df = episode_specific_notes
-                        text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
+                        text_df = time_episode_specific_notes
+                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
@@ -408,7 +424,7 @@ def main():
 
     args = lambda x: None
     args.batch_size = 64
-    args.run_name = "1"
+    args.run_name = "2"
     import time
 
     start_time = time.time()
@@ -474,8 +490,8 @@ def get_preprocessed_stats():
 
 
 if __name__ == __name__:
-    # main()
-    get_preprocessed_stats()
+    main()
+    # get_preprocessed_stats()
     # dataset_reader = build_dataset_reader(all_stays="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv")
     # stays_df = dataset_reader.get_all_stays()
     # print(len(stays_df))
