@@ -47,8 +47,10 @@ class MortalityReader(DatasetReader):
                  listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
-                 stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/"
-                 ):
+                 stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
+                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv"
+
+    ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
         self.token_indexers = token_indexers or {'tokens': SingleIdTokenIndexer()}
@@ -61,6 +63,7 @@ class MortalityReader(DatasetReader):
             for line in file:
                 self.null_patients.append(line.strip())
         self.stats_write_dir = stats_write_dir
+        self.all_stays_path = all_stays
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -140,6 +143,11 @@ class MortalityReader(DatasetReader):
                 note_length_file.write("{} {}\n".format(tup[1], tup[0]))
 
         return self.note_stats
+
+    def get_all_stays(self):
+        my_stays_df = pd.read_csv(self.all_stays_path)
+        return my_stays_df
+
 
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
@@ -238,8 +246,8 @@ class MortalityClassifier(Model):
                 "auc":self.auc.get_metric(reset)}
 #
 #
-def build_dataset_reader() -> DatasetReader:
-    return MortalityReader(lazy=True)
+def build_dataset_reader(**kwargs) -> DatasetReader:
+    return MortalityReader(**kwargs, lazy=True)
 #
 
 # "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
@@ -437,4 +445,7 @@ def get_preprocessed_stats():
 
 if __name__ == __name__:
     # main()
-    get_preprocessed_stats()
+    # get_preprocessed_stats()
+    dataset_reader = build_dataset_reader(all_stays="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv")
+    stays_df = dataset_reader.get_all_stays()
+    print(len(stays_df))
