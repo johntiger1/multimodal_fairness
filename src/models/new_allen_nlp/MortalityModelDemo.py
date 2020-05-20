@@ -111,10 +111,16 @@ class MortalityReader(DatasetReader):
                     # now, let's sort the notes
                     episode_specific_notes = notes[notes["EPISODES"] == eps].copy(deep=True)
 
-                    hadm_id = episode_specific_notes.groupby(["HADM_ID"]).agg({""}) # hadm ids seem to 1-to1 correspond to episodes
-                    assert len(hadm_id) == 1
+                    # hadm_id = episode_specific_notes.groupby(["HADM_ID"]).agg({""}) # hadm ids seem to 1-to1 correspond to episodes
+                    hadm_id = episode_specific_notes["HADM_ID"]
+                    one_hadm_id = hadm_id.unique()
+                    print(type(one_hadm_id))
+                    assert (one_hadm_id.shape[0]) == 1
+                    assert len(one_hadm_id) == 1
 
-                    icu_intime = self.all_stays_df[ self.all_stays_df["HADM_ID"] == hadm_id.iloc[0].loc["HADM_ID"]]
+                    icu_intime = self.all_stays_df[ self.all_stays_df["HADM_ID"] == one_hadm_id[0]]
+                    intime_date = icu_intime["INTIME"].iloc[0] # iloc will automatically extract once you get to the base element
+                    print(type(intime_date))
                     # filter all of them, based on the all stays info
                     # do the episode and patient, associate to a specific hadm? i.e. are there 1 to 1 mappings here
 
