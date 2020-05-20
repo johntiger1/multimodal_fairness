@@ -22,6 +22,9 @@ from allennlp.training.optimizers import AdamOptimizer
 from allennlp.training.trainer import Trainer, GradientDescentTrainer
 from allennlp.training.util import evaluate
 
+# import the regularization
+from allennlp.nn.regularizers import L2Regularizer, RegularizerApplicator
+
 import pandas as pd
 import os
 import gc
@@ -228,18 +231,18 @@ class MortalityReader(DatasetReader):
                     if len(time_episode_specific_notes) > 0:
 
                         text_df = time_episode_specific_notes
-                        text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
+                        text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
 
                         xs = ""
-                        # if len(episode_specific_notes) > 1:
-                        #
-                        # # lets try to join both of them
-                        #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
-                        # else:
-                        #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+                        if len(time_episode_specific_notes) > 1:
+
+                        # lets try to join both of them
+                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        else:
+                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
                         text = text + " " + xs
 
                         # join the texts together, or simply use the first one (according to starttime)
@@ -255,13 +258,17 @@ class MortalityReader(DatasetReader):
 
 
 
-
+'''
+We can also look at dropout and other techniques which we do here!
+'''
 class MortalityClassifier(Model):
     def __init__(self,
                  vocab: Vocabulary,
                  embedder: TextFieldEmbedder,
-                 encoder: Seq2VecEncoder):
-        super().__init__(vocab)
+                 encoder: Seq2VecEncoder,
+                 regularizer_applicatior: RegularizerApplicator = None
+                 ):
+        super().__init__(vocab, regularizer_applicatior)
         self.embedder = embedder
         self.encoder = encoder
         num_labels = vocab.get_vocab_size("labels")
@@ -327,7 +334,8 @@ def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
     return Vocabulary.from_instances(instances)
 #
 
-def build_model(vocab: Vocabulary) -> Model:
+def build_model(vocab: Vocabulary,
+                regularizer_applicator: RegularizerApplicator = None) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 300
@@ -338,7 +346,7 @@ def build_model(vocab: Vocabulary) -> Model:
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
-    return MortalityClassifier(vocab, embedder, encoder)
+    return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
 #
 def build_data_loaders(
     train_data: torch.utils.data.Dataset,
@@ -425,10 +433,10 @@ def run_training_loop(model, dataset_reader, vocab, args, use_gpu=False, batch_s
     return model, dataset_reader
 
 def main():
-
+    logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 64
-    args.run_name = "2"
+    args.run_name = "3"
     import time
 
     start_time = time.time()
@@ -458,7 +466,8 @@ def main():
     vocab = build_vocab(train_data + dev_data)
     del train_data
     del dev_data
-    model = build_model(vocab)
+    l2_reg = L2Regularizer()
+    model = build_model(vocab,l2_reg)
 
     model, dataset_reader = run_training_loop(model,dataset_reader, vocab, args, use_gpu=True, batch_size=args.batch_size)
     logger.warning("We have finished training")
