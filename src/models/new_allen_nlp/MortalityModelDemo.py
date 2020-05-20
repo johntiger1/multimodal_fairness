@@ -119,8 +119,19 @@ class MortalityReader(DatasetReader):
                     assert len(one_hadm_id) == 1
 
                     icu_intime = self.all_stays_df[ self.all_stays_df["HADM_ID"] == one_hadm_id[0]]
-                    intime_date = icu_intime["INTIME"].iloc[0] # iloc will automatically extract once you get to the base element
+
+                    # we are assuming that the intime is not null
+                    intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[0]) # iloc will automatically extract once you get to the base element
                     print(type(intime_date))
+                    intime_date_plus_two_days = pd.Timestamp(intime_date) + pd.Timedelta(days=2)
+
+                    # all notes up to two days. Including potentially previous events.
+                    mask = ( episode_specific_notes["CHARTTIME"] > intime_date) & (episode_specific_notes["CHARTTIME"] <= intime_date_plus_two_days)
+                    all_mask = (episode_specific_notes["CHARTTIME"] <= intime_date_plus_two_days)
+
+                    time_episode_specific_notes = episode_specific_notes[mask]
+
+                    logger.debug("Went from {} to {} notes\n".format(len(episode_specific_notes), len(time_episode_specific_notes)))
                     # filter all of them, based on the all stays info
                     # do the episode and patient, associate to a specific hadm? i.e. are there 1 to 1 mappings here
 
@@ -155,7 +166,7 @@ class MortalityReader(DatasetReader):
                             logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
 
                     else:
-                        logger.warning("No text found for patient {}".format(patient_id))
+                        logger.warning("No text found for patient {}. This is with the 48 hour\n. ".format(patient_id))
             sorted_dict = sorted(self.note_stats.items(), key=lambda tup: tup[1])
             note_length_file.write("For this file {}\n".format(file_path))
             for tup in sorted_dict:
