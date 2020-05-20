@@ -266,16 +266,16 @@ class MortalityClassifier(Model):
                  vocab: Vocabulary,
                  embedder: TextFieldEmbedder,
                  encoder: Seq2VecEncoder,
-                 regularizer_applicatior: RegularizerApplicator = None
+                 regularizer_applicator: RegularizerApplicator = None
                  ):
-        super().__init__(vocab)
+        super().__init__(vocab, regularizer_applicator)
         self.embedder = embedder
         self.encoder = encoder
         num_labels = vocab.get_vocab_size("labels")
         self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
         self.accuracy = CategoricalAccuracy()
         self.auc = Auc()
-        self.reg_app = regularizer_applicatior
+        self.reg_app = regularizer_applicator
 
     def forward(self,
                 text: Dict[str, torch.Tensor],
@@ -290,13 +290,13 @@ class MortalityClassifier(Model):
         logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=-1)
-        reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
+        # reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
         self.accuracy(logits, label)
         preds = logits.argmax(-1)
         self.auc(preds, label)
-        output = {'loss': loss, 'probs': probs, "reg_loss": reg_loss}
+        output = {'loss': loss, 'probs': probs}
         return output
 
     '''this is called'''
