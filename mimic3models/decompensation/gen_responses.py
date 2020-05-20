@@ -225,7 +225,7 @@ elif args.mode == 'test':
 
     metrics.print_metrics_binary(labels, predictions)
     if TEST_ON_TRAIN:
-        path = os.path.join(args.output_dir, 'test_predictions', 'train_' + os.path.basename(args.load_state)) + '.csv'
+        path = os.path.join(args.output_dir, 'train_predictions', os.path.basename(args.load_state)) + '.csv'
     else:
         path = os.path.join(args.output_dir, 'test_predictions', os.path.basename(args.load_state)) + '.csv'
     utils.save_results(names, ts, predictions, labels, path)

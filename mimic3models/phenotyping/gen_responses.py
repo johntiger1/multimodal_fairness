@@ -328,10 +328,11 @@ elif args.mode == 'test':
         ts += list(cur_ts)
 
     metrics.print_metrics_multilabel(labels, predictions)
-    dirname = os.path.join(args.output_dir, "test_predictions")
-    filename = os.path.basename(args.load_state) + "_id_ep_fmt.csv"
     if TEST_ON_TRAIN:
-        filename = "train_" + filename
+        dirname = os.path.join(args.output_dir, "train_predictions")
+    else:
+        dirname = os.path.join(args.output_dir, "test_predictions")
+    filename = os.path.basename(args.load_state) + "_id_ep_fmt.csv"
     save_results(names, ts, predictions, labels, dirname, filename)
 
 else:

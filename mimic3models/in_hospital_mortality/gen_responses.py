@@ -156,7 +156,7 @@ predictions = np.array(predictions)[:, 0]
 metrics.print_metrics_binary(labels, predictions)
 
 if TEST_ON_TRAIN:
-    path = os.path.join(args.output_dir, "test_predictions", "train_"+os.path.basename(args.load_state)) + "_id_ep_fmt.csv"
+    path = os.path.join(args.output_dir, "train_predictions", os.path.basename(args.load_state)) + "_id_ep_fmt.csv"
 else:
     path = os.path.join(args.output_dir, "test_predictions", os.path.basename(args.load_state)) + "_id_ep_fmt.csv"
 
