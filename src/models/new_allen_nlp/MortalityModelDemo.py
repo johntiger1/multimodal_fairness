@@ -268,7 +268,7 @@ class MortalityClassifier(Model):
                  encoder: Seq2VecEncoder,
                  regularizer_applicatior: RegularizerApplicator = None
                  ):
-        super().__init__(vocab, regularizer_applicatior)
+        super().__init__(vocab)
         self.embedder = embedder
         self.encoder = encoder
         num_labels = vocab.get_vocab_size("labels")
@@ -346,6 +346,16 @@ def build_model(vocab: Vocabulary,
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
+
+    #     construct the regularizer applicator
+    if regularizer_applicator is not None:
+        l2_reg = L2Regularizer()
+        regexes = [("embedder", l2_reg),
+                   ("encoder", l2_reg),
+                   ("classifier", l2_reg)
+                   ]
+        regularizer_applicator = RegularizerApplicator(regexes)
+
     return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
 #
 def build_data_loaders(
@@ -436,7 +446,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 64
-    args.run_name = "4"
+    args.run_name = "5"
     import time
 
     start_time = time.time()
@@ -467,6 +477,8 @@ def main():
     del train_data
     del dev_data
     l2_reg = L2Regularizer()
+
+    # throw in all the regularizers to the regularizer applicators
     model = build_model(vocab,l2_reg)
 
     model, dataset_reader = run_training_loop(model,dataset_reader, vocab, args, use_gpu=True, batch_size=args.batch_size)
