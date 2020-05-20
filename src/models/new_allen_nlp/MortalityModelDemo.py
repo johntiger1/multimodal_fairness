@@ -237,12 +237,12 @@ class MortalityReader(DatasetReader):
                         text = text_df["TEXT"].iloc[0] #assuming sorted order
 
                         xs = ""
-                        if len(time_episode_specific_notes) > 1:
-
-                        # lets try to join both of them
-                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
-                        else:
-                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+                        # if len(time_episode_specific_notes) > 1:
+                        #
+                        # # lets try to join both of them
+                        #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        # else:
+                        #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
                         text = text + " " + xs
 
                         # join the texts together, or simply use the first one (according to starttime)
@@ -275,6 +275,7 @@ class MortalityClassifier(Model):
         self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
         self.accuracy = CategoricalAccuracy()
         self.auc = Auc()
+        self.reg_app = regularizer_applicatior
 
     def forward(self,
                 text: Dict[str, torch.Tensor],
@@ -289,12 +290,13 @@ class MortalityClassifier(Model):
         logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=-1)
+        reg_loss = self.get_regularization_penalty()
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
         self.accuracy(logits, label)
         preds = logits.argmax(-1)
         self.auc(preds, label)
-        output = {'loss': loss, 'probs': probs}
+        output = {'loss': loss, 'probs': probs, "reg_loss": reg_loss}
         return output
 
     '''this is called'''
@@ -335,7 +337,7 @@ def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
 #
 
 def build_model(vocab: Vocabulary,
-                regularizer_applicator: RegularizerApplicator = None) -> Model:
+                use_reg: bool = True) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 300
@@ -348,7 +350,7 @@ def build_model(vocab: Vocabulary,
     # the output dim is just the num filters *len(ngram_filter_sizes)
 
     #     construct the regularizer applicator
-    if regularizer_applicator is not None:
+    if use_reg :
         l2_reg = L2Regularizer()
         regexes = [("embedder", l2_reg),
                    ("encoder", l2_reg),
@@ -446,7 +448,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 64
-    args.run_name = "5"
+    args.run_name = "3"
     import time
 
     start_time = time.time()
@@ -476,10 +478,9 @@ def main():
     vocab = build_vocab(train_data + dev_data)
     del train_data
     del dev_data
-    l2_reg = L2Regularizer()
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab,l2_reg)
+    model = build_model(vocab,use_reg=True)
 
     model, dataset_reader = run_training_loop(model,dataset_reader, vocab, args, use_gpu=True, batch_size=args.batch_size)
     logger.warning("We have finished training")
