@@ -29,6 +29,10 @@ import pandas as pd
 import os
 import gc
 from tqdm.auto import tqdm
+import sys
+sys.path.append("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/")
+from src.preprocessing.text_preprocessing import preprocess_mimic
+
 '''
 We should throw out the X, where X is not good
 '''
@@ -47,7 +51,7 @@ class MortalityReader(DatasetReader):
                  lazy: bool = True,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
-                 max_tokens: int = 1,
+                 max_tokens: int = 768*4,
                  listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
@@ -191,6 +195,7 @@ class MortalityReader(DatasetReader):
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
+                cur_tokens = 0
                 info_filename, label = line.split(",")
                 info = info_filename.split("_")
                 patient_id = info[0]
@@ -233,8 +238,10 @@ class MortalityReader(DatasetReader):
                         text_df = time_episode_specific_notes
                         text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
 
+
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
                         text = " ".join(text_df["TEXT"].tolist())
+
                         #
                         # iloc[0] #assuming sorted order
                         #
@@ -248,7 +255,17 @@ class MortalityReader(DatasetReader):
                         # text = xs + " " + text
 
                         # join the texts together, or simply use the first one (according to starttime)
-                        tokens = self.tokenizer.tokenize(text)
+                        # tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
+                        # token_sent_stream = preprocess_mimic(text)
+                        # tokens = []
+                        # cur_tokens = 0
+                        # for i,token_sent in enumerate(token_sent_stream):
+                        #     if cur_tokens > self.max_tokens: break
+                        #     cur_tokens += len(token_sent.split())
+                        #     tokens.append(token_sent)
+                        #
+                        # text = " ".join(tokens)
+                        tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
                         text_field = TextField(tokens, self.token_indexers)
                         label_field = LabelField(label)
@@ -403,7 +420,9 @@ def build_trainer(
         validation_data_loader=dev_loader,
         num_epochs=25,
         optimizer=optimizer,
-        cuda_device=0
+        cuda_device=0,
+        validation_metric="+auc"
+
     )
     return trainer
 
@@ -486,8 +505,8 @@ def run_training_loop(model, dataset_reader, vocab, args, use_gpu=False, batch_s
 def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
-    args.batch_size = 32
-    args.run_name = "9"
+    args.batch_size = 128
+    args.run_name = "12"
     import time
 
     start_time = time.time()
