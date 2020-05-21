@@ -14,7 +14,16 @@ from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.modules.token_embedders import Embedding
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder, CnnEncoder
+
+'''transformer stuff'''
+from allennlp.data.tokenizers import PretrainedTransformerTokenizer
+from allennlp.data.token_indexers import PretrainedTransformerIndexer
+# from allennlp.modules.text_field_embedders import
+from allennlp.modules.token_embedders import PretrainedTransformerEmbedder
 from allennlp.modules.seq2vec_encoders import BertPooler
+
+
+
 
 from allennlp.nn import util
 from allennlp.training.metrics import CategoricalAccuracy, Auc
@@ -192,6 +201,8 @@ class MortalityReader(DatasetReader):
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''Expect: one instance per line'''
+
+        use_preprocessing = True
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
@@ -256,15 +267,16 @@ class MortalityReader(DatasetReader):
 
                         # join the texts together, or simply use the first one (according to starttime)
                         # tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
-                        # token_sent_stream = preprocess_mimic(text)
-                        # tokens = []
-                        # cur_tokens = 0
-                        # for i,token_sent in enumerate(token_sent_stream):
-                        #     if cur_tokens > self.max_tokens: break
-                        #     cur_tokens += len(token_sent.split())
-                        #     tokens.append(token_sent)
-                        #
-                        # text = " ".join(tokens)
+                        if use_preprocessing:
+                            token_sent_stream = preprocess_mimic(text)
+                            tokens = []
+                            cur_tokens = 0
+                            for i,token_sent in enumerate(token_sent_stream):
+                                if cur_tokens > self.max_tokens: break
+                                cur_tokens += len(token_sent.split())
+                                tokens.append(token_sent)
+
+                            text = " ".join(tokens) #overwrite the text!
                         tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
                         text_field = TextField(tokens, self.token_indexers)
@@ -355,6 +367,31 @@ def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
     return Vocabulary.from_instances(instances)
 #
 
+def build_model_Transformer(vocab: Vocabulary,
+                use_reg: bool = True) -> Model:
+    print("Building the model")
+    vocab_size = vocab.get_vocab_size("tokens")
+    EMBED_DIMS = 300
+    # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
+    embedder = BasicTextFieldEmbedder(
+        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
+    encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,4,5),
+                         num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
+    # encoder = BertPooler("bert-base-cased")
+    # the output dim is just the num filters *len(ngram_filter_sizes)
+
+    #     construct the regularizer applicator
+    regularizer_applicator = None
+    if use_reg :
+        l2_reg = L2Regularizer()
+        regexes = [("embedder", l2_reg),
+                   ("encoder", l2_reg),
+                   ("classifier", l2_reg)
+                   ]
+        regularizer_applicator = RegularizerApplicator(regexes)
+
+    return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
+
 def build_model(vocab: Vocabulary,
                 use_reg: bool = True) -> Model:
     print("Building the model")
@@ -418,7 +455,7 @@ def build_trainer(
         serialization_dir=serialization_dir,
         data_loader=train_loader,
         validation_data_loader=dev_loader,
-        num_epochs=25,
+        num_epochs=50,
         optimizer=optimizer,
         cuda_device=0,
         validation_metric="+auc",
@@ -506,8 +543,8 @@ def run_training_loop(model, dataset_reader, vocab, args, use_gpu=False, batch_s
 def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
-    args.batch_size = 128
-    args.run_name = "12"
+    args.batch_size = 1024
+    args.run_name = "15"
     import time
 
     start_time = time.time()
@@ -550,16 +587,16 @@ def main():
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args,use_gpu=True, batch_size=args.batch_size)
 
     logger.warning("We have finished training")
-    # Now we can evaluate the model on a new dataset.
-    test_data = dataset_reader.read(
-        '/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
-    test_data.index_with(model.vocab)
-    data_loader = DataLoader(test_data, batch_size=args.batch_size)
+    # # Now we can evaluate the model on a new dataset.
+    # test_data = dataset_reader.read(
+    #     '/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv')
+    # test_data.index_with(model.vocab)
+    # data_loader = DataLoader(test_data, batch_size=args.batch_size)
 
     # results = evaluate(model, data_loader, -1, None)
     # print(results)
 
-    results = evaluate(model, data_loader, 0, None)
+    results = evaluate(model, dev_dataloader, 0, None)
 
     print("we succ fulfilled it")
     with open("nice_srun_time.txt", "w") as file:
