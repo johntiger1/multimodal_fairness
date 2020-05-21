@@ -234,16 +234,18 @@ class MortalityReader(DatasetReader):
                         text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
-                        text = text_df["TEXT"].iloc[0] #assuming sorted order
-
-                        xs = ""
-                        if len(time_episode_specific_notes) > 1:
-
-                        # lets try to join both of them
-                            xs = text_df["TEXT"].iloc[-1] #assuming sorted order
-                        else:
-                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
-                        text = text + " " + xs
+                        text = " ".join(text_df["TEXT"].tolist())
+                        #
+                        # iloc[0] #assuming sorted order
+                        #
+                        # xs = ""
+                        # if len(time_episode_specific_notes) > 1:
+                        #
+                        # # lets try to join both of them
+                        #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
+                        # else:
+                        #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+                        # text = xs + " " + text
 
                         # join the texts together, or simply use the first one (according to starttime)
                         tokens = self.tokenizer.tokenize(text)
@@ -350,6 +352,7 @@ def build_model(vocab: Vocabulary,
     # the output dim is just the num filters *len(ngram_filter_sizes)
 
     #     construct the regularizer applicator
+    regularizer_applicator = None
     if use_reg :
         l2_reg = L2Regularizer()
         regexes = [("embedder", l2_reg),
@@ -407,6 +410,42 @@ def build_trainer(
 '''
 we pass in the vocab to ensure that we are speaking the same language!
 '''
+def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args, use_gpu=False, batch_size =32,
+                      serialization_dir = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments"):
+    # move the model over, if necessary, and possible
+    gpu_device = torch.device("cuda:0" if use_gpu  else "cpu")
+    model = model.to(gpu_device)
+
+    experiment_dir = os.path.join(serialization_dir, args.run_name)
+
+    if not os.path.exists(experiment_dir):
+        os.makedirs(experiment_dir, exist_ok=True)
+
+    serialization_dir = experiment_dir
+
+    # This is the allennlp-specific functionality in the Dataset object;
+    # we need to be able convert strings in the data to integers, and this
+    # is how we do it.
+
+    # These are again a subclass of pytorch DataLoaders, with an
+    # allennlp-specific collate function, that runs our indexing and
+    # batching code.
+
+    # You obviously won't want to create a temporary file for your training
+    # results, but for execution in binder for this course, we need to do this.
+    trainer = build_trainer(
+        model,
+        serialization_dir,
+        train_loader,
+        dev_loader
+    )
+    trainer.train()
+
+    return model
+
+'''
+we pass in the vocab to ensure that we are speaking the same language!
+'''
 def run_training_loop(model, dataset_reader, vocab, args, use_gpu=False, batch_size =32,
                       serialization_dir = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments"):
     # move the model over, if necessary, and possible
@@ -448,7 +487,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 64
-    args.run_name = "7"
+    args.run_name = "9"
     import time
 
     start_time = time.time()
@@ -476,13 +515,14 @@ def main():
     # functionality added.
     train_data, dev_data = read_data(dataset_reader)
     vocab = build_vocab(train_data + dev_data)
-    del train_data
-    del dev_data
+    train_dataloader, dev_dataloader = build_data_loaders(train_data, dev_data)
+    # del train_data
+    # del dev_data
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab,use_reg=True)
+    model = build_model(vocab,use_reg=False)
+    model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args,use_gpu=True, batch_size=args.batch_size)
 
-    model, dataset_reader = run_training_loop(model,dataset_reader, vocab, args, use_gpu=True, batch_size=args.batch_size)
     logger.warning("We have finished training")
     # Now we can evaluate the model on a new dataset.
     test_data = dataset_reader.read(
