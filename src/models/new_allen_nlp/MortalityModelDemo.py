@@ -486,7 +486,7 @@ def run_training_loop(model, dataset_reader, vocab, args, use_gpu=False, batch_s
 def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
-    args.batch_size = 64
+    args.batch_size = 32
     args.run_name = "9"
     import time
 
@@ -514,7 +514,13 @@ def main():
     # These are a subclass of pytorch Datasets, with some allennlp-specific
     # functionality added.
     train_data, dev_data = read_data(dataset_reader)
+
     vocab = build_vocab(train_data + dev_data)
+
+    # make sure to index the vocab before adding it
+    train_data.index_with(vocab)
+    dev_data.index_with(vocab)
+
     train_dataloader, dev_dataloader = build_data_loaders(train_data, dev_data)
     # del train_data
     # del dev_data
