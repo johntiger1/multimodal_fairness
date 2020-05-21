@@ -21,9 +21,6 @@ from mimic3models import common_utils
 from keras.callbacks import ModelCheckpoint, CSVLogger
 
 
-# UGLY HACK, TODO: Refactor this, and merge with postprocessing script (also remove unused branches)
-TEST_ON_TRAIN = True
-
 parser = argparse.ArgumentParser()
 common_utils.add_common_arguments(parser)
 parser.add_argument('--deep_supervision', dest='deep_supervision', action='store_true')
@@ -31,12 +28,15 @@ parser.add_argument('--data', type=str, help='Path to the data of decompensation
                     default=os.path.join(os.path.dirname(__file__), '../../data/decompensation/'))
 parser.add_argument('--output_dir', type=str, help='Directory relative which all output files are stored',
                     default='.')
+parser.add_argument('--test_on_train', help='If flag present and script in test mode, then get predictions on train data instead of test data', action='store_true')
 parser.set_defaults(deep_supervision=False)
 args = parser.parse_args()
 print(args)
 
 if args.small_part:
     args.save_every = 2**30
+
+test_on_train = args.test_on_train
 
 # Build readers, discretizers, normalizers
 if args.deep_supervision:
@@ -171,9 +171,14 @@ elif args.mode == 'test':
     if args.deep_supervision:
         del train_data_loader
         del val_data_loader
-        test_data_loader = common_utils.DeepSupervisionDataLoader(dataset_dir=os.path.join(args.data, 'test'),
-                                                                  listfile=os.path.join(args.data, 'test_listfile.csv'),
-                                                                  small_part=args.small_part)
+        if test_on_train:
+            test_data_loader = common_utils.DeepSupervisionDataLoader(dataset_dir=os.path.join(args.data, 'train'),
+                                                                      listfile=os.path.join(args.data, 'train_listfile.csv'),
+                                                                      small_part=args.small_part)
+        else:
+            test_data_loader = common_utils.DeepSupervisionDataLoader(dataset_dir=os.path.join(args.data, 'test'),
+                                                                      listfile=os.path.join(args.data, 'test_listfile.csv'),
+                                                                      small_part=args.small_part)
         test_data_gen = utils.BatchGenDeepSupervision(test_data_loader, discretizer,
                                                       normalizer, args.batch_size,
                                                       shuffle=False, return_names=True)
@@ -197,8 +202,7 @@ elif args.mode == 'test':
     else:
         del train_reader
         del val_reader
-
-        if TEST_ON_TRAIN:
+        if test_on_train:
             test_reader = DecompensationReader(dataset_dir=os.path.join(args.data, 'train'),
                                         listfile=os.path.join(args.data, 'train_listfile.csv'))
         else:
@@ -224,7 +228,7 @@ elif args.mode == 'test':
             ts += list(cur_ts)
 
     metrics.print_metrics_binary(labels, predictions)
-    if TEST_ON_TRAIN:
+    if test_on_train:
         path = os.path.join(args.output_dir, 'train_predictions', os.path.basename(args.load_state)) + '.csv'
     else:
         path = os.path.join(args.output_dir, 'test_predictions', os.path.basename(args.load_state)) + '.csv'

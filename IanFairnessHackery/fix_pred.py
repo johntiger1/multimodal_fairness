@@ -1,7 +1,7 @@
 # Quick ugly hack script to convert the baseline test output into the format we need
 
 # Set to path to predictions
-READ_PATH = "./k_lstm.n128.dep1.bs8.ts1.0.chunk25.test0.0779094241263.state.csv"
+READ_PATH = "../mimic3models/decompensation/test_predictions/k_lstm.n128.dep1.bs8.ts1.0.chunk25.test0.0779094241263.state.csv"
 
 
 assert(READ_PATH.endswith(".csv"))

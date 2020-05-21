@@ -1,171 +1,23 @@
 # More ugly hackery, now even lazier!
-# python -um mimic3models.phenotyping.gen_responses --network mimic3models/keras_models/lstm.py --load_state mimic3models/phenotyping/keras_states/k_lstm.n256.d0.3.dep1.bs8.ts1.0.epoch20.test0.348495262943.state --dim 256 --timestep 1.0 --depth 1 --dropout 0.3 --mode test --batch_size 8 --output_dir mimic3models/phenotyping --data data/phenotyping/
+# python -um mimic3models.phenotyping.gen_responses --mode test --network mimic3models/keras_models/channel_wise_lstms.py --load_state mimic3models/phenotyping/keras_states/nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state --dim 16 --timestep 1.0 --depth 1 --dropout 0.3 --batch_size 64 --output_dir mimic3models/phenotyping --data data/phenotyping/ --size_coef 8
 from __future__ import absolute_import
 from __future__ import print_function
 
 import numpy as np
 import argparse
+import os
 import imp
 import re
-import os
 
+from mimic3models.phenotyping import utils
 from mimic3benchmark.readers import PhenotypingReader
 
 from mimic3models.preprocessing import Discretizer, Normalizer
 from mimic3models import metrics
 from mimic3models import keras_utils
+from mimic3models import common_utils
 
 from keras.callbacks import ModelCheckpoint, CSVLogger
-
-
-
-from mimic3models import common_utils
-import threading
-import random
-import os
-
-# UGLY HACK TODO: Refactor
-TEST_ON_TRAIN = True
-
-PRED_TASKS = {
-    1: "Acute and unspecified renal failure",
-    2: "Acute cerebrovascular disease",
-    3: "Acute myocardial infarction",
-    4: "Cardiac dysrhythmias",
-    5: "Chronic kidney disease",
-    6: "Chronic obstructive pulmonary disease and bronchiectasis",
-    7: "Complications of surgical procedures or medical care",
-    8: "Conduction disorders",
-    9: "Congestive heart failure",
-    10: "nonhypertensive",
-    11: "Coronary atherosclerosis and other heart disease",
-    12: "Diabetes mellitus with complications",
-    13: "Diabetes mellitus without complication",
-    14: "Disorders of lipid metabolism",
-    15: "Essential hypertension",
-    16: "Fluid and electrolyte disorders",
-    17: "Gastrointestinal hemorrhage",
-    18: "Hypertension with complications and secondary hypertension",
-    19: "Other liver diseases",
-    20: "Other lower respiratory disease",
-    21: "Other upper respiratory disease",
-    22: "Pleurisy",
-    23: "pneumothorax",
-    24: "pulmonary collapse",
-    25: "Pneumonia (except that caused by tuberculosis or sexually transmitted disease)"
-}
-
-
-class BatchGen(object):
-
-    def __init__(self, reader, discretizer, normalizer, batch_size,
-                 small_part, target_repl, shuffle, return_names=False):
-        self.batch_size = batch_size
-        self.target_repl = target_repl
-        self.shuffle = shuffle
-        self.return_names = return_names
-
-        self._load_data(reader, discretizer, normalizer, small_part)
-
-        self.steps = (len(self.data[0]) + batch_size - 1) // batch_size
-        self.lock = threading.Lock()
-        self.generator = self._generator()
-
-    def _load_data(self, reader, discretizer, normalizer, small_part=False):
-        N = reader.get_number_of_examples()
-        if small_part:
-            N = 1000
-        ret = common_utils.read_chunk(reader, N)
-        data = ret["X"]
-        ts = ret["t"]
-        ys = ret["y"]
-        names = ret["name"]
-        data = [discretizer.transform(X, end=t)[0] for (X, t) in zip(data, ts)]
-        if (normalizer is not None):
-            data = [normalizer.transform(X) for X in data]
-        ys = np.array(ys, dtype=np.int32)
-        self.data = (data, ys)
-        self.ts = ts
-        self.names = names
-
-    def _generator(self):
-        B = self.batch_size
-        while True:
-            if self.shuffle:
-                N = len(self.data[1])
-                order = list(range(N))
-                random.shuffle(order)
-                tmp_data = [[None] * N, [None] * N]
-                tmp_names = [None] * N
-                tmp_ts = [None] * N
-                for i in range(N):
-                    tmp_data[0][i] = self.data[0][order[i]]
-                    tmp_data[1][i] = self.data[1][order[i]]
-                    tmp_names[i] = self.names[order[i]]
-                    tmp_ts[i] = self.ts[order[i]]
-                self.data = tmp_data
-                self.names = tmp_names
-                self.ts = tmp_ts
-            else:
-                # sort entirely
-                X = self.data[0]
-                y = self.data[1]
-                (X, y, self.names, self.ts) = common_utils.sort_and_shuffle([X, y, self.names, self.ts], B)
-                self.data = [X, y]
-
-            self.data[1] = np.array(self.data[1])  # this is important for Keras
-            for i in range(0, len(self.data[0]), B):
-                x = self.data[0][i:i+B]
-                y = self.data[1][i:i+B]
-                names = self.names[i:i + B]
-                ts = self.ts[i:i + B]
-
-                x = common_utils.pad_zeros(x)
-                y = np.array(y)  # (B, 25)
-
-                if self.target_repl:
-                    y_rep = np.expand_dims(y, axis=1).repeat(x.shape[1], axis=1)  # (B, T, 25)
-                    batch_data = (x, [y, y_rep])
-                else:
-                    batch_data = (x, y)
-
-                if not self.return_names:
-                    yield batch_data
-                else:
-                    yield {"data": batch_data, "names": names, "ts": ts}
-
-    def __iter__(self):
-        return self.generator
-
-    def next(self):
-        with self.lock:
-            return next(self.generator)
-
-    def __next__(self):
-        return self.next()
-
-
-def save_results(names, ts, predictions, labels, dir, filename):
-    n_tasks = 25
-    common_utils.create_directory(os.path.dirname(dir))
-
-    for i in range(1,n_tasks + 1):
-        with open(os.path.join(dir, PRED_TASKS[i]+filename), 'w') as f:
-            header = ["id", "episode", "prediction", "label"]
-            header = ",".join(header)
-            f.write(header + '\n')
-            for name, t, pred, y in zip(names, ts, predictions, labels):
-                assert (name.endswith("_timeseries.csv"))
-                name = name[:-15]
-                vals = name.split("_episode")
-                assert (len(vals) == 2 and vals[0].isdigit() and vals[1].isdigit())
-                line = vals
-                #line += ["{:.6f}".format(t)] # We don't need time in the output
-                line += ["{:.6f}".format(pred[i-1])]
-                line += [str(y[i-1])]
-                line = ",".join(line)
-                f.write(line + '\n')
-
 
 parser = argparse.ArgumentParser()
 common_utils.add_common_arguments(parser)
@@ -174,8 +26,11 @@ parser.add_argument('--data', type=str, help='Path to the data of phenotyping ta
                     default=os.path.join(os.path.dirname(__file__), '../../data/phenotyping/'))
 parser.add_argument('--output_dir', type=str, help='Directory relative which all output files are stored',
                     default='.')
+parser.add_argument('--test_on_train', help='If flag present and script in test mode, then get predictions on train data instead of test data', action='store_true')
 args = parser.parse_args()
 print(args)
+
+test_on_train = args.test_on_train
 
 if args.small_part:
     args.save_every = 2**30
@@ -252,10 +107,10 @@ if args.load_state != "":
 
 
 # Build data generators
-train_data_gen = BatchGen(train_reader, discretizer,
+train_data_gen = utils.BatchGen(train_reader, discretizer,
                                 normalizer, args.batch_size,
                                 args.small_part, target_repl, shuffle=True)
-val_data_gen = BatchGen(val_reader, discretizer,
+val_data_gen = utils.BatchGen(val_reader, discretizer,
                               normalizer, args.batch_size,
                               args.small_part, target_repl, shuffle=False)
 
@@ -296,15 +151,14 @@ elif args.mode == 'test':
     del val_reader
     del train_data_gen
     del val_data_gen
-
-    if TEST_ON_TRAIN:
+    if test_on_train:
         test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'train'),
                                  listfile=os.path.join(args.data, 'train_listfile.csv'))
     else:
         test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'test'),
                                         listfile=os.path.join(args.data, 'test_listfile.csv'))
 
-    test_data_gen = BatchGen(test_reader, discretizer,
+    test_data_gen = utils.BatchGen(test_reader, discretizer,
                                    normalizer, args.batch_size,
                                    args.small_part, target_repl,
                                    shuffle=False, return_names=True)
@@ -328,12 +182,12 @@ elif args.mode == 'test':
         ts += list(cur_ts)
 
     metrics.print_metrics_multilabel(labels, predictions)
-    if TEST_ON_TRAIN:
-        dirname = os.path.join(args.output_dir, "train_predictions")
+    if test_on_train:
+        path = os.path.join(args.output_dir, "train_predictions", os.path.basename(args.load_state)) + ".csv"
     else:
-        dirname = os.path.join(args.output_dir, "test_predictions")
-    filename = os.path.basename(args.load_state) + "_id_ep_fmt.csv"
-    save_results(names, ts, predictions, labels, dirname, filename)
+        path = os.path.join(args.output_dir, "test_predictions", os.path.basename(args.load_state)) + ".csv"
+    utils.save_results(names, ts, predictions, labels, path)
 
 else:
     raise ValueError("Wrong value for args.mode")
+

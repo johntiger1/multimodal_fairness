@@ -1,29 +1,23 @@
 Ian's quick and dirty notes:
 
-Benchmark model predictions have been commited as a .csv under mimic3models/TASK_NAME_HERE/test_predictions/
+New design, just run the authors's test code with minimal modifications so that we can also get the predictions on the training data.
+Once their code is finished running, run a postprocessing script to clean their .csv into the format we're using
 
-I will commit the weights I used/trained
+Command to run in-hospital mortality; To run on training data add the flag --test_on_train
 
-You shouldn't need to generate the predictions again, but just in case:
-
-NOTE: I've added a hack hard-coded flag to run test on the train data (go to code and set TEST_ON_TRAIN to false). Will refactor when there is time
-
-To generate the in-hospital mortality test results run (update --load_state if you want to use a different weights checkpoint):
-
-python -um mimic3models.in_hospital_mortality.gen_responses --data data/in-hospital-mortality/ --timestep 1.0  --network mimic3models/keras_models/lstm.py  --batch_size 8 --load_state mimic3models/in_hospital_mortality/keras_states/k_lstm.n16.d0.3.dep2.bs8.ts1.0.epoch28.test0.286221665488.state  --output_dir mimic3models/in_hospital_mortality --dim 16  --depth 2 --dropout 0.3
-
-To generate the phenotyping test results run:
-
-python -um mimic3models.phenotyping.gen_responses --network mimic3models/keras_models/lstm.py --load_state mimic3models/phenotyping/keras_states/k_lstm.n256.d0.3.dep1.bs8.ts1.0.epoch20.test0.348495262943.state --dim 256 --timestep 1.0 --depth 1 --dropout 0.3 --mode test --batch_size 8 --output_dir mimic3models/phenotyping --data data/phenotyping/
-
-The decompensation is a bit of an uglier hack since I wanted to do it quickly, and it takes a while for the tests to run. First execute:
-
-   python -um mimic3models.decompensation.main --network mimic3models/keras_models/lstm.py --dim 128 --timestep 1.0 --depth 1 --mode test --batch_size 8 --output_dir mimic3models/decompensation --load_state mimic3models/decompensation/keras_states/k_lstm.n128.dep1.bs8.ts1.0.chunk25.test0.0779094241263.state
-   
-This will generate a .csv file under the test_results folder. There there's a python script that can read the .csv and split the first column as needed. Just open mimic3models/decompensation/test_predictions/fix_pred.py, update the hardcoded path to the file, and run it. It will generate the required.csv (filename will be suffixed with _id_ep_fmt)
+python -um mimic3models.in_hospital_mortality.gen_responses --mode test --data data/in-hospital-mortality/ --timestep 1.0  --network mimic3models/keras_models/channel_wise_lstms.py  --batch_size 8 --load_state mimic3models/in_hospital_mortality/keras_states/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state  --output_dir mimic3models/in_hospital_mortality --dim 8  --depth 1 --dropout 0.3 --size_coef 4
 
 
 
+Command to run phenotyping; To run on training data add the flag --test_on_train
+
+python -um mimic3models.phenotyping.gen_responses --mode test --network mimic3models/keras_models/channel_wise_lstms.py --load_state mimic3models/phenotyping/keras_states/nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state --dim 16 --timestep 1.0 --depth 1 --dropout 0.3 --batch_size 64 --output_dir mimic3models/phenotyping --data data/phenotyping/ --size_coef 8
+
+
+
+Command to run decompensation; again use flag --test_on_train to get predictions on train data
+
+python -um mimic3models.decompensation.gen_responses --mode test --network mimic3models/keras_models/channel_wise_lstms.py --load_state mimic3models/decompensation/keras_states/nrk_channel_wise_lstms.n16.szc8.0.dep1.dsup.bs32.ts1.0.chunk6.test0.0810981076094.state --dim 16 --timestep 1.0 --depth 1 --batch_size 32 --output_dir mimic3models/decompensation --data data/decompensation/ --size_coef 8 --deep_supervision
 
 
 
