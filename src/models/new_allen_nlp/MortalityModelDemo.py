@@ -421,7 +421,8 @@ def build_trainer(
         num_epochs=25,
         optimizer=optimizer,
         cuda_device=0,
-        validation_metric="+auc"
+        validation_metric="+auc",
+        patience=5
 
     )
     return trainer
