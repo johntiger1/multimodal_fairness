@@ -22,7 +22,7 @@ from allennlp.data.token_indexers import PretrainedTransformerIndexer
 from allennlp.modules.token_embedders import PretrainedTransformerEmbedder
 from allennlp.modules.seq2vec_encoders import BertPooler
 
-
+BERT_MODEL_NAME = "bert-base-uncased"
 
 
 from allennlp.nn import util
@@ -373,8 +373,8 @@ def build_model_Transformer(vocab: Vocabulary,
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 300
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
-    embedder = PretrainedTransformerEmbedder("pretrained_transformer")
-    encoder = BertPooler("bert_pooler") # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
+    embedder = PretrainedTransformerEmbedder(BERT_MODEL_NAME)
+    encoder = BertPooler(BERT_MODEL_NAME) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
 
@@ -560,8 +560,8 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    my_transformer_tokenizer = PretrainedTransformerTokenizer("pretrained_transformer")
-    my_transformer_indexer = PretrainedTransformerIndexer("pretrained_transformer")
+    my_transformer_tokenizer = PretrainedTransformerTokenizer(BERT_MODEL_NAME)
+    my_transformer_indexer = PretrainedTransformerIndexer(BERT_MODEL_NAME)
     # my_transformer_embedder = PretrainedTransformerEmbedder("pretrained_transformer")
     dataset_reader = build_dataset_reader(tokenizer=my_transformer_tokenizer, token_indexers=my_transformer_indexer)
 
