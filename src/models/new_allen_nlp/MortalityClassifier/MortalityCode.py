@@ -279,12 +279,18 @@ class MortalityReader(DatasetReader):
                         fields = {'text': text_field, 'label': label_field}
 
 
-                        if self.limit_examples and self.cur_examples < self.limit_examples:
+                        if not self.limit_examples:
+                            # always yield in this case
+
                             yield Instance(fields)
                             self.cur_examples +=1
                         else:
-                            self.cur_examples = 0
-                            break #yield no more examples
+                            if self.cur_examples < self.limit_examples:
+                                yield Instance(fields)
+                                self.cur_examples += 1
+                            else:
+                                self.cur_examples = 0
+                                break #yield no more examples
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
                         # in this case, we ignore the patient
