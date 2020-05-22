@@ -66,7 +66,7 @@ class MortalityReader(DatasetReader):
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
                  all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
-                 limit_examples: int = 256
+                 limit_examples: int = 30
 
     ):
         super().__init__(lazy)
@@ -283,7 +283,7 @@ class MortalityReader(DatasetReader):
                         tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
                         text_field = TextField(tokens, self.token_indexers)
-                        label_field = LabelField(label)
+                        label_field = LabelField(label.strip()) #labels are 0 and 1. but do we need to index it again?
                         fields = {'text': text_field, 'label': label_field}
                         yield Instance(fields)
                         self.curr_examples += 1
@@ -310,7 +310,8 @@ class MortalityClassifier(Model):
         super().__init__(vocab, regularizer_applicator)
         self.embedder = embedder
         self.encoder = encoder
-        num_labels = vocab.get_vocab_size("labels")
+        num_labels = vocab.get_vocab_size("labels") # the labels was constructed. i.e. even though we did not explicitly do anything to it, it knows how large it should be!
+        logger.info("num labels is as follows: {}".format(num_labels)) # why does it ned to know the labels converison however?
         self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
         self.accuracy = CategoricalAccuracy()
         self.auc = Auc()
@@ -321,12 +322,19 @@ class MortalityClassifier(Model):
                 label: torch.Tensor) -> Dict[str, torch.Tensor]:
         # Shape: (batch_size, num_tokens, embedding_dim)
         embedded_text = self.embedder(text)
+        logger.info("Embedded text shape is as follows: {}".format((embedded_text.shape)))
+
+
+
         # Shape: (batch_size, num_tokens)
         mask = util.get_text_field_mask(text)
         # Shape: (batch_size, encoding_dim)
         encoded_text = self.encoder(embedded_text, mask)
+        print(encoded_text.shape)
+
         # Shape: (batch_size, num_labels)
         logits = self.classifier(encoded_text)
+        print(logits.shape)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=-1)
         # reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
@@ -371,7 +379,7 @@ def read_data(
 
 #
 def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
-
+    '''normally the labels vocab is also built up. But this time, we need both.'''
     return Vocabulary()
     # print("Building the vocabulary")
     # return Vocabulary.from_instances(instances)
@@ -571,7 +579,9 @@ def main():
     # model.
 
     my_transformer_tokenizer = PretrainedTransformerTokenizer(BERT_MODEL_NAME)
-    my_transformer_indexer = {"tokens" :PretrainedTransformerIndexer(BERT_MODEL_NAME)}
+    my_transformer_indexer = {"tokens" :PretrainedTransformerIndexer(BERT_MODEL_NAME),
+                              "labels": PretrainedTransformerIndexer(BERT_MODEL_NAME)
+                              }
 
     # my_transformer_embedder = PretrainedTransformerEmbedder("pretrained_transformer")
     dataset_reader = build_dataset_reader(tokenizer=my_transformer_tokenizer, token_indexers=my_transformer_indexer)
