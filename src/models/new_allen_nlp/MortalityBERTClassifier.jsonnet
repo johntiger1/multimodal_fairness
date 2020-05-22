@@ -3,17 +3,18 @@ local bert_model = "albert-base-v1";
 {
     "dataset_reader" : {
         "type": "MortalityReader",
-        "max_tokens": 1024,
+        "max_tokens": 768,
         "tokenizer": {
             "type": "pretrained_transformer",
             "model_name": bert_model,
-            "max_length": 128
+            "max_length": 512
         },
         "token_indexers": {
             "bert": {
                 "type": "pretrained_transformer",
                 "model_name": bert_model,
-                "max_length": 128
+                "max_length": 512
+                # actually they do!
             }
         },
         "lazy": true
@@ -27,7 +28,7 @@ local bert_model = "albert-base-v1";
                 "bert": {
                     "type": "pretrained_transformer",
                     "model_name": bert_model,
-                    "max_length": 128
+                    "max_length": 512
                 }
             }
         },
@@ -38,7 +39,8 @@ local bert_model = "albert-base-v1";
         }
     },
     "data_loader": {
-        "batch_size": 256
+        "batch_size": 64
+        #found this has an effect
     },
     "trainer": {
         "optimizer": "adam",
