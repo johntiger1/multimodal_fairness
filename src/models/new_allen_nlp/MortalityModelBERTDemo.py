@@ -65,7 +65,8 @@ class MortalityReader(DatasetReader):
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
-                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv"
+                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
+                 limit_examples: int = 256
 
     ):
         super().__init__(lazy)
@@ -82,6 +83,8 @@ class MortalityReader(DatasetReader):
         self.stats_write_dir = stats_write_dir
         self.all_stays_path = all_stays
         self.all_stays_df = self.get_all_stays()
+        self.curr_examples = 0
+        self.limit_examples = limit_examples
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -283,6 +286,11 @@ class MortalityReader(DatasetReader):
                         label_field = LabelField(label)
                         fields = {'text': text_field, 'label': label_field}
                         yield Instance(fields)
+                        self.curr_examples += 1
+
+                        if self.curr_examples > self.limit_examples:
+                            self.curr_examples = 0 # reset
+                            break
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
                         # in this case, we ignore the patient
@@ -363,8 +371,10 @@ def read_data(
 
 #
 def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
-    print("Building the vocabulary")
-    return Vocabulary.from_instances(instances)
+
+    return Vocabulary()
+    # print("Building the vocabulary")
+    # return Vocabulary.from_instances(instances)
 #
 
 def build_model_Transformer(vocab: Vocabulary,
@@ -545,7 +555,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 1024
-    args.run_name = "16"
+    args.run_name = "17"
     import time
 
     start_time = time.time()
