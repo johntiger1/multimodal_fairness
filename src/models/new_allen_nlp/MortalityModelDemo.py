@@ -55,6 +55,8 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.debug("hello")
 
+
+@DatasetReader.register("MortalityReader")
 class MortalityReader(DatasetReader):
     def __init__(self,
                  lazy: bool = True,
@@ -292,6 +294,8 @@ class MortalityReader(DatasetReader):
 '''
 We can also look at dropout and other techniques which we do here!
 '''
+
+@Model.register("MortalityClassifier")
 class MortalityClassifier(Model):
     def __init__(self,
                  vocab: Vocabulary,
