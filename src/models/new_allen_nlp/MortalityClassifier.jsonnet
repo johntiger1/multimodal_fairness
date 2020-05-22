@@ -1,12 +1,12 @@
 {
     "dataset_reader" : {
         "type": "MortalityReader",
+        "max_tokens": 999,
         "token_indexers": {
             "tokens": {
                 "type": "single_id"
             }
         },
-        "max_tokens": 2000
     },
     "train_data_path": "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
     "validation_data_path": "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv",
@@ -34,7 +34,6 @@
         "num_epochs": 50,
         "cuda_device": 0,
         "patience": 5,
-        "validation_metric": "+auc",
-        ""
+        "validation_metric": "+auc"
     }
 }
