@@ -53,13 +53,13 @@ class MortalityReader(DatasetReader):
                  lazy: bool = True,
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
-                 max_tokens: int = 768*4,
+                 max_tokens: int = 768,
                  listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
-                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv"
-
+                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
+                limit_examples: int = 30
     ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
@@ -75,6 +75,9 @@ class MortalityReader(DatasetReader):
         self.stats_write_dir = stats_write_dir
         self.all_stays_path = all_stays
         self.all_stays_df = self.get_all_stays()
+        self.limit_examples = limit_examples
+        self.cur_examples = 0
+
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -194,8 +197,7 @@ class MortalityReader(DatasetReader):
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''Expect: one instance per line'''
-
-        use_preprocessing = True
+        use_preprocessing = False
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
@@ -275,7 +277,13 @@ class MortalityReader(DatasetReader):
                         text_field = TextField(tokens, self.token_indexers)
                         label_field = LabelField(label)
                         fields = {'text': text_field, 'label': label_field}
-                        yield Instance(fields)
+
+                        if self.cur_examples < self.limit_examples:
+                            yield Instance(fields)
+                            self.cur_examples +=1
+                        else:
+                            self.cur_examples = 0
+                            break
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
                         # in this case, we ignore the patient
@@ -308,12 +316,15 @@ class MortalityClassifier(Model):
         encoded_text = self.encoder(embedded_text, mask)
         # Shape: (batch_size, num_labels)
         logits = self.classifier(encoded_text)
+        cls_logits = logits[:,0,:]
         # Shape: (batch_size, num_labels)
-        probs = torch.nn.functional.softmax(logits, dim=-1)
+        probs = torch.nn.functional.softmax(logits[:,0,:], dim=-1)
         # reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
         # Shape: (1,)
-        loss = torch.nn.functional.cross_entropy(logits, label)
-        self.accuracy(logits, label)
+        logger.critical("\nShapes {} {}\n".format(cls_logits.shape, label.shape))
+
+        loss = torch.nn.functional.cross_entropy(cls_logits, label)
+        self.accuracy(cls_logits, label)
         preds = logits.argmax(-1)
         self.auc(preds, label)
         output = {'loss': loss, 'probs': probs}
