@@ -315,16 +315,15 @@ class MortalityClassifier(Model):
         # Shape: (batch_size, encoding_dim)
         encoded_text = self.encoder(embedded_text, mask)
         # Shape: (batch_size, num_labels)
-        logits = self.classifier(encoded_text)
-        cls_logits = logits[:,0,:]
+        logits = self.classifier(encoded_text[:,0,:])
         # Shape: (batch_size, num_labels)
-        probs = torch.nn.functional.softmax(logits[:,0,:], dim=-1)
+        logger.critical("Shapes {} {}".format(logits.shape, label.shape))
+        probs = torch.nn.functional.softmax(logits, dim=-1)
         # reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
         # Shape: (1,)
-        logger.critical("\nShapes {} {}\n".format(cls_logits.shape, label.shape))
 
-        loss = torch.nn.functional.cross_entropy(cls_logits, label)
-        self.accuracy(cls_logits, label)
+        loss = torch.nn.functional.cross_entropy(logits, label)
+        self.accuracy(logits, label)
         preds = logits.argmax(-1)
         self.auc(preds, label)
         output = {'loss': loss, 'probs': probs}
