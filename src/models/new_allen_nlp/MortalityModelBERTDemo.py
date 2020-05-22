@@ -571,7 +571,8 @@ def main():
     # model.
 
     my_transformer_tokenizer = PretrainedTransformerTokenizer(BERT_MODEL_NAME)
-    my_transformer_indexer = PretrainedTransformerIndexer(BERT_MODEL_NAME)
+    my_transformer_indexer = {"tokens" :PretrainedTransformerIndexer(BERT_MODEL_NAME)}
+
     # my_transformer_embedder = PretrainedTransformerEmbedder("pretrained_transformer")
     dataset_reader = build_dataset_reader(tokenizer=my_transformer_tokenizer, token_indexers=my_transformer_indexer)
 
