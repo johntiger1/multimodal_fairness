@@ -70,9 +70,7 @@ joined = benchmark_df.merge(mimic_df, on="SUBJECT_ID", how="inner", validate="on
 joined.to_csv("full_detail_sensitive.csv")
 
 
-# Post-processing, merge ethnicities into WHITE & NON_WHITE
-joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x == "WHITE" else "NON_WHITE")
-
+print("ORIGINAL CLASSES")
 # My sanity checking
 print("Ethnicities in data:")
 print(joined['ETHNICITY'].value_counts())
@@ -89,6 +87,31 @@ print(joined['RELIGION'].value_counts())
 print("Marital status in data:")
 print(joined['MARITAL_STATUS'].value_counts())
 
-# Save results
-joined.to_csv("sensitive.csv")
+original = joined.copy()
 
+# Post-processing, merge ethnicities into WHITE & NON_WHITE
+joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x == "WHITE" else "NON_WHITE")
+# Save results
+joined.to_csv("sensitive_bin_eth.csv")
+
+joined = original.copy()
+joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x in ["WHITE", "BLACK","HISPANIC","ASIAN"] else "OTHER")
+# Save results
+joined.to_csv("sensitive_5_eth.csv")
+
+print("ORIGINAL CLASSES")
+# My sanity checking
+print("Ethnicities in data:")
+print(joined['ETHNICITY'].value_counts())
+
+print("Sex in data:")
+print(joined['GENDER'].value_counts())
+
+print("Insurance in data:")
+print(joined['INSURANCE'].value_counts())
+
+print("Religion in data:")
+print(joined['RELIGION'].value_counts())
+
+print("Marital status in data:")
+print(joined['MARITAL_STATUS'].value_counts())
