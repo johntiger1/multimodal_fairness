@@ -3,21 +3,21 @@ local bert_model = "albert-base-v1";
 {
     "dataset_reader" : {
         "type": "MortalityReader",
-        "max_tokens": 768,
+        "max_tokens": 256,
         "tokenizer": {
             "type": "pretrained_transformer",
             "model_name": bert_model,
-            "max_length": 512
+            "max_length": 256
         },
         "token_indexers": {
             "bert": {
                 "type": "pretrained_transformer",
                 "model_name": bert_model,
-                "max_length": 512
+                "max_length": 128
                 # actually they do!
             }
         },
-        "lazy": true
+        "lazy": false
     },
     "train_data_path": "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
     "validation_data_path": "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv",
@@ -28,7 +28,7 @@ local bert_model = "albert-base-v1";
                 "bert": {
                     "type": "pretrained_transformer",
                     "model_name": bert_model,
-                    "max_length": 512
+                    "max_length": 128
                 }
             }
         },
@@ -39,7 +39,7 @@ local bert_model = "albert-base-v1";
         }
     },
     "data_loader": {
-        "batch_size": 64
+        "batch_size": 32
         #found this has an effect
     },
     "trainer": {
