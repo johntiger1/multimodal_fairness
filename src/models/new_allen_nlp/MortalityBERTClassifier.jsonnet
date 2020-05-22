@@ -3,7 +3,7 @@ local bert_model = "albert-base-v1";
 {
     "dataset_reader" : {
         "type": "MortalityReader",
-        "max_tokens": 2048,
+        "max_tokens": 1024,
         "tokenizer": {
             "type": "pretrained_transformer",
             "model_name": bert_model,
