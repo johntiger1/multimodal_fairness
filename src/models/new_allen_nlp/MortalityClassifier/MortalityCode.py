@@ -59,7 +59,7 @@ class MortalityReader(DatasetReader):
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
                  all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
-                limit_examples: int = 30
+                limit_examples: int = None
     ):
         super().__init__(lazy)
         self.tokenizer = tokenizer or WhitespaceTokenizer()
@@ -278,12 +278,13 @@ class MortalityReader(DatasetReader):
                         label_field = LabelField(label)
                         fields = {'text': text_field, 'label': label_field}
 
-                        if self.cur_examples < self.limit_examples:
+
+                        if self.limit_examples and self.cur_examples < self.limit_examples:
                             yield Instance(fields)
                             self.cur_examples +=1
                         else:
                             self.cur_examples = 0
-                            break
+                            break #yield no more examples
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
                         # in this case, we ignore the patient
@@ -315,7 +316,7 @@ class MortalityClassifier(Model):
         # Shape: (batch_size, encoding_dim)
         encoded_text = self.encoder(embedded_text, mask)
         # Shape: (batch_size, num_labels)
-        logits = self.classifier(encoded_text[:,0,:])
+        logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
         logger.critical("Shapes {} {}".format(logits.shape, label.shape))
         probs = torch.nn.functional.softmax(logits, dim=-1)
