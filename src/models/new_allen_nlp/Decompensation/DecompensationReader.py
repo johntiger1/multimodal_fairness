@@ -186,7 +186,13 @@ class DecompensationReader(DatasetReader):
                         exclusions +=1
 
             '''below code is functionally useless; much better to visualize with plot'''
-
+        fig, ax = plt.subplots()
+        # let's flatten a dictionary of lists.
+        note_lengths = []
+        for lst in self.note_stats.values():
+            note_lengths.extend(lst)
+        ax.hist(note_lengths, range=(0, max(note_lengths)), bins=100, rwidth=0.9 )
+        fig.savefig("note_length_hist.png")
 
         logger.critical("With decompensation windowing, removed {}\n".format(exclusions))
         return self.note_stats
@@ -204,7 +210,7 @@ class DecompensationReader(DatasetReader):
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
 
-                if self.limit_examples and self.cur_examples >= self.limit_exampes:
+                if self.limit_examples and self.cur_examples >= self.limit_examples:
                     self.cur_examples = 0
                     break
                 self.cur_examples +=1
