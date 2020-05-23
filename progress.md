@@ -4,8 +4,9 @@ Now, putting the decomp on hold.
 
 We can get the predictions, either via hacking the evaluate function (fine!), or using the predict paradigm of AllenNLP.
 
-Probably we will do it directly from the PyTorch dict!
+Probably we will do it directly from the forward pass and get a dict!
 
+Note: the following, more preprocessing will likely save more time. I.e. instead of doing it dynamically on the fly, only do it once at the start, and have the exact text you need, ready to go in the txt files
 
 
 # May 19
