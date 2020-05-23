@@ -44,13 +44,13 @@ sys.path.append("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/")
 from src.preprocessing.text_preprocessing import preprocess_mimic
 
 import matplotlib.pyplot as plt
-
+from CONST import LOGGER_NAME
 '''
 get the logger, if it is available
 '''
 import logging
 # logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(LOGGER_NAME)
 logger.debug("hello")
 
 @DatasetReader.register("DecompensationReader")

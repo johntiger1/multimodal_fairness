@@ -34,6 +34,7 @@ import sys
 import torch
 
 import matplotlib.pyplot as plt
+from CONST import LOGGER_NAME
 '''
 Main file which will construct the DecompensationReader and DecompensationModel
 and run them.
@@ -45,7 +46,7 @@ Also, we can rapidly try a seq2vec wrapper, LSTM
 
 import logging
 # logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(LOGGER_NAME)
 # logger.debug("hello")
 
 def build_dataset_reader(**kwargs) -> DatasetReader:
