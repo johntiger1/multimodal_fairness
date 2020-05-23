@@ -63,7 +63,8 @@ class DecompensationReader(DatasetReader):
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
-                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv"
+                 all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
+                 limit_examples: int = None
 
     ):
         super().__init__(lazy)
@@ -108,6 +109,7 @@ class DecompensationReader(DatasetReader):
             file.readline() # could also pandas readcsv and ignore first line
             for line in tqdm(file):
                 info_filename, time, label = line.split(",")
+                time = float(time)
                 info = info_filename.split("_")
                 patient_id = info[0]
 
@@ -206,6 +208,7 @@ class DecompensationReader(DatasetReader):
             for line in file:
                 cur_tokens = 0
                 info_filename, time, label = line.split(",")
+                time = float(time)
                 info = info_filename.split("_")
                 patient_id = info[0]
 
