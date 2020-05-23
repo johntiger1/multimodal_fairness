@@ -8,6 +8,8 @@ Subsampling: consistent with everyone else. They do Random sampling: but to get 
 
 Also: they do explicitly make predictions over the entire testing data set
 
+Also, for the multi phenotype prediction, it is one model that does multilabel multiclass prediction. Just generate 25 scores
+
 # May 23
 
 Now, putting the decomp on hold. 
