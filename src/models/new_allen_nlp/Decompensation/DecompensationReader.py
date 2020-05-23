@@ -114,13 +114,21 @@ class DecompensationReader(DatasetReader):
     Gets stats for the data listed at the datapath
     '''
     def get_note_stats(self, file_path, name="train"):
+        print(f"in note stats, the logger is {logger} and we have {__name__}")
+        print(logger.getEffectiveLevel())
         from collections import defaultdict
         self.note_stats = defaultdict(list)
         exclusions = 0
+
+        num_examples = 0
+
+        with open(file_path, "r") as file:
+            for line in file:
+                num_examples+=1
         with open(file_path, "r") as file, \
                 open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
             file.readline() # could also pandas readcsv and ignore first line
-            for line in tqdm(file):
+            for line in tqdm(file, total=num_examples):
                 info_filename, time, label = line.split(",")
                 time = float(time)
                 info = info_filename.split("_")
@@ -172,7 +180,7 @@ class DecompensationReader(DatasetReader):
 
                         tokens = self.tokenizer.tokenize(text)
                         if patient_id in self.note_stats:
-                            logger.warning("Encountering the patient another time, for another episode {} {}".format(patient_id, eps))
+                            logger.info("Encountering the patient another time, for another episode {} {}".format(patient_id, eps))
                         self.note_stats[patient_id].append(len(tokens) )# the same patient id can be encoutnered for multiple episodes
 
 

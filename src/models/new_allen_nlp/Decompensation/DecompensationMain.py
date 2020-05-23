@@ -32,6 +32,8 @@ import gc
 from tqdm.auto import tqdm
 import sys
 import torch
+
+import matplotlib.pyplot as plt
 '''
 Main file which will construct the DecompensationReader and DecompensationModel
 and run them.
@@ -42,17 +44,17 @@ Also, we can rapidly try a seq2vec wrapper, LSTM
 '''
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 # logger.debug("hello")
 
 def build_dataset_reader(**kwargs) -> DatasetReader:
-    return DecompensationReader(**kwargs, lazy=False)
+    return DecompensationReader(**kwargs, lazy=True)
 #
 
 # "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
 '''
-The issue is that this may for somereason read everything into memory
+The issue is that this may for some reason read everything into memory
 '''
 def read_data(
     reader: DatasetReader,
@@ -197,7 +199,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 1024
-    args.run_name = "30"
+    args.run_name = "31"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
 
@@ -215,7 +217,7 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    dataset_reader = build_dataset_reader(limit_examples=2500)
+    dataset_reader = build_dataset_reader(limit_examples=None)
 
     dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
@@ -254,8 +256,33 @@ def main():
 
     pass
 
+def get_preprocessed_stats(train_data_path="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv",
+                           dev_data_path="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"):
+    logger.setLevel(logging.CRITICAL)
+    print(f"in main , the logger is {logger} and we have {__name__}")
+
+    dataset_reader = build_dataset_reader()
+    args = lambda x: None
+    args.batch_size = 1024
+    args.run_name = "31"
+    args.train_data = train_data_path
+    args.dev_data = dev_data_path
+
+    train_note_stats = dataset_reader.get_note_stats(args.train_data, "train")
+    test_note_stats = dataset_reader.get_note_stats(args.dev_data, "test")
+    # merge the dictionaries
+    all_note_stats = {**train_note_stats, **test_note_stats}
+
+    all_note_lengths = []
+    for lst in all_note_stats.values():
+        all_note_lengths = all_note_lengths + lst
+    fig, ax = plt.subplots()
+    ax.hist(all_note_lengths, range=(0, max(all_note_lengths)), bins=100, rwidth=0.9)
+
+    fig.savefig(f"decomp_note_length_hist.png")
+
 
 if __name__ == "__main__":
-
-    main()
+    get_preprocessed_stats()
+    # main()
     pass
