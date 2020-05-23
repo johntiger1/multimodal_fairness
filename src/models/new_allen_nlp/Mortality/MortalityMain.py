@@ -281,7 +281,7 @@ def main():
     train_data.index_with(vocab)
     dev_data.index_with(vocab)
 
-    train_dataloader, dev_dataloader = build_data_loaders(train_data, dev_data)
+    train_dataloader, dev_dataloader = build_data_loaders(train_data, dev_data, args)
     # del train_data
     # del dev_data
 
