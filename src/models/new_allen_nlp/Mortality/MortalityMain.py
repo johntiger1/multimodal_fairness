@@ -35,6 +35,11 @@ import torch
 
 import matplotlib.pyplot as plt
 from CONST import LOGGER_NAME
+
+'''need this to get code to move over a dict'''
+from allennlp.nn import util as nn_util
+
+
 '''
 Main file which will construct the DecompensationReader and DecompensationModel
 and run them.
@@ -163,8 +168,7 @@ we pass in the vocab to ensure that we are speaking the same language!
 '''
 def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
     # move the model over, if necessary, and possible
-    gpu_device = torch.device("cuda:0" if args.use_gpu  else "cpu")
-    model = model.to(gpu_device)
+    model = model.to(args.device )
 
     experiment_dir = args.serialization_dir
 
@@ -195,19 +199,31 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
 '''
 On the given dataloader, we will make the predictions, and write them to file as well
 '''
-def make_predictions(model, eval_dataloader):
+def make_predictions(model, eval_dataloader, args):
 
     for i,batch in enumerate(tqdm(eval_dataloader)):
+
+        batch = nn_util.move_to_device(batch, args.device.index) #move it to the gpu
+
         output = model(**batch) #pass in the kwargs to the model, allowing it to process it
         # we can construct a dataframe, then serialize it as either a csv or directly pickle it
 
-        if "loss" in output:
-            del output["loss"]
-
+        # reconstruct a dictionary
+        pandas_dict = {}
+        for key in output:
+            if key == "probs":
+                pandas_dict[key] = output[key].detach().cpu()
+            if key == "metadata":
+                pandas_dict[key] = output[key]
+        # otherwise, we can simply build the numpy array, and then assign the column names
+                # for k in output["metadata"]: #metadata is actually a list! (of dict)
+                #     pandas_dict["metadata"][k] = output["metadata"][k].cpu()
+        # for key, value in ""
+        # output = output.cpu() # move back to cpu first
         # we should be able to just tie everything together
-        predictions = pd.DataFrame.from_dict(output)
+        predictions = pd.DataFrame.from_dict(pandas_dict)
 
-        predictions.to_csv("")
+        predictions.to_csv(os.path.join(args.serialization_dir, f"predictions_{i}.csv"))
         # write the predictions to csv
 
     # labels and probs will be gotten, along with the metadata
@@ -222,6 +238,7 @@ def main():
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
+    args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     import time
 
     start_time = time.time()
@@ -267,7 +284,7 @@ def main():
 
 
     results = evaluate(model, dev_dataloader, 0, None)
-    make_predictions(model, dev_dataloader, args.serialization_dir)
+    make_predictions(model, dev_dataloader, args)
     print("we succ fulfilled it")
     with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
