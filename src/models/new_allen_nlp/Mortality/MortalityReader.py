@@ -303,7 +303,7 @@ class MortalityReader(DatasetReader):
                         label_field = LabelField(label)
                         meta_data_field = MetadataField({"patient_id": patient_id,
                                                          "episode": eps,
-                                                         "hadm_id": hadm_id,
+                                                         "hadm_id": one_hadm_id[0], # just the specific value
                                                          })
                         fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
                         yield Instance(fields)
