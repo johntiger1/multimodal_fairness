@@ -113,7 +113,7 @@ class DecompensationReader(DatasetReader):
     '''
     Gets stats for the data listed at the datapath
     '''
-    def get_note_stats(self, file_path):
+    def get_note_stats(self, file_path, name="train"):
         from collections import defaultdict
         self.note_stats = defaultdict(list)
         exclusions = 0
@@ -192,9 +192,9 @@ class DecompensationReader(DatasetReader):
         for lst in self.note_stats.values():
             note_lengths.extend(lst)
         ax.hist(note_lengths, range=(0, max(note_lengths)), bins=100, rwidth=0.9 )
-        fig.savefig("note_length_hist.png")
+        fig.savefig(os.path.join(self.stats_write_dir, f"{name}_decomp_note_length_hist.png"))
 
-        logger.critical("With decompensation windowing, removed {}\n".format(exclusions))
+        logger.critical("For {} With decompensation windowing, removed {}\n".format(name, exclusions))
         return self.note_stats
 
     def get_all_stays(self):
