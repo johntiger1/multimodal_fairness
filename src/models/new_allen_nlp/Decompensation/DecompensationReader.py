@@ -202,6 +202,8 @@ class DecompensationReader(DatasetReader):
         for lst in self.note_stats.values():
             note_lengths.extend(lst)
         ax.hist(note_lengths, range=(0, max(note_lengths)), bins=100, rwidth=0.9 )
+        ax.set_title("Histogram of total note lengths")
+
         fig.savefig(os.path.join(self.stats_write_dir, f"{name}_decomp_note_length_hist.png"))
 
         logger.critical("For {} With decompensation windowing, removed {}\n".format(name, exclusions))

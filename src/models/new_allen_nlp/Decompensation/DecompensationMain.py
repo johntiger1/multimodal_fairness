@@ -262,7 +262,7 @@ def get_preprocessed_stats(train_data_path="/scratch/gobi1/johnchen/new_git_stuf
     logger.setLevel(logging.CRITICAL)
     print(f"in main , the logger is {logger} and we have {__name__}")
 
-    dataset_reader = build_dataset_reader()
+    dataset_reader = build_dataset_reader(limit_examples = 2500)
     args = lambda x: None
     args.batch_size = 1024
     args.run_name = "31"
