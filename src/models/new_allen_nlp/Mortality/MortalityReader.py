@@ -7,7 +7,7 @@ import torch
 
 import allennlp
 from allennlp.data import DataLoader, DatasetReader, Instance, Vocabulary
-from allennlp.data.fields import LabelField, TextField
+from allennlp.data.fields import LabelField, TextField, MetadataField
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
 from allennlp.models import Model
@@ -131,8 +131,7 @@ class MortalityReader(DatasetReader):
             for example_number,line in enumerate(tqdm(file, total=num_examples)):
                 if self.limit_examples and example_number > self.limit_examples:
                     break
-                info_filename, time, label = line.split(",")
-                time = float(time)
+                info_filename, label = line.split(",")
                 info = info_filename.split("_")
                 patient_id = info[0]
 
@@ -162,7 +161,7 @@ class MortalityReader(DatasetReader):
 
                     # we are assuming that the intime is not null
                     intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[0]) # iloc will automatically extract once you get to the base element
-                    intime_date_plus_time = pd.Timestamp(intime_date) + pd.Timedelta(hours=int(time))
+                    intime_date_plus_time = pd.Timestamp(intime_date) + pd.Timedelta(days=2)
 
                     # all notes up to two days. Including potentially previous events.
                     mask = ( episode_specific_notes["CHARTTIME"] > intime_date) & (episode_specific_notes["CHARTTIME"] <= intime_date_plus_time)
@@ -192,7 +191,7 @@ class MortalityReader(DatasetReader):
 
 
                     else:
-                        logger.warning("No text found for patient {}. This is with the time hour {} window\n. ".format(patient_id, time))
+                        logger.warning("No text found for patient {}. This is with the time hour {} window\n. ".format(patient_id, 48))
                         exclusions +=1
 
             '''below code is functionally useless; much better to visualize with plot'''
@@ -227,8 +226,8 @@ class MortalityReader(DatasetReader):
                     break
                 self.cur_examples +=1
                 cur_tokens = 0
-                info_filename, time, label = line.split(",")
-                time = float(time)
+                info_filename, label = line.split(",")
+                time = float(48) #hardcode to 48
                 info = info_filename.split("_")
                 patient_id = info[0]
 
@@ -302,6 +301,10 @@ class MortalityReader(DatasetReader):
 
                         text_field = TextField(tokens, self.token_indexers)
                         label_field = LabelField(label)
+                        meta_data_field = MetadataField({"patient_id": patient_id,
+                                                         "episode": eps,
+                                                         "hadm_id": hadm_id,
+                                                         })
                         fields = {'text': text_field, 'label': label_field}
                         yield Instance(fields)
                     else:
