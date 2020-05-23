@@ -83,6 +83,7 @@ class DecompensationReader(DatasetReader):
         self.all_stays_path = all_stays
         self.all_stays_df = self.get_all_stays()
         self.use_preprocessing = use_preprocessing
+        self.lengths = []
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -101,10 +102,17 @@ class DecompensationReader(DatasetReader):
         return self.stats
 
     '''
+    Creates and saves a histogram of the note lengths
+    '''
+    def make_lengths_histogram(self):
+        pass
+
+    '''
     Gets stats for the data listed at the datapath
     '''
     def get_note_stats(self, file_path):
-        self.note_stats = {}
+        from collections import defaultdict
+        self.note_stats = defaultdict(list)
         exclusions = 0
         with open(file_path, "r") as file, \
                 open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
@@ -141,7 +149,6 @@ class DecompensationReader(DatasetReader):
 
                     # we are assuming that the intime is not null
                     intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[0]) # iloc will automatically extract once you get to the base element
-                    logger.info(type(intime_date))
                     intime_date_plus_time = pd.Timestamp(intime_date) + pd.Timedelta(hours=int(time))
 
                     # all notes up to two days. Including potentially previous events.
@@ -151,15 +158,6 @@ class DecompensationReader(DatasetReader):
                     time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
 
                     logger.debug("Went from {} to {} notes\n".format(len(episode_specific_notes), len(time_episode_specific_notes)))
-                    # filter all of them, based on the all stays info
-                    # do the episode and patient, associate to a specific hadm? i.e. are there 1 to 1 mappings here
-
-
-                    # first, get the icu intime
-                    # then, get the
-                    # icu_intime = self.all_stays_df[]
-
-                    # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
 
                     if len(time_episode_specific_notes) > 0:
 
@@ -167,26 +165,24 @@ class DecompensationReader(DatasetReader):
                         text_df.sort_values("CHARTTIME", ascending=True, inplace=True)  # we want them sorted by increasing time
 
                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
-                        text = text_df["TEXT"].iloc[0] #assuming sorted order
+                        text = " ".join(text_df["TEXT"].tolist()) #assuming sorted order
+
                         tokens = self.tokenizer.tokenize(text)
                         if patient_id in self.note_stats:
                             logger.warning("Encountering the patient another time, for another episode {} {}".format(patient_id, eps))
-                        self.note_stats[patient_id] = len(tokens)
+                        self.note_stats[patient_id].append(len(tokens) )# the same patient id can be encoutnered for multiple episodes
+
+
                         if int(patient_id)%1000==0:
                             logger.info("text for patient {} \n: {}".format(patient_id,text))
                             logger.info("end of text for patient {} \n".format(patient_id))
 
-                        xs = ""
-                        if len(time_episode_specific_notes) > 1:
-
-                        # lets try to join both of them
-                            xs = text_df["TEXT"].iloc[1] #assuming sorted order
-                        else:
-                            logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
 
                     else:
-                        logger.warning("No text found for patient {}. This is with the 48 hour\n. ".format(patient_id))
+                        logger.warning("No text found for patient {}. This is with the time hour {} window\n. ".format(patient_id, time))
                         exclusions +=1
+
+            '''below code is functionally useless; much better to visualize with plot'''
             sorted_dict = sorted(self.note_stats.items(), key=lambda tup: tup[1])
             note_length_file.write("For this file {}\n".format(file_path))
             for tup in sorted_dict:
