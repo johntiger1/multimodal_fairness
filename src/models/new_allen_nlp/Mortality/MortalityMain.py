@@ -118,13 +118,13 @@ def build_model(vocab: Vocabulary,
 #
 def build_data_loaders(
     train_data: torch.utils.data.Dataset,
-    dev_data: torch.utils.data.Dataset, batch_size=64
+    dev_data: torch.utils.data.Dataset, args
 ) -> Tuple[allennlp.data.DataLoader, allennlp.data.DataLoader]:
     # Note that DataLoader is imported from allennlp above, *not* torch.
     # We need to get the allennlp-specific collate function, which is
     # what actually does indexing and batching.
-    train_loader = DataLoader(train_data, batch_size=batch_size,)
-    dev_loader = DataLoader(dev_data, batch_size=batch_size,)
+    train_loader = DataLoader(train_data, batch_size=args.batch_size,)
+    dev_loader = DataLoader(dev_data, batch_size=args.batch_size,)
     return train_loader, dev_loader
 
 
