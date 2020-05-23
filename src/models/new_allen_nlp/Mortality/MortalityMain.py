@@ -208,22 +208,28 @@ def make_predictions(model, eval_dataloader, args):
         output = model(**batch) #pass in the kwargs to the model, allowing it to process it
         # we can construct a dataframe, then serialize it as either a csv or directly pickle it
 
-        # reconstruct a dictionary
-        pandas_dict = {}
-        for key in output:
-            if key == "probs":
-                pandas_dict[key] = output[key].detach().cpu()
-            if key == "metadata":
-                pandas_dict[key] = output[key]
-        # otherwise, we can simply build the numpy array, and then assign the column names
-                # for k in output["metadata"]: #metadata is actually a list! (of dict)
-                #     pandas_dict["metadata"][k] = output["metadata"][k].cpu()
-        # for key, value in ""
-        # output = output.cpu() # move back to cpu first
-        # we should be able to just tie everything together
-        predictions = pd.DataFrame.from_dict(pandas_dict)
+        import numpy as np
+        from collections import defaultdict
+        metadata_array = np.zeros((len(output["metadata"]),
+                                   len(output["metadata"][0])))
 
-        predictions.to_csv(os.path.join(args.serialization_dir, f"predictions_{i}.csv"))
+        # deal with the metadata portion
+        metadata_dict = defaultdict(list)
+        # the list has order preserved, which is critical to join things back
+        for elt in output["metadata"]:
+            for key,value in elt.items():
+                metadata_dict[key].append(value) #the lst will be in the right order
+
+        # deal with the probs portion
+
+        probs_df = pd.DataFrame( output["probs"].detach().cpu().numpy())
+
+
+        metadata_df = pd.DataFrame.from_dict(metadata_dict)
+        predictions_df = pd.concat((metadata_df,probs_df ), axis=1)
+
+
+        predictions_df.to_csv(os.path.join(args.serialization_dir, f"predictions_{i}.csv"))
         # write the predictions to csv
 
     # labels and probs will be gotten, along with the metadata
