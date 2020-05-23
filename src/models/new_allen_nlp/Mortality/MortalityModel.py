@@ -76,6 +76,9 @@ class MortalityClassifier(Model):
                 label: torch.Tensor,
                 metadata
                 ) -> Dict[str, torch.Tensor]:
+
+        # assert that metadata has the same length as the other ones. Then, they are parallel
+
         # Shape: (batch_size, num_tokens, embedding_dim)
         embedded_text = self.embedder(text)
         # Shape: (batch_size, num_tokens)
@@ -92,7 +95,7 @@ class MortalityClassifier(Model):
         self.accuracy(logits, label)
         preds = logits.argmax(-1)
         self.auc(preds, label)
-        output = {'loss': loss, 'probs': probs}
+        output = {'loss': loss, 'probs': probs, "metadata": metadata}
         print(f"we got some metadata{metadata}")
         return output
 
@@ -100,3 +103,4 @@ class MortalityClassifier(Model):
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         return {"accuracy": self.accuracy.get_metric(reset),
                 "auc":self.auc.get_metric(reset)}
+
