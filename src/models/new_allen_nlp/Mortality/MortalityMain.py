@@ -161,18 +161,15 @@ def build_trainer(
 '''
 we pass in the vocab to ensure that we are speaking the same language!
 '''
-def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args, use_gpu=False, batch_size =32,
-                      serialization_dir = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments"):
+def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
     # move the model over, if necessary, and possible
-    gpu_device = torch.device("cuda:0" if use_gpu  else "cpu")
+    gpu_device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     model = model.to(gpu_device)
 
-    experiment_dir = os.path.join(serialization_dir, args.run_name)
+    experiment_dir = args.serialization_dir
 
     if not os.path.exists(experiment_dir):
         os.makedirs(experiment_dir, exist_ok=True)
-
-    serialization_dir = experiment_dir
 
     # This is the allennlp-specific functionality in the Dataset object;
     # we need to be able convert strings in the data to integers, and this
@@ -186,7 +183,7 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args, use_
     # results, but for execution in binder for this course, we need to do this.
     trainer = build_trainer(
         model,
-        serialization_dir,
+        args.serialization_dir,
         train_loader,
         dev_loader
     )
@@ -195,6 +192,26 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args, use_
     return model
 
 
+'''
+On the given dataloader, we will make the predictions, and write them to file as well
+'''
+def make_predictions(model, eval_dataloader):
+
+    for i,batch in enumerate(tqdm(eval_dataloader)):
+        output = model(**batch) #pass in the kwargs to the model, allowing it to process it
+        # we can construct a dataframe, then serialize it as either a csv or directly pickle it
+
+        if "loss" in output:
+            del output["loss"]
+
+        # we should be able to just tie everything together
+        predictions = pd.DataFrame.from_dict(output)
+
+        predictions.to_csv("")
+        # write the predictions to csv
+
+    # labels and probs will be gotten, along with the metadata
+    pass
 
 def main():
     logger.setLevel(logging.CRITICAL)
@@ -203,7 +220,8 @@ def main():
     args.run_name = "31"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
-
+    args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
+    args.use_gpu = True
     import time
 
     start_time = time.time()
@@ -243,14 +261,13 @@ def main():
 
     # throw in all the regularizers to the regularizer applicators
     model = build_model(vocab, use_reg=False)
-    model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args, use_gpu=True,
-                                               batch_size=args.batch_size)
+    model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
 
     logger.warning("We have finished training")
 
 
     results = evaluate(model, dev_dataloader, 0, None)
-
+    make_predictions(model, dev_dataloader, args.serialization_dir)
     print("we succ fulfilled it")
     with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
