@@ -1,3 +1,6 @@
+# May 19
+Will implement predictions instead. and Manually compute eval metrics. Is there a way to get the val metrics after every epoch? We can probably hack the utils.train function.  
+
 # May 15
 Finally got the AllenNLP working! But there are still some questions: generation?
 
