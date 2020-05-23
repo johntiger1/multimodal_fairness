@@ -6,7 +6,7 @@ import torch
 
 import allennlp
 from allennlp.data import DataLoader, DatasetReader, Instance, Vocabulary
-from allennlp.data.fields import LabelField, TextField
+from allennlp.data.fields import LabelField, TextField, MetadataField
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
 from allennlp.models import Model
@@ -76,7 +76,7 @@ class MortalityReader(DatasetReader):
         self.max_tokens = max_tokens
         self.listfile = listfile
         self.notes_dir = notes_dir
-
+        logger.critical(f"we are getting the max tokens {self.max_tokens}")
         self.null_patients = []
         with open(skip_patients_file, "r") as file:
             for line in file:
@@ -97,7 +97,7 @@ class MortalityReader(DatasetReader):
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
-                info_filename, label = line.split(",")
+                info_filename, _, label = line.split(",")
                 self.stats[int(label)] +=1
         return self.stats
 
@@ -111,7 +111,7 @@ class MortalityReader(DatasetReader):
                 open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in tqdm(file):
-                info_filename, label = line.split(",")
+                info_filename, _, label = line.split(",")
                 info = info_filename.split("_")
                 patient_id = info[0]
 
@@ -209,7 +209,7 @@ class MortalityReader(DatasetReader):
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
                 cur_tokens = 0
-                info_filename, label = line.split(",")
+                info_filename, _, label = line.split(",")
                 info = info_filename.split("_")
                 patient_id = info[0]
 
@@ -283,7 +283,11 @@ class MortalityReader(DatasetReader):
 
                         text_field = TextField(tokens, self.token_indexers)
                         label_field = LabelField(label)
-                        fields = {'text': text_field, 'label': label_field}
+                        meta_data_field = MetadataField({"patient_id": patient_id,
+                                                         "episode": eps,
+                                                         "hadm_id": hadm_id,
+                                                         })
+                        fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
                         yield Instance(fields)
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
@@ -320,7 +324,7 @@ class MortalityClassifier(Model):
         # Shape: (batch_size, num_tokens)
         mask = util.get_text_field_mask(text)
         # Shape: (batch_size, encoding_dim)
-        encoded_text = self.encoder(embedded_text, mask)
+        encoded_text = self.encoder(embedded_text, mask) #horizontal; vertical (partial depth) might be good
         # Shape: (batch_size, num_labels)
         logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
@@ -349,11 +353,13 @@ def build_dataset_reader(**kwargs) -> DatasetReader:
 The issue is that this may for somereason read everything into memory
 '''
 def read_data(
-    reader: DatasetReader
+    reader: DatasetReader,
+        train_data_path: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
+        valid_data_path: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
 ) -> Tuple[Iterable[Instance], Iterable[Instance]]:
     print("Reading data")
-    training_data = reader.read("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
-    validation_data = reader.read("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
+    training_data = reader.read(train_data_path)
+    validation_data = reader.read(valid_data_path)
     return training_data, validation_data
 
 
@@ -548,7 +554,11 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 1024
-    args.run_name = "15"
+    args.run_name = "100"
+    args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
+    args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
+
+
     import time
 
     start_time = time.time()
@@ -565,16 +575,16 @@ def main():
 
     dataset_reader = build_dataset_reader()
 
-    dataset_reader.get_label_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
+    dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
         print("{} {}".format(key,dataset_reader.stats[key]))
-    dataset_reader.get_label_stats("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv")
+    dataset_reader.get_label_stats(args.dev_data)
 
     for key in sorted(dataset_reader.stats.keys()):
         print("{} {}".format(key,dataset_reader.stats[key]))
     # These are a subclass of pytorch Datasets, with some allennlp-specific
     # functionality added.
-    train_data, dev_data = read_data(dataset_reader)
+    train_data, dev_data = read_data(dataset_reader, args.train_data, args.dev_data)
 
     vocab = build_vocab(train_data + dev_data)
 
@@ -605,6 +615,15 @@ def main():
     print("we succ fulfilled it")
     with open("nice_srun_time.txt", "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
+
+    '''
+    since it is a pytorch model, we can just forward on it, to get the actual output dict. 
+    and in particular, we can accumulate everything 
+    '''
+
+    # for batch in dev_dataloader:
+        # we assume we get a read instance type thing?
+
 
 
 '''
