@@ -1,8 +1,13 @@
 # may 23 #3
 Now that we have predictions working, there are two main points.
 1. refactoring code so that one reader/classifier supports everything (might be best, but it might be better to simply do things 3 times. Note that changes will need to be propagated, repeatedly, unfortunately). Or think, about the inheritance we can structure, and how we can simply override some behaviour. In particular, the phenotype will necessarily need to have a different structure than all the rest. We will always make sure to do individual sigmoids, as opposed to softmax over all the outputs, since we can have multiple labels. 
+
+(phenotyping: 25 * MORT. Not bad at all.)
+
 2. thinking more about the random subsampling, and how we can support that. In particular, ensuring ratios are balanced. This can be done via simple counts, but these must be reset, appropriately. And we must make a distinct between training an epoch, and simply "getting" the data through a read data call. 
 Now that we have predictions code, we don't need to worry about running a full pass on the final dataset. 
+
+(Decomp: 2 mil; we NEED some subsampling, in the reader)
 
 # may 23 #2
 2000 updates (batches). Of batch-size. 
