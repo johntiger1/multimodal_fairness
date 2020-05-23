@@ -1,3 +1,13 @@
+
+# May 23
+Now, putting the decomp on hold. 
+
+We can get the predictions, either via hacking the evaluate function (fine!), or using the predict paradigm of AllenNLP.
+
+Probably we will do it directly from the PyTorch dict!
+
+
+
 # May 19
 Will implement predictions instead. and Manually compute eval metrics. Is there a way to get the val metrics after every epoch? We can probably hack the utils.train function.  
 
