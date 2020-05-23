@@ -43,6 +43,7 @@ import sys
 sys.path.append("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/")
 from src.preprocessing.text_preprocessing import preprocess_mimic
 
+import matplotlib.pyplot as plt
 
 '''
 get the logger, if it is available
@@ -82,6 +83,8 @@ class DecompensationReader(DatasetReader):
         self.stats_write_dir = stats_write_dir
         self.all_stays_path = all_stays
         self.all_stays_df = self.get_all_stays()
+        self.limit_examples = limit_examples
+        self.cur_examples = 0
         self.use_preprocessing = use_preprocessing
         self.lengths = []
         # self.null_patients
@@ -183,10 +186,7 @@ class DecompensationReader(DatasetReader):
                         exclusions +=1
 
             '''below code is functionally useless; much better to visualize with plot'''
-            sorted_dict = sorted(self.note_stats.items(), key=lambda tup: tup[1])
-            note_length_file.write("For this file {}\n".format(file_path))
-            for tup in sorted_dict:
-                note_length_file.write("{} {}\n".format(tup[1], tup[0]))
+
 
         logger.critical("With decompensation windowing, removed {}\n".format(exclusions))
         return self.note_stats
@@ -203,6 +203,11 @@ class DecompensationReader(DatasetReader):
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
+
+                if self.limit_examples and self.cur_examples >= self.limit_exampes:
+                    self.cur_examples = 0
+                    break
+                self.cur_examples +=1
                 cur_tokens = 0
                 info_filename, time, label = line.split(",")
                 time = float(time)
