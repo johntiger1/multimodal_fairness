@@ -50,7 +50,7 @@ logger = logging.getLogger(LOGGER_NAME)
 # logger.debug("hello")
 
 def build_dataset_reader(**kwargs) -> DatasetReader:
-    return MortalityReader(**kwargs, lazy=True)
+    return MortalityReader(**kwargs)
 #
 
 # "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
