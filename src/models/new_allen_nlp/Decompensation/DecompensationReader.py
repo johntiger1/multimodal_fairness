@@ -128,7 +128,9 @@ class DecompensationReader(DatasetReader):
         with open(file_path, "r") as file, \
                 open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
             file.readline() # could also pandas readcsv and ignore first line
-            for line in tqdm(file, total=num_examples):
+            for example_number,line in enumerate(tqdm(file, total=num_examples)):
+                if self.limit_examples and example_number > self.limit_examples:
+                    break
                 info_filename, time, label = line.split(",")
                 time = float(time)
                 info = info_filename.split("_")

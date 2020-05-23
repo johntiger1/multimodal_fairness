@@ -218,7 +218,7 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    dataset_reader = build_dataset_reader(limit_examples=None)
+    dataset_reader = build_dataset_reader(limit_examples=2500)
 
     dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
