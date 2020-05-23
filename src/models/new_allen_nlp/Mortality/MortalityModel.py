@@ -73,7 +73,9 @@ class MortalityClassifier(Model):
 
     def forward(self,
                 text: Dict[str, torch.Tensor],
-                label: torch.Tensor) -> Dict[str, torch.Tensor]:
+                label: torch.Tensor,
+                metadata
+                ) -> Dict[str, torch.Tensor]:
         # Shape: (batch_size, num_tokens, embedding_dim)
         embedded_text = self.embedder(text)
         # Shape: (batch_size, num_tokens)
@@ -91,6 +93,7 @@ class MortalityClassifier(Model):
         preds = logits.argmax(-1)
         self.auc(preds, label)
         output = {'loss': loss, 'probs': probs}
+        print(f"we got some metadata{metadata}")
         return output
 
     '''this is called'''

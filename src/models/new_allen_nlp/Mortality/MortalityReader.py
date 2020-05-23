@@ -100,7 +100,7 @@ class MortalityReader(DatasetReader):
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
-                info_filename, _, label = line.split(",")
+                info_filename, label = line.split(",")
                 self.stats[int(label)] +=1
         return self.stats
 
@@ -305,7 +305,7 @@ class MortalityReader(DatasetReader):
                                                          "episode": eps,
                                                          "hadm_id": hadm_id,
                                                          })
-                        fields = {'text': text_field, 'label': label_field}
+                        fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
                         yield Instance(fields)
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))

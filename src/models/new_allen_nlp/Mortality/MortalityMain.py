@@ -118,8 +118,8 @@ def build_data_loaders(
     # Note that DataLoader is imported from allennlp above, *not* torch.
     # We need to get the allennlp-specific collate function, which is
     # what actually does indexing and batching.
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    dev_loader = DataLoader(dev_data, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_data, batch_size=batch_size,)
+    dev_loader = DataLoader(dev_data, batch_size=batch_size,)
     return train_loader, dev_loader
 
 
@@ -201,8 +201,8 @@ def main():
     args = lambda x: None
     args.batch_size = 1024
     args.run_name = "31"
-    args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
-    args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
+    args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
+    args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
 
     import time
 
@@ -218,7 +218,7 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    dataset_reader = build_dataset_reader(limit_examples=2500)
+    dataset_reader = build_dataset_reader(limit_examples=100)
 
     dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
@@ -288,6 +288,6 @@ def get_preprocessed_stats(train_data_path="/scratch/gobi1/johnchen/new_git_stuf
 
 
 if __name__ == "__main__":
-    get_preprocessed_stats()
-    # main()
+    # get_preprocessed_stats()
+    main()
     pass
