@@ -95,8 +95,8 @@ class MortalityClassifier(Model):
         self.accuracy(logits, label)
         preds = logits.argmax(-1)
         self.auc(preds, label)
-        output = {'loss': loss, 'probs': probs, "metadata": metadata}
-        print(f"we got some metadata{metadata}")
+        output = {'loss': loss, 'probs': probs, "metadata": metadata, "label": label} #no need to yield the label here
+        # print(f"we got some metadata{metadata}")
         return output
 
     '''this is called'''

@@ -223,10 +223,13 @@ def make_predictions(model, eval_dataloader, args):
         # deal with the probs portion
 
         probs_df = pd.DataFrame( output["probs"].detach().cpu().numpy())
+        probs_df = probs_df.add_prefix("probs_")
 
+        labels_df = pd.DataFrame( output["label"].detach().cpu().numpy())
+        labels_df.columns = ["label"]
 
         metadata_df = pd.DataFrame.from_dict(metadata_dict)
-        predictions_df = pd.concat((metadata_df,probs_df ), axis=1)
+        predictions_df = pd.concat((metadata_df,probs_df,labels_df ), axis=1)
 
 
         predictions_df.to_csv(os.path.join(args.serialization_dir, f"predictions_{i}.csv"))
