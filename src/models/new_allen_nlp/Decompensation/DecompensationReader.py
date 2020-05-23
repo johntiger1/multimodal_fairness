@@ -64,7 +64,8 @@ class DecompensationReader(DatasetReader):
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
                  all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
-                 limit_examples: int = None
+                 limit_examples: int = None,
+                 use_preprocessing: bool = False
 
     ):
         super().__init__(lazy)
@@ -81,6 +82,7 @@ class DecompensationReader(DatasetReader):
         self.stats_write_dir = stats_write_dir
         self.all_stays_path = all_stays
         self.all_stays_df = self.get_all_stays()
+        self.use_preprocessing = use_preprocessing
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -202,7 +204,6 @@ class DecompensationReader(DatasetReader):
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''Expect: one instance per line'''
 
-        use_preprocessing = True
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
@@ -268,7 +269,7 @@ class DecompensationReader(DatasetReader):
 
                         # join the texts together, or simply use the first one (according to starttime)
                         # tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
-                        if use_preprocessing:
+                        if self.use_preprocessing:
                             token_sent_stream = preprocess_mimic(text)
                             tokens = []
                             cur_tokens = 0
