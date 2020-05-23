@@ -1,5 +1,15 @@
 
+# may 23 #2
+2000 updates (batches). Of batch-size. 
+
+So that means ~ 64000 training examples (assuming batch size of 32). 
+
+Subsampling: consistent with everyone else. They do Random sampling: but to get a bootstrap
+
+Also: they do explicitly make predictions over the entire testing data set
+
 # May 23
+
 Now, putting the decomp on hold. 
 
 We can get the predictions, either via hacking the evaluate function (fine!), or using the predict paradigm of AllenNLP.
