@@ -280,7 +280,6 @@ class MortalityReader(DatasetReader):
                 if self.limit_examples and self.cur_examples >= self.limit_examples:
                     self.cur_examples = 0
                     break
-                self.cur_examples +=1
                 cur_tokens = 0
                 info_filename, label = line.split(",")
                 time = float(48) #hardcode to 48
@@ -362,7 +361,12 @@ class MortalityReader(DatasetReader):
                                                          "hadm_id": one_hadm_id[0], # just the specific value
                                                          })
                         fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
+
                         yield Instance(fields)
+
+                        # after the generator yields, code will return here. (think of yield as a pause)
+                        self.cur_examples += 1
+
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
                         # in this case, we ignore the patient
