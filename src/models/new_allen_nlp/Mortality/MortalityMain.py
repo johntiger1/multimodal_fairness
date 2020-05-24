@@ -33,6 +33,8 @@ from tqdm.auto import tqdm
 import sys
 import torch
 
+import time
+
 import matplotlib.pyplot as plt
 from CONST import LOGGER_NAME
 
@@ -67,9 +69,14 @@ def read_data(
         train_data_path: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
         valid_data_path: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
 ) -> Tuple[Iterable[Instance], Iterable[Instance]]:
-    print("Reading data")
+
+    logger.critical("Reading the data. Lazy variable set to {}".format( reader.lazy))
+    start_time = time.time()
     training_data = reader.read(train_data_path)
     validation_data = reader.read(valid_data_path)
+
+    logger.critical("Finished the call to read the data. Time took {}".format( reader.lazy, time.time()-start_time))
+
     return training_data, validation_data
 
 
@@ -95,11 +102,11 @@ def build_model(vocab: Vocabulary,
                 use_reg: bool = True) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
-    EMBED_DIMS = 300
+    EMBED_DIMS = 200
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
         {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
-    encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,4,5),
+    encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
@@ -242,11 +249,12 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "32"
+    args.run_name = "33"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
+    args.lazy = True #should be hardcoded to True, unless you have a good reason otherwise
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     import time
 
@@ -262,7 +270,7 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    dataset_reader = build_dataset_reader(limit_examples=None, lazy=False, max_tokens=768*2)
+    dataset_reader = build_dataset_reader(limit_examples=None, lazy=args.lazy , max_tokens=768*2)
 
     dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
