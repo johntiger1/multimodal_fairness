@@ -75,7 +75,8 @@ class MortalityReader(DatasetReader):
         self.max_tokens = max_tokens
         self.listfile = listfile
         self.notes_dir = notes_dir
-        logger.critical(f"we are getting the max tokens {self.max_tokens}")
+        logger.critical(f"we are getting the max tokens {self.max_tokens} "
+                        f"and use_preproc is {self.use_preprocessing}")
         self.null_patients = []
         with open(skip_patients_file, "r") as file:
             for line in file:
@@ -262,7 +263,7 @@ class MortalityReader(DatasetReader):
                                 episode_specific_notes["CHARTTIME"] <= intime_date_plus_time)
 
                     time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
-                    # with open(os.path.join(self.stats_write_dir, "num_notes.txt"), "a") as notes_dir:
+                    # with open(os.path.join(self.stats_write_dir, "num_'3dfxnotes.txt"), "a") as notes_dir:
 
                     if len(time_episode_specific_notes) > 0:
 
