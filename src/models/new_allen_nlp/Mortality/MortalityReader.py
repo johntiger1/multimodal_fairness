@@ -61,7 +61,7 @@ class MortalityReader(DatasetReader):
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
                  max_tokens: int = 768*4,
-                 listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
+                 train_listfile: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
                  notes_dir: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes",
                  skip_patients_file: str ="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/null_patients.txt",
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
@@ -69,7 +69,8 @@ class MortalityReader(DatasetReader):
                  limit_examples: int = None,
                  use_preprocessing: bool = False,
                  num_classes: int=2,
-                 mode: str='train'
+                 mode: str='train',
+                 data_type: str="MORTALITY"
 
 
     ):
@@ -77,7 +78,7 @@ class MortalityReader(DatasetReader):
         self.tokenizer = tokenizer or WhitespaceTokenizer()
         self.token_indexers = token_indexers or {'tokens': SingleIdTokenIndexer()}
         self.max_tokens = max_tokens
-        self.listfile = listfile
+        self.train_listfile = train_listfile
         self.notes_dir = notes_dir
         self.use_preprocessing = use_preprocessing
 
@@ -95,6 +96,9 @@ class MortalityReader(DatasetReader):
         self.lengths = []
         self.num_classes = num_classes
         self.mode =  mode
+        self.train_idx = self.get_idx() #realistically, only the train_idx will be set, and we simply need to compare against
+
+
         # self.null_patients
 
     # def set_mode(self, mode: str):
@@ -104,6 +108,11 @@ class MortalityReader(DatasetReader):
     #
     #     pass
 
+    def get_idx(self):
+
+        sampler = self.get_sampler(self.train_listfile)
+
+        return list(sampler)
 
     def get_label_stats(self, file_path: str):
         '''
@@ -125,11 +134,10 @@ class MortalityReader(DatasetReader):
     Parses the line, according to the mode. Returns a dict with the proper keys set
     '''
     def parse_line(self, line):
-        self.mode = "MORTALITY"
         info_dict = {}
         mapping_dict = {}
 
-        if self.mode == "MORTALITY":
+        if self.data_type == "MORTALITY":
             headers = ["filename", "label"]
         else:
             headers = ["filename", "time", "label"]
@@ -313,15 +321,16 @@ class MortalityReader(DatasetReader):
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
         '''NOTE: because this is an overrides, it CANNOT accept another arg!'''
+        '''This function is only expected to be called with lazy set to FALSE. '''
         '''Expect: one instance per line'''
         logger.critical("read method is called")
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
-            for line in file:
+            for example_idx,line in enumerate(file):
 
-                if self.mode == "train" and self.limit_examples and self.cur_examples >= self.limit_examples:
-                    self.cur_examples = 0
-                    break
+                if self.mode == "train" and example_idx not in self.train_idx:
+                    continue
+
                 cur_tokens = 0
                 info_filename, label = line.split(",")
                 time = float(48) #hardcode to 48
@@ -407,7 +416,7 @@ class MortalityReader(DatasetReader):
                         yield Instance(fields)
 
                         # after the generator yields, code will return here. (think of yield as a pause)
-                        self.cur_examples += 1
+                        # self.cur_examples += 1
 
                     else:
                         logger.warning("No text found for patient {}".format(patient_id))
