@@ -85,6 +85,13 @@ def read_data(
 
     return training_data, validation_data
 
+def read_all_test_data(reader, test_data_path):
+    reader.mode = "TEST"
+    '''limit examples should have no effect when the mode is set to TEST'''
+    reader.limit_examples = None
+    test_data = reader.read(test_data_path)
+    return test_data
+
 
 # def read_data(
 #     reader: DatasetReader
@@ -272,6 +279,7 @@ def main():
     args.run_name = "35"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
+    args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
     args.lazy = True #should be hardcoded to True, unless you have a good reason otherwise
@@ -336,9 +344,12 @@ def main():
 
     logger.warning("We have finished training")
 
+    test_data = read_all_test_data(dataset_reader, args.test_data)
+    test_dataloader = DataLoader(test_data, batch_size=args.batch_size)
 
-    results = evaluate(model, dev_dataloader, 0, None)
-    make_predictions(model, dev_dataloader, args)
+    results = evaluate(model, test_dataloader, 0, None)
+    make_predictions(model, test_dataloader, args)
+
     print("we succ fulfilled it")
     with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
