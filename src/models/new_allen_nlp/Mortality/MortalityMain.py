@@ -279,6 +279,16 @@ def main():
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
     args.limit_examples = 120
+    '''figure out bug: we limit the samples to 1000. Therefore we have not read all the samples into memory. Therefore, we 
+    will have samples beyond the range. An iterable does not really support future indexing, is the issue
+    Therefore, we should push it back into the dataset reader: the dataset reader is 
+    the one that will maintain counts, sampling an even amount of positive/neg samples
+    Therefore, we have essentially implemented it in the read anyways.
+    Currently exploring other allennlp dataset semantics: ex. lazy with maxinstances.
+    Ok finished exploring, and it probably wont work without much more additional work.
+    Also this link corroborates: laziness.md of AllenNLP documentation
+    '''
+
     import time
 
     start_time = time.time()
