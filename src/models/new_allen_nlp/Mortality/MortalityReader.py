@@ -129,7 +129,12 @@ class MortalityReader(DatasetReader):
 
         info_array = line.split(",")
         for key in mapping_dict:
-            info_dict[key] = info_array[mapping_dict[key]]
+            if key == "label":
+                info_dict[key] = int(info_array[mapping_dict[key]])
+            elif key == "time":
+                info_dict[key] = float(info_array[mapping_dict[key]])
+            else:
+                info_dict[key] = info_array[mapping_dict[key]]
 
         return info_dict
 
@@ -142,11 +147,11 @@ class MortalityReader(DatasetReader):
         self.labels = []
         self.class_counts = np.zeros(2)
         with open(listfile, "r") as file:
-            file.read()
+            file.readline()
             for line in file:
                 info_dict = self.parse_line(line)
 
-                self.labels.append(info_dict[info_dict["label"]])
+                self.labels.append([info_dict["label"]])
                 self.class_counts[int(info_dict["label"])] += 1
 
         # now, we assign the weights to ALL the class labels
