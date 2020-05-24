@@ -42,13 +42,14 @@ from tqdm.auto import tqdm
 import sys
 sys.path.append("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/")
 from src.preprocessing.text_preprocessing import preprocess_mimic
-
+import torch
 import matplotlib.pyplot as plt
 from CONST import LOGGER_NAME
 '''
 get the logger, if it is available
 '''
 import logging
+import numpy as np
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(LOGGER_NAME)
 logger.debug("hello")
@@ -67,6 +68,7 @@ class MortalityReader(DatasetReader):
                  all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
                  limit_examples: int = None,
                  use_preprocessing: bool = False,
+                 num_classes: int=2
 
 
     ):
@@ -90,6 +92,7 @@ class MortalityReader(DatasetReader):
         self.limit_examples = limit_examples
         self.cur_examples = 0
         self.lengths = []
+        self.num_classes = num_classes
         # self.null_patients
 
     def get_label_stats(self, file_path: str):
@@ -137,15 +140,26 @@ class MortalityReader(DatasetReader):
 
     def get_sampler(self, listfile: str = ""):
         self.labels = []
+        self.class_counts = np.zeros(2)
         with open(listfile, "r") as file:
             file.read()
             for line in file:
+                info_dict = self.parse_line(line)
 
-                self.labels.append(label)
-        pass
+                self.labels.append(info_dict[info_dict["label"]])
+                self.class_counts[int(info_dict["label"])] += 1
 
+        # now, we assign the weights to ALL the class labels
+        self.class_weights = 1/self.class_counts
+        # essentially, assign the weights as the ratios, from the self.stats stuff
 
+        all_label_weights = self.class_weights[self.labels] #produce an array of size labels, but looking up the value in class weights each time
+        num_samples = self.limit_examples if self.limit_examples else len(all_label_weights)
+        balanced_sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
+                                                                           num_samples=num_samples,
+                                                                           replacement = False)
 
+        return balanced_sampler
     '''
     Creates and saves a histogram of the note lengths
     '''
