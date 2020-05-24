@@ -68,7 +68,8 @@ class MortalityReader(DatasetReader):
                  all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
                  limit_examples: int = None,
                  use_preprocessing: bool = False,
-                 num_classes: int=2
+                 num_classes: int=2,
+                 mode: str='train'
 
 
     ):
@@ -93,7 +94,16 @@ class MortalityReader(DatasetReader):
         self.cur_examples = 0
         self.lengths = []
         self.num_classes = num_classes
+        self.mode =  mode
         # self.null_patients
+
+    # def set_mode(self, mode: str):
+    #     if mode == "train":
+    #         self.limit_examples = None
+    #     else:
+    #
+    #     pass
+
 
     def get_label_stats(self, file_path: str):
         '''
@@ -166,6 +176,30 @@ class MortalityReader(DatasetReader):
                                                                            replacement = False)
 
         return balanced_sampler #now that we have a sampler, we can do things: pass it into the dataloader
+
+    def get_sampler_from_dataset(self, dataset):
+        self.labels = []
+        self.class_counts = np.zeros(2)
+
+        for data in dataset:
+            info_dict = data["fields"]
+
+            self.labels.append([info_dict["label"]])
+            self.class_counts[int(info_dict["label"])] += 1
+
+        # now, we assign the weights to ALL the class labels
+        self.class_weights = 1/self.class_counts
+        # essentially, assign the weights as the ratios, from the self.stats stuff
+
+        all_label_weights = self.class_weights[self.labels] #produce an array of size labels, but looking up the value in class weights each time
+        num_samples = self.limit_examples if self.limit_examples else len(all_label_weights)
+        num_samples = min(num_samples, len(all_label_weights))
+        balanced_sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
+                                                                           num_samples=num_samples,
+                                                                           replacement = False)
+
+        return balanced_sampler #now that we have a sampler, we can do things: pass it into the dataloader
+
     '''
     Creates and saves a histogram of the note lengths
     '''
@@ -191,7 +225,8 @@ class MortalityReader(DatasetReader):
                 open(os.path.join(self.stats_write_dir, "note_lengths.txt") , "a") as note_length_file:
             file.readline() # could also pandas readcsv and ignore first line
             for example_number,line in enumerate(tqdm(file, total=num_examples)):
-                if self.limit_examples and example_number > self.limit_examples:
+
+                if self.mode == "train" and self.limit_examples and example_number > self.limit_examples:
                     break
                 info_filename, label = line.split(",")
                 info = info_filename.split("_")
@@ -277,13 +312,14 @@ class MortalityReader(DatasetReader):
 
     @overrides
     def _read(self, file_path: str) -> Iterable[Instance]:
+        '''NOTE: because this is an overrides, it CANNOT accept another arg!'''
         '''Expect: one instance per line'''
-
+        logger.critical("read method is called")
         with open(file_path, "r") as file:
             file.readline() # could also pandas readcsv and ignore first line
             for line in file:
 
-                if self.limit_examples and self.cur_examples >= self.limit_examples:
+                if self.mode == "train" and self.limit_examples and self.cur_examples >= self.limit_examples:
                     self.cur_examples = 0
                     break
                 cur_tokens = 0
@@ -361,7 +397,7 @@ class MortalityReader(DatasetReader):
                         tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
                         text_field = TextField(tokens, self.token_indexers)
-                        label_field = LabelField(label)
+                        label_field = LabelField(int(label))
                         meta_data_field = MetadataField({"patient_id": patient_id,
                                                          "episode": eps,
                                                          "hadm_id": one_hadm_id[0], # just the specific value
