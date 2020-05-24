@@ -4,6 +4,14 @@ Looking at subsampling.
 And SE class and OOP design principles. 
 
 Most likely, sampling will unite DE and Mort (via the reader). While the architectures, eval,loss etc. will need to be unified for the phenotyping model
+
+Note that this subsampling DOES work, but implicitly requires us to have all the data in memory. 
+https://towardsdatascience.com/pytorch-basics-sampling-samplers-2a0f29f0bf2a
+
+Probably a lazy type of sampling could also work. But this would require more info and knowledge. 
+
+Instead, what we can do is: delegate it all to the reader
+
 # may 23 #3
 Now that we have predictions working, there are two main points.
 1. refactoring code so that one reader/classifier supports everything (might be best, but it might be better to simply do things 3 times. Note that changes will need to be propagated, repeatedly, unfortunately). Or think, about the inheritance we can structure, and how we can simply override some behaviour. In particular, the phenotype will necessarily need to have a different structure than all the rest. We will always make sure to do individual sigmoids, as opposed to softmax over all the outputs, since we can have multiple labels. 
