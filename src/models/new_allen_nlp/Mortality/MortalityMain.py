@@ -73,9 +73,15 @@ def read_data(
     logger.critical("Reading the data. Lazy variable set to {}".format( reader.lazy))
     start_time = time.time()
     training_data = reader.read(train_data_path)
-    validation_data = reader.read(valid_data_path)
+
+    # instead, we will set the examples differently here
+    # reader.
+    # reader.mode = "valid"
+    reader.limit_examples = 130
+    validation_data = reader.read(valid_data_path) #need to unlimit the examples here...
 
     logger.critical("Finished the call to read the data. Time took {}".format(time.time()-start_time))
+
 
     return training_data, validation_data
 
@@ -122,7 +128,11 @@ def build_model(vocab: Vocabulary,
         regularizer_applicator = RegularizerApplicator(regexes)
 
     return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
-#
+
+
+'''
+This function, may need to construct the dataset. Thankfully, it does, through chain inheritance. 
+'''
 def build_data_loaders(
     dataset_reader: DatasetReader,
     train_data: torch.utils.data.Dataset,
@@ -133,12 +143,12 @@ def build_data_loaders(
     # what actually does indexing and batching.
     sampler = None
     if args.use_subsampling:
-        sampler = dataset_reader.get_sampler()
+        sampler = dataset_reader.get_sampler_from_dataset(train_data) #note that dev_data should not be limited...
 
 
 
     train_loader = DataLoader(train_data, batch_size=args.batch_size,sampler=sampler)
-    dev_loader = DataLoader(dev_data, batch_size=args.batch_size,sampler=sampler)
+    dev_loader = DataLoader(dev_data, batch_size=args.batch_size,sampler=None ) # the validation should not use a sampler
     # expect: sampler to now balance things out. and also, we don't get too many examples
     return train_loader, dev_loader
 
@@ -200,6 +210,8 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
 
     # You obviously won't want to create a temporary file for your training
     # results, but for execution in binder for this course, we need to do this.
+
+    logger.critical("beginning training. are the dataset reader read method called again?")
     trainer = build_trainer(
         model,
         args.serialization_dir,
@@ -262,11 +274,11 @@ def main():
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
-    args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = True
+    args.lazy = True #should be hardcoded to True, unless you have a good reason otherwise
+    args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = 2500
+    args.limit_examples = 120
     import time
 
     start_time = time.time()
@@ -300,6 +312,9 @@ def main():
     # make sure to index the vocab before adding it
     train_data.index_with(vocab)
     dev_data.index_with(vocab)
+
+    # a bit of devils paradox here:
+    # now we do indeed a separate eval dataloader, which does not limit examples
 
     train_dataloader, dev_dataloader = build_data_loaders(dataset_reader, train_data, dev_data, args)
     # del train_data

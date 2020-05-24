@@ -182,10 +182,10 @@ class MortalityReader(DatasetReader):
         self.class_counts = np.zeros(2)
 
         for data in dataset:
-            info_dict = data["fields"]
-
-            self.labels.append([info_dict["label"]])
-            self.class_counts[int(info_dict["label"])] += 1
+            info_dict = data.fields
+            label = int(info_dict["label"].label)
+            self.labels.append(label)
+            self.class_counts[label] += 1
 
         # now, we assign the weights to ALL the class labels
         self.class_weights = 1/self.class_counts
