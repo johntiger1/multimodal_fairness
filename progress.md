@@ -1,3 +1,7 @@
+
+# may 24
+Looking at subsampling. 
+And SE class and OOP design principles. 
 # may 23 #3
 Now that we have predictions working, there are two main points.
 1. refactoring code so that one reader/classifier supports everything (might be best, but it might be better to simply do things 3 times. Note that changes will need to be propagated, repeatedly, unfortunately). Or think, about the inheritance we can structure, and how we can simply override some behaviour. In particular, the phenotype will necessarily need to have a different structure than all the rest. We will always make sure to do individual sigmoids, as opposed to softmax over all the outputs, since we can have multiple labels. 
