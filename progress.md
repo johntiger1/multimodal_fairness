@@ -12,6 +12,12 @@ Probably a lazy type of sampling could also work. But this would require more in
 
 Instead, what we can do is: delegate it all to the reader
 
+For the inheritance approach, let it inherit the read, but selectively override it: i.e. kill, and modify, based on the label distribution. 
+
+Also note that Dataset: is a list of indices
+while Dataloader: is a list of batches. Hence why the len calls will return different things!
+With a dataset, we will need a list of all the labels, which is OK, and then create the sampler based off that, then we pass this sampler in to the dataloader. And the batches are still generated appropriately, and ensures we have same sized batches each time!
+
 # may 23 #3
 Now that we have predictions working, there are two main points.
 1. refactoring code so that one reader/classifier supports everything (might be best, but it might be better to simply do things 3 times. Note that changes will need to be propagated, repeatedly, unfortunately). Or think, about the inheritance we can structure, and how we can simply override some behaviour. In particular, the phenotype will necessarily need to have a different structure than all the rest. We will always make sure to do individual sigmoids, as opposed to softmax over all the outputs, since we can have multiple labels. 
