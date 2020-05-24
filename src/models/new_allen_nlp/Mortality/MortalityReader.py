@@ -397,7 +397,7 @@ class MortalityReader(DatasetReader):
                         tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
                         text_field = TextField(tokens, self.token_indexers)
-                        label_field = LabelField(int(label))
+                        label_field = LabelField(label.strip())
                         meta_data_field = MetadataField({"patient_id": patient_id,
                                                          "episode": eps,
                                                          "hadm_id": one_hadm_id[0], # just the specific value
