@@ -75,7 +75,7 @@ def read_data(
     training_data = reader.read(train_data_path)
     validation_data = reader.read(valid_data_path)
 
-    logger.critical("Finished the call to read the data. Time took {}".format( reader.lazy, time.time()-start_time))
+    logger.critical("Finished the call to read the data. Time took {}".format(time.time()-start_time))
 
     return training_data, validation_data
 
