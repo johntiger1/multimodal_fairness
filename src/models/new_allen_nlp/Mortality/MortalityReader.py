@@ -159,7 +159,7 @@ class MortalityReader(DatasetReader):
                                                                            num_samples=num_samples,
                                                                            replacement = False)
 
-        return balanced_sampler
+        return balanced_sampler #now that we have a sampler, we can do things: pass it into the dataloader
     '''
     Creates and saves a histogram of the note lengths
     '''

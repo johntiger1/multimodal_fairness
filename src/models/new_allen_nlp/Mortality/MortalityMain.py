@@ -124,14 +124,22 @@ def build_model(vocab: Vocabulary,
     return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
 #
 def build_data_loaders(
+    dataset_reader: DatasetReader,
     train_data: torch.utils.data.Dataset,
     dev_data: torch.utils.data.Dataset, args
 ) -> Tuple[allennlp.data.DataLoader, allennlp.data.DataLoader]:
     # Note that DataLoader is imported from allennlp above, *not* torch.
     # We need to get the allennlp-specific collate function, which is
     # what actually does indexing and batching.
-    train_loader = DataLoader(train_data, batch_size=args.batch_size,)
-    dev_loader = DataLoader(dev_data, batch_size=args.batch_size,)
+    sampler = None
+    if args.use_subsampling:
+        sampler = dataset_reader.get_sampler()
+
+
+
+    train_loader = DataLoader(train_data, batch_size=args.batch_size,sampler=sampler)
+    dev_loader = DataLoader(dev_data, batch_size=args.batch_size,sampler=sampler)
+    # expect: sampler to now balance things out. and also, we don't get too many examples
     return train_loader, dev_loader
 
 
@@ -249,14 +257,16 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "34"
+    args.run_name = "35"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
-    args.lazy = True #should be hardcoded to True, unless you have a good reason otherwise
+    args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
     args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
+    args.use_subsampling  = True
+    args.limit_examples = 2500
     import time
 
     start_time = time.time()
@@ -271,7 +281,7 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    dataset_reader = build_dataset_reader(limit_examples=None, lazy=args.lazy , max_tokens=768*2,
+    dataset_reader = build_dataset_reader(limit_examples=args.limit_examples, lazy=args.lazy , max_tokens=768*2,
                                           use_preprocessing = args.use_preprocessing)
 
     dataset_reader.get_label_stats(args.train_data)
@@ -291,7 +301,7 @@ def main():
     train_data.index_with(vocab)
     dev_data.index_with(vocab)
 
-    train_dataloader, dev_dataloader = build_data_loaders(train_data, dev_data, args)
+    train_dataloader, dev_dataloader = build_data_loaders(dataset_reader, train_data, dev_data, args)
     # del train_data
     # del dev_data
 
