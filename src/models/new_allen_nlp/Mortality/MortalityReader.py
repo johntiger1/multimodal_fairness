@@ -66,7 +66,8 @@ class MortalityReader(DatasetReader):
                  stats_write_dir: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/",
                  all_stays: str = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/root/all_stays.csv",
                  limit_examples: int = None,
-                 use_preprocessing: bool = False
+                 use_preprocessing: bool = False,
+
 
     ):
         super().__init__(lazy)
@@ -75,6 +76,8 @@ class MortalityReader(DatasetReader):
         self.max_tokens = max_tokens
         self.listfile = listfile
         self.notes_dir = notes_dir
+        self.use_preprocessing = use_preprocessing
+
         logger.critical(f"we are getting the max tokens {self.max_tokens} "
                         f"and use_preproc is {self.use_preprocessing}")
         self.null_patients = []
@@ -86,7 +89,6 @@ class MortalityReader(DatasetReader):
         self.all_stays_df = self.get_all_stays()
         self.limit_examples = limit_examples
         self.cur_examples = 0
-        self.use_preprocessing = use_preprocessing
         self.lengths = []
         # self.null_patients
 
@@ -104,6 +106,45 @@ class MortalityReader(DatasetReader):
                 info_filename, label = line.split(",")
                 self.stats[int(label)] +=1
         return self.stats
+
+
+    '''
+    Parses the line, according to the mode. Returns a dict with the proper keys set
+    '''
+    def parse_line(self, line):
+        self.mode = "MORTALITY"
+        info_dict = {}
+        mapping_dict = {}
+
+        if self.mode == "MORTALITY":
+            headers = ["filename", "label"]
+        else:
+            headers = ["filename", "time", "label"]
+
+        for i,header in enumerate(headers):
+            mapping_dict[header] = i #can also use a dict comprehension here
+
+        info_array = line.split(",")
+        for key in mapping_dict:
+            info_dict[key] = info_array[mapping_dict[key]]
+
+        return info_dict
+
+
+    '''
+    Reads in all the labels, and forms a sampler, according to a balanced approach. 
+    '''
+
+    def get_sampler(self, listfile: str = ""):
+        self.labels = []
+        with open(listfile, "r") as file:
+            file.read()
+            for line in file:
+
+                self.labels.append(label)
+        pass
+
+
 
     '''
     Creates and saves a histogram of the note lengths
