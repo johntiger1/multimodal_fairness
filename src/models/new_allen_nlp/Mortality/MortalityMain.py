@@ -300,10 +300,10 @@ def main():
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = True
+    args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = None
+    args.limit_examples = 10000
     args.sampler_type  = "random"
     args.data_type = "MORTALITY"
     # args.data_type = "DECOMPENSATION"
