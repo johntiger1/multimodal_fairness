@@ -41,7 +41,7 @@ from CONST import LOGGER_NAME
 
 '''need this to get code to move over a dict'''
 from allennlp.nn import util as nn_util
-import args
+import get_args
 
 '''
 Main file which will construct the DecompensationReader and DecompensationModel
@@ -288,11 +288,10 @@ def make_predictions(model, eval_dataloader, args):
 
 def main():
     logger.setLevel(logging.CRITICAL)
-    args = args.get_args()
-    assert getattr(args, "run_name",default=None) is not None
+    args = get_args.get_args()
+    assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
 
-    args = lambda x: None
     args.batch_size = 256
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -300,7 +299,7 @@ def main():
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = False
+    args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
     args.limit_examples = None
