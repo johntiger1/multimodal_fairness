@@ -72,12 +72,13 @@ def read_data(
 
     logger.critical("Reading the data. Lazy variable set to {}".format( reader.lazy))
     start_time = time.time()
+
+    '''Expect: that this is the only time it is called'''
+    reader.mode = "train"
     training_data = reader.read(train_data_path)
 
     # instead, we will set the examples differently here
-    # reader.
-    # reader.mode = "valid"
-    reader.limit_examples = 130
+    reader.mode = "valid"
     validation_data = reader.read(valid_data_path) #need to unlimit the examples here...
 
     logger.critical("Finished the call to read the data. Time took {}".format(time.time()-start_time))
@@ -86,7 +87,7 @@ def read_data(
     return training_data, validation_data
 
 def read_all_test_data(reader, test_data_path):
-    reader.mode = "TEST"
+    reader.mode = "test"
     '''limit examples should have no effect when the mode is set to TEST'''
     reader.limit_examples = None
     test_data = reader.read(test_data_path)
@@ -153,9 +154,10 @@ def build_data_loaders(
         sampler = dataset_reader.get_sampler_from_dataset(train_data) #note that dev_data should not be limited...
 
 
-
-    train_loader = DataLoader(train_data, batch_size=args.batch_size,sampler=sampler)
-    dev_loader = DataLoader(dev_data, batch_size=args.batch_size,sampler=None ) # the validation should not use a sampler
+    # because now our sampling is done inside the reader, it is obsolete to use a constructed sampler
+    # the sampler should still be fine, since it is indeed just a list of indices, but for some reason, this will not work
+    train_loader = DataLoader(train_data, batch_size=args.batch_size)
+    dev_loader = DataLoader(dev_data, batch_size=args.batch_size) # the validation should not use a sampler
     # expect: sampler to now balance things out. and also, we don't get too many examples
     return train_loader, dev_loader
 
@@ -276,17 +278,17 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "35"
+    args.run_name = "42-fixed"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
-    args.lazy = True #should be hardcoded to True, unless you have a good reason otherwise
+    args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = 120
+    args.limit_examples = None
     '''figure out bug: we limit the samples to 1000. Therefore we have not read all the samples into memory. Therefore, we 
     will have samples beyond the range. An iterable does not really support future indexing, is the issue
     Therefore, we should push it back into the dataset reader: the dataset reader is 
@@ -311,8 +313,13 @@ def main():
     # code, above in the Setup section. We run the training loop to get a trained
     # model.
 
-    dataset_reader = build_dataset_reader(limit_examples=args.limit_examples, lazy=args.lazy , max_tokens=768*2,
-                                          use_preprocessing = args.use_preprocessing)
+    dataset_reader = build_dataset_reader(
+train_listfile = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv",
+                 test_listfile = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv",
+
+        limit_examples=args.limit_examples, lazy=args.lazy , max_tokens=768*2,
+                                          use_preprocessing = args.use_preprocessing,
+                                          mode="train", data_type="MORTALITY", args=args)
 
     dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
@@ -321,6 +328,10 @@ def main():
 
     for key in sorted(dataset_reader.stats.keys()):
         print("{} {}".format(key, dataset_reader.stats[key]))
+
+    # dataset_reader.mode = "test"
+
+
     # These are a subclass of pytorch Datasets, with some allennlp-specific
     # functionality added.
     train_data, dev_data = read_data(dataset_reader, args.train_data, args.dev_data)
@@ -343,8 +354,14 @@ def main():
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
 
     logger.warning("We have finished training")
+    logger.critical("Beginning the testing phase")
 
     test_data = read_all_test_data(dataset_reader, args.test_data)
+    test_data.index_with(vocab)
+    logger.critical("Sizes of train, valid, test {} {} {}".format(len(train_data),
+                                                                  len(dev_data),
+                                                                  len(test_data)))
+
     test_dataloader = DataLoader(test_data, batch_size=args.batch_size)
 
     results = evaluate(model, test_dataloader, 0, None)
