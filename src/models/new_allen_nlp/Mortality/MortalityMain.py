@@ -246,7 +246,12 @@ def serialize_args(args):
 '''
 On the given dataloader, we will make the predictions, and write them to file as well
 '''
-def make_predictions(model, eval_dataloader, args):
+def make_predictions(name, model, eval_dataloader, args):
+
+    pred_path = os.path.join(args.serialization_dir, name)
+    if not os.path.exists( pred_path):
+        os.makedirs(pred_path, exist_ok=True)
+
 
     for i,batch in enumerate(tqdm(eval_dataloader)):
 
@@ -279,11 +284,13 @@ def make_predictions(model, eval_dataloader, args):
         predictions_df = pd.concat((metadata_df,probs_df,labels_df ), axis=1)
 
 
-        predictions_df.to_csv(os.path.join(args.serialization_dir, f"predictions_{i}.csv"))
+        predictions_df.to_csv(os.path.join(pred_path, f"predictions_{i}.csv"))
         # write the predictions to csv
 
     # labels and probs will be gotten, along with the metadata
     pass
+
+
 
 def main():
 
@@ -301,17 +308,22 @@ def main():
     args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = None
+    args.limit_examples = 50000
     args.sampler_type  = "balanced"
-    args.data_type = "MORTALITY"
-    args.use_reg = True
-    # args.data_type = "DECOMPENSATION"
+    # args.data_type = "MORTALITY"
+    args.use_reg = False
+    args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
+    args.get_train_predictions = True
+
+    # 5 to 8 iterations per second for decomp pred
+    #
 
     file_logger_handler = logging.FileHandler(filename=os.path.join(args.serialization_dir, "log.log"))
+    file_logger_handler.setLevel(level=logging.DEBUG)
     logger.addHandler(file_logger_handler)
 
-    CONST.set_config("MORTALITY", args)
+    CONST.set_config("DECOMPENSATION", args)
     serialize_args(args)
     '''
     napkin math: 8s/iteration and then 500 000 / 256 => roughly 4 hours to run
@@ -371,6 +383,10 @@ train_listfile = args.train_data,
     model = build_model(vocab, use_reg=args.use_reg )
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
     logger.warning("We have finished training")
+
+    if args.get_train_predictions:
+        make_predictions("train", model, train_dataloader, args)
+
     logger.critical("Beginning the testing phase")
 
     ''' consider doing the test data lazily-'''
@@ -399,7 +415,7 @@ train_listfile = args.train_data,
     test_dataloader = DataLoader(test_data, batch_size=args.batch_size)
 
     results = evaluate(model, test_dataloader, 0, None)
-    make_predictions(model, test_dataloader, args)
+    make_predictions("test", model, test_dataloader, args)
 
     logger.critical("we succ fulfilled it\n")
     with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
