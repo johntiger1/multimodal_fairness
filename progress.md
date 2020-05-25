@@ -7,7 +7,8 @@ Now, that smapling and limiting is found to be good, we simply need to do the fo
 1. get a gold truth, ground truth auc score to verify.
 2. consider how we want to frame phenotyping. We may need to implement a custom loss, and unpacking. Definitely an archiecture where we do soft sigmoid over each element. But other than that, not too many changes.
 
-
+As it turns out, the final; partitioned evaluation was extremely effective, and we uncovered the issue! Now, we simply wait. 
+And consider framing the other archiecture. 
 
 # may 24
 Looking at subsampling. 
