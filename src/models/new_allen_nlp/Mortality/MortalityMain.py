@@ -116,7 +116,7 @@ def build_model(vocab: Vocabulary,
                 use_reg: bool = True) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
-    EMBED_DIMS = 100
+    EMBED_DIMS = 200
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
         {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
@@ -236,6 +236,12 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
     return model
 
 
+def serialize_args(args):
+    with open (os.path.join(args.serialization_dir, "args.txt"), "w") as file:
+        for key,val in vars(args).items():
+            file.write("{}:{}".format(key,val))
+#
+
 '''
 On the given dataloader, we will make the predictions, and write them to file as well
 '''
@@ -292,12 +298,12 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = 5000
+    args.limit_examples = 1000
     args.sampler_type  = "balanced"
     # args.data_type = "MORTALITY"
     args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
-
+    serialize_args(args)
 
     '''figure out bug: we limit the samples to 1000. Therefore we have not read all the samples into memory. Therefore, we 
     will have samples beyond the range. An iterable does not really support future indexing, is the issue
@@ -331,13 +337,13 @@ train_listfile = args.train_data,
                                           use_preprocessing = args.use_preprocessing,
                                           mode="train", data_type=args.data_type, args=args)
 
-    dataset_reader.get_label_stats(args.train_data)
-    for key in sorted(dataset_reader.stats.keys()):
-        print("{} {}".format(key, dataset_reader.stats[key]))
-    dataset_reader.get_label_stats(args.dev_data)
-
-    for key in sorted(dataset_reader.stats.keys()):
-        print("{} {}".format(key, dataset_reader.stats[key]))
+    # dataset_reader.get_label_stats(args.train_data)
+    # for key in sorted(dataset_reader.stats.keys()):
+    #     print("{} {}".format(key, dataset_reader.stats[key]))
+    # dataset_reader.get_label_stats(args.dev_data)
+    #
+    # for key in sorted(dataset_reader.stats.keys()):
+    #     print("{} {}".format(key, dataset_reader.stats[key]))
 
     # dataset_reader.mode = "test"
 
