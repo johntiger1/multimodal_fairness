@@ -52,7 +52,7 @@ We need to actually do it in the forward pass
 '''
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("hello")
+logger.debug(f"hello from {__name__}")
 
 @Model.register("MortalityClassifier")
 class MortalityClassifier(Model):
@@ -76,6 +76,9 @@ class MortalityClassifier(Model):
                 label: torch.Tensor,
                 metadata
                 ) -> Dict[str, torch.Tensor]:
+
+        # assert that metadata has the same length as the other ones. Then, they are parallel
+
         # Shape: (batch_size, num_tokens, embedding_dim)
         embedded_text = self.embedder(text)
         # Shape: (batch_size, num_tokens)
@@ -90,13 +93,16 @@ class MortalityClassifier(Model):
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
         self.accuracy(logits, label)
-        preds = logits.argmax(-1)
-        self.auc(preds, label)
-        output = {'loss': loss, 'probs': probs}
-        print(f"we got some metadata{metadata}")
+        # preds = logits.argmax(-1)
+        probs_1 = logits[:,-1]
+        self.auc(probs_1, label)
+
+        output = {'loss': loss, 'probs': probs, "metadata": metadata, "label": label} #no need to yield the label here
+        # print(f"we got some metadata{metadata}")
         return output
 
-    '''this is called'''
+    '''this is called. it both gets, and resets, if reset=True'''
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         return {"accuracy": self.accuracy.get_metric(reset),
                 "auc":self.auc.get_metric(reset)}
+
