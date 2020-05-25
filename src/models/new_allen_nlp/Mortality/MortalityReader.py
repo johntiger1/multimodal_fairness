@@ -191,14 +191,13 @@ class MortalityReader(DatasetReader):
         all_label_weights = self.class_weights[self.labels].squeeze() #produce an array of size labels, but looking up the value in class weights each time
         num_samples = self.limit_examples if self.limit_examples else len(all_label_weights)
         num_samples = min(num_samples, len(all_label_weights))
-        balanced_sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
-                                                                           num_samples=num_samples,
-                                                                           replacement = False)
+
         if self.args.sampler_type == "balanced":
             sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
                                    replacement = False)
         else:
             sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
+            # sampler = list(sampler)[:num_samples]
         return sampler
 
     def get_sampler_from_dataset(self, dataset):
@@ -224,6 +223,7 @@ class MortalityReader(DatasetReader):
                                    replacement = False)
         else:
             sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
+            # sampler = list(sampler)[:num_samples]
 
         return sampler #now that we have a sampler, we can do things: pass it into the dataloader
 

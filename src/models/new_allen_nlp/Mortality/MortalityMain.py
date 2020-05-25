@@ -278,7 +278,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "42-fixed"
+    args.run_name = "43-fixed"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
@@ -289,6 +289,7 @@ def main():
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
     args.limit_examples = None
+    args.sampler_type  = "random"
     '''figure out bug: we limit the samples to 1000. Therefore we have not read all the samples into memory. Therefore, we 
     will have samples beyond the range. An iterable does not really support future indexing, is the issue
     Therefore, we should push it back into the dataset reader: the dataset reader is 
