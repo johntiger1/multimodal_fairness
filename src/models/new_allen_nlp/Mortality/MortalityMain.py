@@ -304,6 +304,7 @@ def main():
     args.limit_examples = None
     args.sampler_type  = "balanced"
     args.data_type = "MORTALITY"
+    args.use_reg = True
     # args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
 
@@ -367,7 +368,7 @@ train_listfile = args.train_data,
     # del dev_data
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab, use_reg=False)
+    model = build_model(vocab, use_reg=args.use_reg )
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
     logger.warning("We have finished training")
     logger.critical("Beginning the testing phase")
