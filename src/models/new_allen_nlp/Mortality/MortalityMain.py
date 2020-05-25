@@ -208,10 +208,7 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
     # move the model over, if necessary, and possible
     model = model.to(args.device )
 
-    experiment_dir = args.serialization_dir
 
-    if not os.path.exists(experiment_dir):
-        os.makedirs(experiment_dir, exist_ok=True)
 
     # This is the allennlp-specific functionality in the Dataset object;
     # we need to be able convert strings in the data to integers, and this
@@ -237,6 +234,9 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
 
 
 def serialize_args(args):
+    if not os.path.exists(args.serialization_dir):
+        os.makedirs(args.serialization_dir, exist_ok=True)
+
     with open (os.path.join(args.serialization_dir, "args.txt"), "w") as file:
         for key,val in vars(args).items():
             file.write("{}:{}".format(key,val))
