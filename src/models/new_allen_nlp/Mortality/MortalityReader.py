@@ -152,8 +152,11 @@ class MortalityReader(DatasetReader):
 
         if self.data_type == "MORTALITY":
             headers = ["filename", "label"]
+        elif self.data_type == "DECOMPENSATION":
+            headers = ["filename", "time", "label"]
         else:
             headers = ["filename", "time", "label"]
+
 
         for i,header in enumerate(headers):
             mapping_dict[header] = i #can also use a dict comprehension here
@@ -197,9 +200,12 @@ class MortalityReader(DatasetReader):
             sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
                                                                       num_samples=num_samples,
                                    replacement = False)
-        else:
+        elif self.args.sampler_type == "random":
             sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
             # sampler = list(sampler)[:num_samples]
+        else:
+            logger.critical("Weird sampler specified \n")
+            sampler = None
         return sampler
 
     def get_sampler_from_dataset(self, dataset):
@@ -456,4 +462,4 @@ class MortalityReader(DatasetReader):
                             # in this case, we ignore the patient
 
                 else:
-                    logger.critical("we are skipping  some indices {}".format(example_idx))
+                    logger.debug("we are skipping  some indices {}".format(example_idx))
