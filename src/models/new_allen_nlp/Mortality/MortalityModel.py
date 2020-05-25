@@ -93,13 +93,15 @@ class MortalityClassifier(Model):
         # Shape: (1,)
         loss = torch.nn.functional.cross_entropy(logits, label)
         self.accuracy(logits, label)
-        preds = logits.argmax(-1)
-        self.auc(preds, label)
+        # preds = logits.argmax(-1)
+        probs_1 = logits[:,-1]
+        self.auc(probs_1, label)
+
         output = {'loss': loss, 'probs': probs, "metadata": metadata, "label": label} #no need to yield the label here
         # print(f"we got some metadata{metadata}")
         return output
 
-    '''this is called'''
+    '''this is called. it both gets, and resets, if reset=True'''
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         return {"accuracy": self.accuracy.get_metric(reset),
                 "auc":self.auc.get_metric(reset)}
