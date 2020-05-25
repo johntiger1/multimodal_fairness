@@ -298,10 +298,10 @@ def main():
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = False
+    args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
-    args.use_subsampling  = True
-    args.limit_examples = 10000
+    args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
+    args.limit_examples = None
     args.sampler_type  = "balanced"
     args.data_type = "MORTALITY"
     # args.data_type = "DECOMPENSATION"
@@ -400,11 +400,11 @@ train_listfile = args.train_data,
     results = evaluate(model, test_dataloader, 0, None)
     make_predictions(model, test_dataloader, args)
 
-    print("we succ fulfilled it")
+    logger.critical("we succ fulfilled it\n")
     with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
+    logger.critical("{}\n".format(results["auc"]))
 
-    pass
 
 def get_preprocessed_stats(train_data_path="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv",
                            dev_data_path="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"):
