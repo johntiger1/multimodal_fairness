@@ -1,3 +1,71 @@
+
+# may 25
+OK, so subsampling is done. Now, just quickly creating the phenotyping. And quickly getting results/writing. Note that we COULD redesign the header to be even better, via a pd.readcsv call, but it is wholly unnecessary!
+
+Now, that smapling and limiting is found to be good, we simply need to do the following:
+
+1. get a gold truth, ground truth auc score to verify.
+2. consider how we want to frame phenotyping. We may need to implement a custom loss, and unpacking. Definitely an archiecture where we do soft sigmoid over each element. But other than that, not too many changes.
+
+As it turns out, the final; partitioned evaluation was extremely effective, and we uncovered the issue! Now, we simply wait. 
+And consider framing the other archiecture. 
+
+# may 24
+Looking at subsampling. 
+And SE class and OOP design principles. 
+
+Most likely, sampling will unite DE and Mort (via the reader). While the architectures, eval,loss etc. will need to be unified for the phenotyping model
+
+Note that this subsampling DOES work, but implicitly requires us to have all the data in memory. 
+https://towardsdatascience.com/pytorch-basics-sampling-samplers-2a0f29f0bf2a
+
+Probably a lazy type of sampling could also work. But this would require more info and knowledge. 
+
+Instead, what we can do is: delegate it all to the reader
+
+For the inheritance approach, let it inherit the read, but selectively override it: i.e. kill, and modify, based on the label distribution. 
+
+Also note that Dataset: is a list of indices
+while Dataloader: is a list of batches. Hence why the len calls will return different things!
+With a dataset, we will need a list of all the labels, which is OK, and then create the sampler based off that, then we pass this sampler in to the dataloader. And the batches are still generated appropriately, and ensures we have same sized batches each time!
+
+Epilogue:
+as it turns out, the best approach was the simplest and most direct. 
+
+Also, if we actually used train/valid/test split right from the getgo, this would save a lot of headaches. Indeed, ensuring that certain configs are satisfied can save a lot of things!
+# may 23 #3
+Now that we have predictions working, there are two main points.
+1. refactoring code so that one reader/classifier supports everything (might be best, but it might be better to simply do things 3 times. Note that changes will need to be propagated, repeatedly, unfortunately). Or think, about the inheritance we can structure, and how we can simply override some behaviour. In particular, the phenotype will necessarily need to have a different structure than all the rest. We will always make sure to do individual sigmoids, as opposed to softmax over all the outputs, since we can have multiple labels. 
+
+(phenotyping: 25 * MORT. Not bad at all.)
+
+2. thinking more about the random subsampling, and how we can support that. In particular, ensuring ratios are balanced. This can be done via simple counts, but these must be reset, appropriately. And we must make a distinct between training an epoch, and simply "getting" the data through a read data call. 
+Now that we have predictions code, we don't need to worry about running a full pass on the final dataset. 
+
+(Decomp: 2 mil; we NEED some subsampling, in the reader)
+
+# may 23 #2
+2000 updates (batches). Of batch-size. 
+
+So that means ~ 64000 training examples (assuming batch size of 32). 
+
+Subsampling: consistent with everyone else. They do Random sampling: but to get a bootstrap
+
+Also: they do explicitly make predictions over the entire testing data set
+
+Also, for the multi phenotype prediction, it is one model that does multilabel multiclass prediction. Just generate 25 scores
+
+# May 23
+
+Now, putting the decomp on hold. 
+
+We can get the predictions, either via hacking the evaluate function (fine!), or using the predict paradigm of AllenNLP.
+
+Probably we will do it directly from the forward pass and get a dict!
+
+Note: the following, more preprocessing will likely save more time. I.e. instead of doing it dynamically on the fly, only do it once at the start, and have the exact text you need, ready to go in the txt files
+
+
 # May 19
 Will implement predictions instead. and Manually compute eval metrics. Is there a way to get the val metrics after every epoch? We can probably hack the utils.train function.  
 
