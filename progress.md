@@ -2,6 +2,13 @@
 # may 25
 OK, so subsampling is done. Now, just quickly creating the phenotyping. And quickly getting results/writing. Note that we COULD redesign the header to be even better, via a pd.readcsv call, but it is wholly unnecessary!
 
+Now, that smapling and limiting is found to be good, we simply need to do the following:
+
+1. get a gold truth, ground truth auc score to verify.
+2. consider how we want to frame phenotyping. We may need to implement a custom loss, and unpacking. Definitely an archiecture where we do soft sigmoid over each element. But other than that, not too many changes.
+
+
+
 # may 24
 Looking at subsampling. 
 And SE class and OOP design principles. 
