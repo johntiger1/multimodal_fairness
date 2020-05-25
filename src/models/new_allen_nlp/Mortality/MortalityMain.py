@@ -299,7 +299,7 @@ def main():
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
 
-    args.batch_size = 256
+    args.batch_size = 400
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -312,8 +312,8 @@ def main():
     args.sampler_type  = "balanced"
     # args.data_type = "MORTALITY"
     args.use_reg = False
-    args.data_type = "DECOMPENSATION"
-    args.max_tokens = 768*2
+    args.data_type = "MORTALITY"
+    args.max_tokens = 1600
     args.get_train_predictions = True
 
     # 5 to 8 iterations per second for decomp pred
@@ -323,7 +323,7 @@ def main():
     file_logger_handler.setLevel(level=logging.DEBUG)
     logger.addHandler(file_logger_handler)
 
-    CONST.set_config("DECOMPENSATION", args)
+    CONST.set_config(args.data_type, args)
     serialize_args(args)
     '''
     napkin math: 8s/iteration and then 500 000 / 256 => roughly 4 hours to run
