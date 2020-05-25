@@ -116,11 +116,12 @@ class MortalityReader(DatasetReader):
     def get_idx(self):
 
         train_sampler = self.get_sampler(self.train_listfile)
-
         self.sampled_idx["train"] = list(train_sampler)
+        self.train_sampler = train_sampler
 
         test_sampler = self.get_sampler(self.test_listfile)
         self.sampled_idx["valid"] = list(test_sampler)
+        self.test_sampler = test_sampler
 
         if self.limit_examples:
             self.sampled_idx["train"] = self.sampled_idx["train"][:self.limit_examples]
@@ -205,7 +206,7 @@ class MortalityReader(DatasetReader):
         self.labels = []
         self.class_counts = np.zeros(2)
 
-        for data in dataset:
+        for data in dataset: # could replace this with an arbitrary data source, and we just yield from it
             info_dict = data.fields
             label = int(info_dict["label"].label)
             self.labels.append(label)
@@ -357,9 +358,12 @@ class MortalityReader(DatasetReader):
 
 
                     cur_tokens = 0
-                    info_filename, label = line.split(",")
-                    time = float(48) #hardcode to 48
-                    info = info_filename.split("_")
+
+
+                    info_dict = self.parse_line(line)
+                    time = info_dict.get("time", 48) #float(48) #hardcode to 48
+                    info = info_dict.get("filename").split("_")
+                    label = info_dict.get("label", -1)
                     patient_id = info[0]
 
                     # verify string inside a list of string
@@ -435,7 +439,7 @@ class MortalityReader(DatasetReader):
                             tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
                             text_field = TextField(tokens, self.token_indexers)
-                            label_field = LabelField(label.strip())
+                            label_field = LabelField(str(label).strip())
                             meta_data_field = MetadataField({"patient_id": patient_id,
                                                              "episode": eps,
                                                              "hadm_id": one_hadm_id[0], # just the specific value

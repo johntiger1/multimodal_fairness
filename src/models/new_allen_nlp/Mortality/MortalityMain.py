@@ -116,7 +116,7 @@ def build_model(vocab: Vocabulary,
                 use_reg: bool = True) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
-    EMBED_DIMS = 200
+    EMBED_DIMS = 100
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
         {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
@@ -149,14 +149,18 @@ def build_data_loaders(
     # Note that DataLoader is imported from allennlp above, *not* torch.
     # We need to get the allennlp-specific collate function, which is
     # what actually does indexing and batching.
-    train_sampler = None
-    if args.use_subsampling:
-        train_sampler = dataset_reader.get_sampler_from_dataset(train_data) #note that dev_data should not be limited...
 
+    # Sampling is handled exclusively from the dataset reader itself now. The actual datasets returned will be
+    # sampled appropriately. Hence, we don't need this anymore
+    train_sampler = None
+    val_sampler = None
+    if args.use_subsampling:
+        train_sampler = dataset_reader.train_sampler #note that dev_data should not be limited...
+        val_sampler = dataset_reader.test_sampler
 
     # because now our sampling is done inside the reader, it is obsolete to use a constructed sampler
     # the sampler should still be fine, since it is indeed just a list of indices, but for some reason, this will not work
-    train_loader = DataLoader(train_data, batch_size=args.batch_size, sampler=train_sampler)
+    train_loader = DataLoader(train_data, batch_size=args.batch_size, sampler=None )
     dev_loader = DataLoader(dev_data, batch_size=args.batch_size) # the validation should not use a sampler
     # expect: sampler to now balance things out. and also, we don't get too many examples
     return train_loader, dev_loader
@@ -278,7 +282,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "44-fixed-random-sampler"
+    args.run_name = "46-100-dim-parse-line"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
@@ -289,7 +293,9 @@ def main():
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
     args.limit_examples = None
-    args.sampler_type  = "random"
+    args.sampler_type  = "balanced"
+    args.data_type = "MORTALITY"
+
     '''figure out bug: we limit the samples to 1000. Therefore we have not read all the samples into memory. Therefore, we 
     will have samples beyond the range. An iterable does not really support future indexing, is the issue
     Therefore, we should push it back into the dataset reader: the dataset reader is 
@@ -320,7 +326,7 @@ train_listfile = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data
 
         limit_examples=args.limit_examples, lazy=args.lazy , max_tokens=768*2,
                                           use_preprocessing = args.use_preprocessing,
-                                          mode="train", data_type="MORTALITY", args=args)
+                                          mode="train", data_type=args.data_type, args=args)
 
     dataset_reader.get_label_stats(args.train_data)
     for key in sorted(dataset_reader.stats.keys()):
@@ -407,4 +413,4 @@ def get_preprocessed_stats(train_data_path="/scratch/gobi1/johnchen/new_git_stuf
 if __name__ == "__main__":
     # get_preprocessed_stats()
     main()
-    pass
+    # pas
