@@ -1,4 +1,7 @@
 
+# may 25
+OK, so subsampling is done. Now, just quickly creating the phenotyping. And quickly getting results/writing. Note that we COULD redesign the header to be even better, via a pd.readcsv call, but it is wholly unnecessary!
+
 # may 24
 Looking at subsampling. 
 And SE class and OOP design principles. 
