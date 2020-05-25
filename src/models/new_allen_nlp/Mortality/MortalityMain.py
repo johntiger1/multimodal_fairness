@@ -287,6 +287,7 @@ def make_predictions(model, eval_dataloader, args):
     pass
 
 def main():
+
     logger.setLevel(logging.CRITICAL)
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
@@ -307,6 +308,9 @@ def main():
     args.data_type = "MORTALITY"
     # args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
+
+    file_logger_handler = logging.FileHandler(filename=os.path.join(args.serialization_dir, "log.log"))
+    logger.addHandler(file_logger_handler)
 
     CONST.set_config("MORTALITY", args)
     serialize_args(args)
