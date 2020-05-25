@@ -236,8 +236,7 @@ def run_training_loop_over_dataloaders(model,train_loader,dev_loader, args):
 
 
 def serialize_args(args):
-    if not os.path.exists(args.serialization_dir):
-        os.makedirs(args.serialization_dir, exist_ok=True)
+
 
     with open (os.path.join(args.serialization_dir, "args.txt"), "w") as file:
         for key,val in vars(args).items():
@@ -297,14 +296,13 @@ def main():
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
-    args.serialization_dir = os.path.join("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments",args.run_name)
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
     args.limit_examples = 10000
-    args.sampler_type  = "random"
+    args.sampler_type  = "balanced"
     args.data_type = "MORTALITY"
     # args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
