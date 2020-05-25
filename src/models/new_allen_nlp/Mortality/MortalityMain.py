@@ -288,7 +288,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "47-100-dim-parse-line"
+    args.run_name = "48-200-dim-parse-line"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -298,22 +298,12 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = 1000
+    args.limit_examples = 50000
     args.sampler_type  = "balanced"
     # args.data_type = "MORTALITY"
     args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
     serialize_args(args)
-
-    '''figure out bug: we limit the samples to 1000. Therefore we have not read all the samples into memory. Therefore, we 
-    will have samples beyond the range. An iterable does not really support future indexing, is the issue
-    Therefore, we should push it back into the dataset reader: the dataset reader is 
-    the one that will maintain counts, sampling an even amount of positive/neg samples
-    Therefore, we have essentially implemented it in the read anyways.
-    Currently exploring other allennlp dataset semantics: ex. lazy with maxinstances.
-    Ok finished exploring, and it probably wont work without much more additional work.
-    Also this link corroborates: laziness.md of AllenNLP documentation
-    '''
 
     import time
 
