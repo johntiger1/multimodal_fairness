@@ -52,7 +52,7 @@ We need to actually do it in the forward pass
 '''
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("hello")
+logger.debug(f"hello from {__name__}")
 
 @Model.register("MortalityClassifier")
 class MortalityClassifier(Model):
