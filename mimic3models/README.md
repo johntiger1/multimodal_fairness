@@ -1,3 +1,16 @@
+Safwan's Comments to Run post-processgin fairness
+
+There are two key commands to note:
+python3 fair\_postprocess.py LOAD \<sensitive\_attribute\_file\> 
+call this with one of the sensitive attribute files Ian created and this will create a JSON dict. If this dict is already there (according to the groups you seek), then no need to run this
+
+Second command:
+python3 fair\_postprocess.py RUN \<train file\> \<test file\> \<sensitive attr\>
+This is compute post processing fairness wrt to the sensitive attr and print out the confusion matrix to console
+
+python3 fair\_postprocess.py RUN \<train file\> \<test file\> \<sensitive attr\> \<train fair results\> \<test fair results\>
+This will do the above but also dump the output of the post-processed classifiers in the names files
+
 Ian's quick and dirty notes:
 
 New design, just run the authors's test code with minimal modifications so that we can also get the predictions on the training data.
