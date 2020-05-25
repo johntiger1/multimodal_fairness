@@ -90,7 +90,8 @@ def read_all_test_data(reader, test_data_path):
     reader.mode = "test"
     '''limit examples should have no effect when the mode is set to TEST'''
     reader.limit_examples = None
-    test_data = reader.read(test_data_path)
+    reader.lazy = True # dynamically modify the lazy attribute
+    test_data = reader.read(test_data_path) # now will return a generator
     return test_data
 
 
@@ -288,7 +289,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "48-200-dim-parse-line"
+    args.run_name = "49-200-lazy-dim-parse-line"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -298,7 +299,7 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = 50000
+    args.limit_examples = 1000
     args.sampler_type  = "balanced"
     # args.data_type = "MORTALITY"
     args.data_type = "DECOMPENSATION"
@@ -326,6 +327,7 @@ train_listfile = args.train_data,
         limit_examples=args.limit_examples, lazy=args.lazy , max_tokens=args.max_tokens,
                                           use_preprocessing = args.use_preprocessing,
                                           mode="train", data_type=args.data_type, args=args)
+    # dataset_reader.
 
     # dataset_reader.get_label_stats(args.train_data)
     # for key in sorted(dataset_reader.stats.keys()):
@@ -362,9 +364,11 @@ train_listfile = args.train_data,
     logger.warning("We have finished training")
     logger.critical("Beginning the testing phase")
 
+    ''' consider doing the test data lazily-'''
     test_data = read_all_test_data(dataset_reader, args.test_data)
     test_data.index_with(vocab)
-    logger.critical("Sizes of train, valid, test {} {} {}".format(len(train_data),
+    logger.critical("Sizes of train, valid, test {} {} {}. Note that "
+                    "test data is lazy, and so is hardcoded".format(len(train_data),
                                                                   len(dev_data),
                                                                   len(test_data)))
 
