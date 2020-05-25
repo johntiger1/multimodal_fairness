@@ -149,14 +149,14 @@ def build_data_loaders(
     # Note that DataLoader is imported from allennlp above, *not* torch.
     # We need to get the allennlp-specific collate function, which is
     # what actually does indexing and batching.
-    sampler = None
+    train_sampler = None
     if args.use_subsampling:
-        sampler = dataset_reader.get_sampler_from_dataset(train_data) #note that dev_data should not be limited...
+        train_sampler = dataset_reader.get_sampler_from_dataset(train_data) #note that dev_data should not be limited...
 
 
     # because now our sampling is done inside the reader, it is obsolete to use a constructed sampler
     # the sampler should still be fine, since it is indeed just a list of indices, but for some reason, this will not work
-    train_loader = DataLoader(train_data, batch_size=args.batch_size)
+    train_loader = DataLoader(train_data, batch_size=args.batch_size, sampler=train_sampler)
     dev_loader = DataLoader(dev_data, batch_size=args.batch_size) # the validation should not use a sampler
     # expect: sampler to now balance things out. and also, we don't get too many examples
     return train_loader, dev_loader
@@ -278,7 +278,7 @@ def main():
     logger.setLevel(logging.CRITICAL)
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "43-fixed"
+    args.run_name = "44-fixed-random-sampler"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/test/listfile.csv"

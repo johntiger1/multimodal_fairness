@@ -101,9 +101,9 @@ class MortalityReader(DatasetReader):
         self.mode =  mode
         self.sampled_idx = {}
         self.data_type = data_type
+        self.args = args
 
         self.get_idx() #realistically, only the train_idx will be set, and we simply need to compare against
-        self.args = args
         # self.null_patients
 
     # def set_mode(self, mode: str):
@@ -194,6 +194,7 @@ class MortalityReader(DatasetReader):
 
         if self.args.sampler_type == "balanced":
             sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
+                                                                      num_samples=num_samples,
                                    replacement = False)
         else:
             sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
@@ -220,7 +221,8 @@ class MortalityReader(DatasetReader):
 
         if self.args.sampler_type == "balanced":
             sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
-                                   replacement = False)
+                                                                      num_samples=num_samples,
+                                                                      replacement = False)
         else:
             sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
             # sampler = list(sampler)[:num_samples]
