@@ -194,9 +194,12 @@ class MortalityReader(DatasetReader):
         balanced_sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
                                                                            num_samples=num_samples,
                                                                            replacement = False)
-        # list(balanced_sampler) == list(range(num_samples))
-        assert sorted(list(balanced_sampler)) == list(range(num_samples))
-        return balanced_sampler #now that we have a sampler, we can do things: pass it into the dataloader
+        if self.args.sampler_type == "balanced":
+            sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
+                                   replacement = False)
+        else:
+            sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
+        return sampler
 
     def get_sampler_from_dataset(self, dataset):
         self.labels = []
@@ -218,8 +221,7 @@ class MortalityReader(DatasetReader):
 
         if self.args.sampler_type == "balanced":
             sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
-                                                                           num_samples=num_samples,
-                                                                           replacement = False)
+                                   replacement = False)
         else:
             sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
 
