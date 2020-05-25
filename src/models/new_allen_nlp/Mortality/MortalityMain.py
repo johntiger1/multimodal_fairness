@@ -1,7 +1,7 @@
 # the main purpose of the . notation is that it is _relative_, meaning the import will work
 # regardless of the working directory that the main app is launched from
 from allennlp.data import DataLoader, DatasetReader, Instance, Vocabulary
-
+import CONST
 import allennlp
 from allennlp.data.fields import LabelField, TextField
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
@@ -12,7 +12,8 @@ from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.modules.token_embedders import Embedding
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder, CnnEncoder
 
-
+import psutil
+import os
 from MortalityModel import MortalityClassifier
 from MortalityReader import MortalityReader
 from typing import Dict, Iterable, List, Tuple
@@ -40,7 +41,7 @@ from CONST import LOGGER_NAME
 
 '''need this to get code to move over a dict'''
 from allennlp.nn import util as nn_util
-
+import args
 
 '''
 Main file which will construct the DecompensationReader and DecompensationModel
@@ -240,7 +241,7 @@ def serialize_args(args):
 
     with open (os.path.join(args.serialization_dir, "args.txt"), "w") as file:
         for key,val in vars(args).items():
-            file.write("{}:{}".format(key,val))
+            file.write("{}:{}\n".format(key,val))
 #
 
 '''
@@ -287,9 +288,12 @@ def make_predictions(model, eval_dataloader, args):
 
 def main():
     logger.setLevel(logging.CRITICAL)
+    args = args.get_args()
+    assert getattr(args, "run_name",default=None) is not None
+    # args.run_name = "54-ihp-fixed-val-met"
+
     args = lambda x: None
     args.batch_size = 256
-    args.run_name = "49-200-lazy-dim-parse-line"
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -299,13 +303,17 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True
-    args.limit_examples = 1000
-    args.sampler_type  = "balanced"
-    # args.data_type = "MORTALITY"
-    args.data_type = "DECOMPENSATION"
+    args.limit_examples = None
+    args.sampler_type  = "random"
+    args.data_type = "MORTALITY"
+    # args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
-    serialize_args(args)
 
+    CONST.set_config("MORTALITY", args)
+    serialize_args(args)
+    '''
+    napkin math: 8s/iteration and then 500 000 / 256 => roughly 4 hours to run
+    '''
     import time
 
     start_time = time.time()
@@ -360,7 +368,6 @@ train_listfile = args.train_data,
     # throw in all the regularizers to the regularizer applicators
     model = build_model(vocab, use_reg=False)
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
-
     logger.warning("We have finished training")
     logger.critical("Beginning the testing phase")
 
@@ -371,6 +378,21 @@ train_listfile = args.train_data,
                     "test data is lazy, and so is hardcoded".format(len(train_data),
                                                                   len(dev_data),
                                                                   len(test_data)))
+
+
+    process = psutil.Process(os.getpid())
+
+    logger.critical("memory usage: {} MB\n".format(process.memory_info().rss // (1024 * 1024)))
+
+    del train_data
+    del dev_data
+    del train_dataloader
+    del dev_dataloader
+    gc.collect()
+
+
+    logger.critical("memory usage: {} MB\n".format(process.memory_info().rss // (1024 * 1024)))
+
 
     test_dataloader = DataLoader(test_data, batch_size=args.batch_size)
 
