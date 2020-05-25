@@ -116,10 +116,15 @@ class MortalityReader(DatasetReader):
     def get_idx(self):
 
         train_sampler = self.get_sampler(self.train_listfile)
+
         self.sampled_idx["train"] = list(train_sampler)
 
         test_sampler = self.get_sampler(self.test_listfile)
         self.sampled_idx["valid"] = list(test_sampler)
+
+        if self.limit_examples:
+            self.sampled_idx["train"] = self.sampled_idx["train"][:self.limit_examples]
+            self.sampled_idx["valid"] = self.sampled_idx["valid"][:self.limit_examples]
 
     def get_label_stats(self, file_path: str):
         '''
@@ -210,11 +215,15 @@ class MortalityReader(DatasetReader):
         all_label_weights = self.class_weights[self.labels] #produce an array of size labels, but looking up the value in class weights each time
         num_samples = self.limit_examples if self.limit_examples else len(all_label_weights)
         num_samples = min(num_samples, len(all_label_weights))
-        balanced_sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
+
+        if self.args.sampler_type == "balanced":
+            sampler  = torch.utils.data.sampler.WeightedRandomSampler(weights=all_label_weights,
                                                                            num_samples=num_samples,
                                                                            replacement = False)
+        else:
+            sampler = torch.utils.data.sampler.SubsetRandomSampler(indices=[i for i in range(len(all_label_weights))])
 
-        return balanced_sampler #now that we have a sampler, we can do things: pass it into the dataloader
+        return sampler #now that we have a sampler, we can do things: pass it into the dataloader
 
     '''
     Creates and saves a histogram of the note lengths
