@@ -285,6 +285,8 @@ def make_predictions(name, model, eval_dataloader, args):
 
 
         predictions_df.to_csv(os.path.join(pred_path, f"predictions_{i}.csv"))
+
+    model.get_metrics(True) #reset all the metrics for the model at the end
         # write the predictions to csv
 
     # labels and probs will be gotten, along with the metadata
@@ -295,7 +297,7 @@ def make_predictions(name, model, eval_dataloader, args):
 def main():
 
 
-    # logger.setLevel(logging.CRITICAL)
+    logger.setLevel(logging.INFO)
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
@@ -319,10 +321,13 @@ def main():
     CONST.set_config(args.data_type, args)
     serialize_args(args)
     console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.CRITICAL)
+
     file_logger_handler = logging.FileHandler(filename=os.path.join(args.serialization_dir, "log.log"))
-    file_logger_handler.setLevel(level=logging.DEBUG)
+    file_logger_handler.setLevel(level=logging.INFO)
     logger.addHandler(file_logger_handler)
     logger.addHandler(console_handler)
+    logger.propagate = False # dont give it to the root logger
     '''
     napkin math: 8s/iteration and then 500 000 / 256 => roughly 4 hours to run
     '''
@@ -391,7 +396,7 @@ train_listfile = args.train_data,
     dataset_reader.vocab = vocab
 
     logger.critical("dumping datasetreader")
-    with open(os.path.join(args.serialization_dir,"dataset_reader.pkl"), "w") as file:
+    with open(os.path.join(args.serialization_dir,"dataset_reader.pkl"), "wb") as file:
         pickle.dump(dataset_reader, file)
 
     logger.critical("Beginning the testing phase")
