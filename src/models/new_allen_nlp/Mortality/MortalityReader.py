@@ -7,7 +7,7 @@ import torch
 
 import allennlp
 from allennlp.data import DataLoader, DatasetReader, Instance, Vocabulary
-from allennlp.data.fields import LabelField, TextField, MetadataField
+from allennlp.data.fields import LabelField, TextField, MetadataField, MultiLabelField
 from allennlp.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
 from allennlp.models import Model
@@ -377,6 +377,18 @@ class MortalityReader(DatasetReader):
         logger.debug("Finished reading in csvs {}".format(time.time() - start_time))
 
         for idx, row in listfile_df.iterrows():
+            # alternatively,
+
+            # for phenotyping: filename, period_length, and all labels
+            # for mortality: filename, label
+            # for decomp: filename, period_length, label
+            if self.data_type == "PHENOTYPING" or self.data_type == "DECOMPENSATION":
+                multi_labels = MultiLabelField(row.iloc[2:].astype(str)) # might be overindexing. but the labels are always at the end
+            elif self.data_type == "MORTALITY":
+                multi_labels = MultiLabelField(row.iloc[1:].astype(str)) # might be overindexing. but the labels are always at the end
+            else:
+                logger.critical("weird data type specified{}".format(self.data_type))
+
             if self.mode == "test" or idx in sampled_idx:  # when test, use everything
 
                 cur_tokens = 0
@@ -453,7 +465,7 @@ class MortalityReader(DatasetReader):
                                                          "hadm_id": one_hadm_id[0],  # just the specific value
                                                          "time": time  # yield the time too
                                                          })
-                        fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
+                        fields = {'text': text_field, 'label': multi_labels, "metadata": meta_data_field}
 
                         yield Instance(fields)
 
