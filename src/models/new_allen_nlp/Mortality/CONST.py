@@ -1,9 +1,12 @@
-LOGGER_NAME = "decompensation_logger"
+LOGGER_NAME = "decomp_logger"
 
 # now, we will set the stuff on the args appropriately (a seamless merge)
 
 phenotyping_config = {
-
+"train_data": "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/phenotyping/train/listfile.csv",
+"dev_data" : "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/phenotyping/test/listfile.csv",
+"test_data" : "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/phenotyping/test/listfile.csv",
+"data_type": "PHENOTYPING"
 
 }
 
