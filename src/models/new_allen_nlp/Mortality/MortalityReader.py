@@ -72,7 +72,8 @@ class MortalityReader(DatasetReader):
                  num_classes: int=2,
                  mode: str='train',
                  data_type: str="MORTALITY",
-                 args=None
+                 args=None,
+                 hadm2eps_path: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/extracted_notes/hadm2episode.dict"
 
 
     ):
@@ -105,7 +106,8 @@ class MortalityReader(DatasetReader):
 
         self.get_idx() #realistically, only the train_idx will be set, and we simply need to compare against
         # self.null_patients
-
+        self.vocab = None
+        self.hadm2eps_path = hadm2eps_path
     # def set_mode(self, mode: str):
     #     if mode == "train":
     #         self.limit_examples = None
@@ -145,6 +147,7 @@ class MortalityReader(DatasetReader):
 
     '''
     Parses the line, according to the mode. Returns a dict with the proper keys set
+    Could also have implemented this with a DF instead
     '''
     def parse_line(self, line):
         info_dict = {}
@@ -153,6 +156,8 @@ class MortalityReader(DatasetReader):
         if self.data_type == "MORTALITY":
             headers = ["filename", "label"]
         elif self.data_type == "DECOMPENSATION":
+            headers = ["filename", "time", "label"]
+        elif self.data_type == "PHENOTYPING":
             headers = ["filename", "time", "label"]
         else:
             headers = ["filename", "time", "label"]
@@ -347,119 +352,238 @@ class MortalityReader(DatasetReader):
 
 
     @overrides
-    def _read(self, file_path: str) -> Iterable[Instance]:
-        '''NOTE: because this is an overrides, it CANNOT accept another arg!'''
-        '''This function is only expected to be called with lazy set to FALSE. '''
-        '''Expect: one instance per line'''
-        logger.critical("read method is called")
-
+    def _read(self, listfile_path,
+              notes_path: str="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/physionet.org/files/mimiciii/1.4/NOTEEVENTS.csv"):
         if self.mode != "test":
             sampled_idx = self.sampled_idx[self.mode]
 
-        with open(file_path, "r") as file:
-            file.readline() # could also pandas readcsv and ignore first line
-            for example_idx,line in enumerate(file):
+        import time
 
-                if self.mode == "test" or example_idx  in sampled_idx : #when test, use everything
+        logger.debug("Starting to read in csvs")
+        start_time = time.time()
+        listfile_df = pd.read_csv(listfile_path)
+        notes_df = pd.read_csv(notes_path) # could also preserve this to the memory
+        import pickle
+        with open (self.hadm2eps_path, "rb") as file:
+            hadm2eps = pickle.load(file)
+
+        notes_df["EPISODES"] = notes_df["HADM_ID"].map(lambda x: hadm2eps.get(x, None))
+        logger.critical("count of null values {}".format(notes_df["EPISODES"].isnull().sum()))
+
+        notes_df = notes_df.dropna(subset=["EPISODES"])
+
+        logger.critical("After dropping, it should be 0: count of null values {}".format(notes_df["EPISODES"].isnull().sum()))
+
+        logger.debug("Finished reading in csvs {}".format(time.time() - start_time))
+
+        for idx, row in listfile_df.iterrows():
+            if self.mode == "test" or idx in sampled_idx:  # when test, use everything
+
+                cur_tokens = 0
+
+                time = row.get("period_length", default=48)  # float(48) #hardcode to 48
+                info = row.get("stay").split("_")
+                label = row.get("y_true", -1)
+                patient_id = int(info[0])
+
+                notes =  notes_df[notes_df["SUBJECT_ID"] == patient_id]
+                if len(notes) > 0:
+                    eps = int("".join([c for c in info[1] if c.isdigit()]))
+                    notes[["CHARTTIME", "STORETIME", "CHARTDATE"]] = notes[
+                        ["CHARTTIME", "STORETIME", "CHARTDATE"]].apply(pd.to_datetime)
+                    # fill in the time, do two passes. Any not caught in the first pass will get helped by second
+                    notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
+                    notes["CHARTTIME"] = notes["CHARTTIME"].fillna(value=notes["CHARTDATE"].map(
+                        lambda x: pd.Timestamp(x) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)))
+
+                    assert len(notes[notes["CHARTTIME"].isnull()]) == 0  # all of them should have been filled in.
+
+                    # now, let's sort the notes
+                    episode_specific_notes = notes[notes["EPISODES"] == eps]
+
+                    hadm_id = episode_specific_notes["HADM_ID"]
+                    one_hadm_id = hadm_id.unique()
+
+                    icu_intime = self.all_stays_df[self.all_stays_df["HADM_ID"] == one_hadm_id[0]]
+
+                    # we are assuming that the intime is not null
+                    intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[
+                                                   0])  # iloc will automatically extract once you get to the base element
+                    intime_date_plus_time = pd.Timestamp(intime_date) + pd.Timedelta(hours=int(time))
+
+                    # all notes up to two days. Including potentially previous events.
+                    mask = (episode_specific_notes["CHARTTIME"] > intime_date) & (
+                            episode_specific_notes["CHARTTIME"] <= intime_date_plus_time)
+
+                    time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
+                    # with open(os.path.join(self.stats_write_dir, "num_'3dfxnotes.txt"), "a") as notes_dir:
+
+                    if len(time_episode_specific_notes) > 0:
+
+                        text_df = time_episode_specific_notes
+                        text_df.sort_values("CHARTTIME", ascending=False,
+                                            inplace=True)  # we want them sorted by increasing time
+
+                        # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
+                        text = " ".join(text_df["TEXT"].tolist())
 
 
-                    cur_tokens = 0
+                        # join the texts together, or simply use the first one (according to starttime)
+                        # tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
+                        if self.use_preprocessing:
+                            token_sent_stream = preprocess_mimic(text)
+                            tokens = []
+                            cur_tokens = 0
+                            for i, token_sent in enumerate(token_sent_stream):
+                                if cur_tokens > self.max_tokens: break
+                                cur_tokens += len(token_sent.split())
+                                tokens.append(token_sent)
 
+                            text = " ".join(tokens)  # overwrite the text!
 
-                    info_dict = self.parse_line(line)
-                    time = info_dict.get("time", 48) #float(48) #hardcode to 48
-                    info = info_dict.get("filename").split("_")
-                    label = info_dict.get("label", -1)
-                    patient_id = info[0]
+                        # with open(os.path.join(self.args.serialization_dir, f"{len(time_episode_specific_notes)}text.txt"), "w") as sample_txt_file:
+                        #     sample_txt_file.write(f"{text}\n")
+                        #     exit(0)
+                        tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
 
-                    # verify string inside a list of string
-                    if patient_id not in self.null_patients: # could also just do try except here
+                        text_field = TextField(tokens, self.token_indexers)
+                        label_field = LabelField(str(label).strip())
+                        meta_data_field = MetadataField({"patient_id": patient_id,
+                                                         "episode": eps,
+                                                         "hadm_id": one_hadm_id[0],  # just the specific value
+                                                         "time": time  # yield the time too
+                                                         })
+                        fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
 
-                        eps = int("".join([c for c in info[1] if c.isdigit()]))
-                        notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
-                        notes[["CHARTTIME", "STORETIME", "CHARTDATE"]] = notes[["CHARTTIME", "STORETIME", "CHARTDATE"]].apply(pd.to_datetime)
-                        # fill in the time, do two passes. Any not caught in the first pass will get helped by second
-                        notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
-                        notes["CHARTTIME"] = notes["CHARTTIME"].fillna(value=notes["CHARTDATE"].map(lambda x: pd.Timestamp(x) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)))
+                        yield Instance(fields)
 
-                        assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
+                        # after the generator yields, code will return here. (think of yield as a pause)
+                        # self.cur_examples += 1
 
-                        # now, let's sort the notes
-                        episode_specific_notes = notes[notes["EPISODES"] == eps]
-
-                        hadm_id = episode_specific_notes["HADM_ID"]
-                        one_hadm_id = hadm_id.unique()
-
-
-                        icu_intime = self.all_stays_df[self.all_stays_df["HADM_ID"] == one_hadm_id[0]]
-
-                        # we are assuming that the intime is not null
-                        intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[
-                                                       0])  # iloc will automatically extract once you get to the base element
-                        intime_date_plus_time = pd.Timestamp(intime_date) + pd.Timedelta(hours=int(time))
-
-                        # all notes up to two days. Including potentially previous events.
-                        mask = (episode_specific_notes["CHARTTIME"] > intime_date) & (
-                                    episode_specific_notes["CHARTTIME"] <= intime_date_plus_time)
-
-                        time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
-                        # with open(os.path.join(self.stats_write_dir, "num_'3dfxnotes.txt"), "a") as notes_dir:
-
-                        if len(time_episode_specific_notes) > 0:
-
-                            text_df = time_episode_specific_notes
-                            text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
-
-
-                            # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
-                            text = " ".join(text_df["TEXT"].tolist())
-
-                            #
-                            # iloc[0] #assuming sorted order
-                            #
-                            # xs = ""
-                            # if len(time_episode_specific_notes) > 1:
-                            #
-                            # # lets try to join both of them
-                            #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
-                            # else:
-                            #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
-                            # text = xs + " " + text
-
-                            # join the texts together, or simply use the first one (according to starttime)
-                            # tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
-                            if self.use_preprocessing:
-                                token_sent_stream = preprocess_mimic(text)
-                                tokens = []
-                                cur_tokens = 0
-                                for i,token_sent in enumerate(token_sent_stream):
-                                    if cur_tokens > self.max_tokens: break
-                                    cur_tokens += len(token_sent.split())
-                                    tokens.append(token_sent)
-
-                                text = " ".join(tokens) #overwrite the text!
-
-                            # with open(os.path.join(self.args.serialization_dir, f"{len(time_episode_specific_notes)}text.txt"), "w") as sample_txt_file:
-                            #     sample_txt_file.write(f"{text}\n")
-                            #     exit(0)
-                            tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
-
-                            text_field = TextField(tokens, self.token_indexers)
-                            label_field = LabelField(str(label).strip())
-                            meta_data_field = MetadataField({"patient_id": patient_id,
-                                                             "episode": eps,
-                                                             "hadm_id": one_hadm_id[0], # just the specific value
-                                                             })
-                            fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
-
-                            yield Instance(fields)
-
-                            # after the generator yields, code will return here. (think of yield as a pause)
-                            # self.cur_examples += 1
-
-                        else:
-                            logger.warning("No text found for patient {}".format(patient_id))
-                            # in this case, we ignore the patient
+                    else:
+                        logger.warning("No time specific text found for patient {}".format(patient_id))
+                        # in this case, we ignore the patient
 
                 else:
-                    logger.debug("we are skipping  some indices {}".format(example_idx))
+                    logger.debug("we are skipping some indices {}".format(idx))
+
+
+
+    # @overrides
+    # def _read(self, file_path: str) -> Iterable[Instance]:
+    #     '''NOTE: because this is an overrides, it CANNOT accept another arg!'''
+    #     '''This function is only expected to be called with lazy set to FALSE. '''
+    #     '''Expect: one instance per line'''
+    #     logger.critical("read method is called")
+    #
+    #     if self.mode != "test":
+    #         sampled_idx = self.sampled_idx[self.mode]
+    #
+    #     with open(file_path, "r") as file:
+    #         file.readline() # could also pandas readcsv and ignore first line
+    #         for example_idx,line in enumerate(file):
+    #
+    #             if self.mode == "test" or example_idx  in sampled_idx : #when test, use everything
+    #
+    #
+    #                 cur_tokens = 0
+    #
+    #
+    #                 info_dict = self.parse_line(line)
+    #                 time = info_dict.get("time", 48) #float(48) #hardcode to 48
+    #                 info = info_dict.get("filename").split("_")
+    #                 label = info_dict.get("label", -1)
+    #                 patient_id = info[0]
+    #
+    #                 # verify string inside a list of string
+    #                 if patient_id not in self.null_patients: # could also just do try except here
+    #
+    #                     eps = int("".join([c for c in info[1] if c.isdigit()]))
+    #                     notes = pd.read_pickle(os.path.join(self.notes_dir, patient_id, "notes.pkl"))
+    #                     notes[["CHARTTIME", "STORETIME", "CHARTDATE"]] = notes[["CHARTTIME", "STORETIME", "CHARTDATE"]].apply(pd.to_datetime)
+    #                     # fill in the time, do two passes. Any not caught in the first pass will get helped by second
+    #                     notes["CHARTTIME"] = notes["CHARTTIME"].fillna(notes["STORETIME"])
+    #                     notes["CHARTTIME"] = notes["CHARTTIME"].fillna(value=notes["CHARTDATE"].map(lambda x: pd.Timestamp(x) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)))
+    #
+    #                     assert len(notes[notes["CHARTTIME"].isnull()]) == 0 # all of them should have been filled in.
+    #
+    #                     # now, let's sort the notes
+    #                     episode_specific_notes = notes[notes["EPISODES"] == eps]
+    #
+    #                     hadm_id = episode_specific_notes["HADM_ID"]
+    #                     one_hadm_id = hadm_id.unique()
+    #
+    #
+    #                     icu_intime = self.all_stays_df[self.all_stays_df["HADM_ID"] == one_hadm_id[0]]
+    #
+    #                     # we are assuming that the intime is not null
+    #                     intime_date = pd.Timestamp(icu_intime["INTIME"].iloc[
+    #                                                    0])  # iloc will automatically extract once you get to the base element
+    #                     intime_date_plus_time = pd.Timestamp(intime_date) + pd.Timedelta(hours=int(time))
+    #
+    #                     # all notes up to two days. Including potentially previous events.
+    #                     mask = (episode_specific_notes["CHARTTIME"] > intime_date) & (
+    #                                 episode_specific_notes["CHARTTIME"] <= intime_date_plus_time)
+    #
+    #                     time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
+    #                     # with open(os.path.join(self.stats_write_dir, "num_'3dfxnotes.txt"), "a") as notes_dir:
+    #
+    #                     if len(time_episode_specific_notes) > 0:
+    #
+    #                         text_df = time_episode_specific_notes
+    #                         text_df.sort_values("CHARTTIME", ascending=False, inplace=True)  # we want them sorted by increasing time
+    #
+    #
+    #                         # unlike the other one, we found our performance acceptable. Therefore, we use only the first note.
+    #                         text = " ".join(text_df["TEXT"].tolist())
+    #
+    #                         #
+    #                         # iloc[0] #assuming sorted order
+    #                         #
+    #                         # xs = ""
+    #                         # if len(time_episode_specific_notes) > 1:
+    #                         #
+    #                         # # lets try to join both of them
+    #                         #     xs = text_df["TEXT"].iloc[1] #assuming sorted order
+    #                         # else:
+    #                         #     logger.info("pat, eps: {} {} had only one note".format(patient_id, eps))
+    #                         # text = xs + " " + text
+    #
+    #                         # join the texts together, or simply use the first one (according to starttime)
+    #                         # tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
+    #                         if self.use_preprocessing:
+    #                             token_sent_stream = preprocess_mimic(text)
+    #                             tokens = []
+    #                             cur_tokens = 0
+    #                             for i,token_sent in enumerate(token_sent_stream):
+    #                                 if cur_tokens > self.max_tokens: break
+    #                                 cur_tokens += len(token_sent.split())
+    #                                 tokens.append(token_sent)
+    #
+    #                             text = " ".join(tokens) #overwrite the text!
+    #
+    #                         # with open(os.path.join(self.args.serialization_dir, f"{len(time_episode_specific_notes)}text.txt"), "w") as sample_txt_file:
+    #                         #     sample_txt_file.write(f"{text}\n")
+    #                         #     exit(0)
+    #                         tokens = self.tokenizer.tokenize(text)[:self.max_tokens]
+    #
+    #                         text_field = TextField(tokens, self.token_indexers)
+    #                         label_field = LabelField(str(label).strip())
+    #                         meta_data_field = MetadataField({"patient_id": patient_id,
+    #                                                          "episode": eps,
+    #                                                          "hadm_id": one_hadm_id[0], # just the specific value
+    #                                                          "time" : time #yield the time too
+    #                                                          })
+    #                         fields = {'text': text_field, 'label': label_field, "metadata": meta_data_field}
+    #
+    #                         yield Instance(fields)
+    #
+    #                         # after the generator yields, code will return here. (think of yield as a pause)
+    #                         # self.cur_examples += 1
+    #
+    #                     else:
+    #                         logger.warning("No text found for patient {}".format(patient_id))
+    #                         # in this case, we ignore the patient
+    #
+    #             else:
+    #                 logger.debug("we are skipping  some indices {}".format(example_idx))
