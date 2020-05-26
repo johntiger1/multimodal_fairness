@@ -294,12 +294,13 @@ def make_predictions(name, model, eval_dataloader, args):
 
 def main():
 
-    logger.setLevel(logging.CRITICAL)
+
+    # logger.setLevel(logging.CRITICAL)
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
 
-    args.batch_size = 400
+    args.batch_size = 256
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -310,21 +311,18 @@ def main():
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
     args.limit_examples = 50000
     args.sampler_type  = "balanced"
-    # args.data_type = "MORTALITY"
     args.use_reg = False
-    args.data_type = "MORTALITY"
-    args.max_tokens = 1600
+    args.data_type = "DECOMPENSATION"
+    args.max_tokens = 768*2
     args.get_train_predictions = True
-
-    # 5 to 8 iterations per second for decomp pred
-    #
-
-    file_logger_handler = logging.FileHandler(filename=os.path.join(args.serialization_dir, "log.log"))
-    file_logger_handler.setLevel(level=logging.DEBUG)
-    logger.addHandler(file_logger_handler)
 
     CONST.set_config(args.data_type, args)
     serialize_args(args)
+    console_handler = logging.StreamHandler()
+    file_logger_handler = logging.FileHandler(filename=os.path.join(args.serialization_dir, "log.log"))
+    file_logger_handler.setLevel(level=logging.DEBUG)
+    logger.addHandler(file_logger_handler)
+    logger.addHandler(console_handler)
     '''
     napkin math: 8s/iteration and then 500 000 / 256 => roughly 4 hours to run
     '''
@@ -335,8 +333,8 @@ def main():
     # instances = mr.read("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/in-hospital-mortality/train/listfile.csv")
     # for inst in instances[:10]:
     #     print(inst)
-    print("we are running with the following info")
-    print("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda,
+    logging.info("we are running with the following info")
+    logging.info("Torch version {} Cuda version {} cuda available? {}".format(torch.__version__, torch.version.cuda,
                                                                        torch.cuda.is_available()))
     # We've copied the training loop from an earlier example, with updated model
     # code, above in the Setup section. We run the training loop to get a trained
@@ -349,6 +347,9 @@ train_listfile = args.train_data,
         limit_examples=args.limit_examples, lazy=args.lazy , max_tokens=args.max_tokens,
                                           use_preprocessing = args.use_preprocessing,
                                           mode="train", data_type=args.data_type, args=args)
+
+    import pickle
+
     # dataset_reader.
 
     # dataset_reader.get_label_stats(args.train_data)
@@ -386,6 +387,12 @@ train_listfile = args.train_data,
 
     if args.get_train_predictions:
         make_predictions("train", model, train_dataloader, args)
+
+    dataset_reader.vocab = vocab
+
+    logger.critical("dumping datasetreader")
+    with open(os.path.join(args.serialization_dir,"dataset_reader.pkl"), "w") as file:
+        pickle.dump(dataset_reader, file)
 
     logger.critical("Beginning the testing phase")
 
