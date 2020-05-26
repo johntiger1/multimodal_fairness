@@ -10,6 +10,11 @@ Now, that smapling and limiting is found to be good, we simply need to do the fo
 As it turns out, the final; partitioned evaluation was extremely effective, and we uncovered the issue! Now, we simply wait. 
 And consider framing the other archiecture. 
 
+So, the final word: saving/serialization is a tricky business. We should save the vocab, definitely, Vocab.from_pretrained, as well as the indexer and such. They use a Predictor paradigm, but that is also filled with tons of registrable hooks and so forth, really ensuring the type annotations exist etc. So most likely we will just need to rerun code when necessary. 
+
+Now, on to phenotyping: 
+25 output classes, the label can be a labelfield, or a tensorfield, and then we simply do sigmoid stuff on top. 
+
 # may 24
 Looking at subsampling. 
 And SE class and OOP design principles. 
