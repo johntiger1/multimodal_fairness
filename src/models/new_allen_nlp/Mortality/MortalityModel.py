@@ -39,6 +39,7 @@ import os
 import gc
 from tqdm.auto import tqdm
 import sys
+from  CONST import LOGGER_NAME
 sys.path.append("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/")
 from src.preprocessing.text_preprocessing import preprocess_mimic
 
@@ -51,7 +52,7 @@ Reimplementation of the AUC metric. However, we are simply not calling it correc
 We need to actually do it in the forward pass
 '''
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(LOGGER_NAME)
 logger.debug(f"hello from {__name__}")
 
 @Model.register("MortalityClassifier")
@@ -97,8 +98,9 @@ class MortalityClassifier(Model):
         probs_1 = logits[:,-1]
         self.auc(probs_1, label)
 
+        # bleed everything through into the output
         output = {'loss': loss, 'probs': probs, "metadata": metadata, "label": label} #no need to yield the label here
-        # print(f"we got some metadata{metadata}")
+
         return output
 
     '''this is called. it both gets, and resets, if reset=True'''
