@@ -1,3 +1,7 @@
+# may 26
+testing the archive, as well as the phenotyping model. Well let's just quickly test the archive part. 
+
+Or the phenotyping part. And get some initial results
 
 # may 25
 OK, so subsampling is done. Now, just quickly creating the phenotyping. And quickly getting results/writing. Note that we COULD redesign the header to be even better, via a pd.readcsv call, but it is wholly unnecessary!
