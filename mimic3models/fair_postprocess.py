@@ -36,12 +36,20 @@ def create_train_test_data(train_file, test_file, sensitive):
     sensitive_dict = load_sensitive_dict()
 
     def get_data(csv_reader):
+        sensitive_dict_incomplete = False
         X, score, Y, sensitive_attr = [], [], [], []
         for i, row in enumerate(csv_reader):
             if i == 0:
                 continue
             else:
                 subject_id = int(row[0])
+
+                if not subject_id in sensitive_dict:
+                    if not sensitive_dict_incomplete:
+                        sensitive_dict_incomplete = True
+                        print("WARNING: Sensitive dictionary is missing patient IDs", file=sys.stderr)
+                    continue
+
                 sensitive_attr.append(sensitive_dict[subject_id][ALL_SENSITIVE[sensitive]])
                 X.append((int(row[0]), float(row[1])))
                 score.append(float(row[2]))
