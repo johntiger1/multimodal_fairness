@@ -31,6 +31,7 @@ parser.add_argument('--data', type=str, help='Path to the data of in-hospital mo
 parser.add_argument('--output_dir', type=str, help='Directory relative which all output files are stored',
                     default='.')
 parser.add_argument('--test_on_train', help='If flag present and script in test mode, then get predictions on train data instead of test data', action='store_true')
+parser.add_argument('--test_on_val', help='If flag present and script in test mode, then get predictions on validation data instead of test data', action='store_true')
 args = parser.parse_args()
 print(args)
 
@@ -38,6 +39,9 @@ if args.small_part:
     args.save_every = 2**30
 
 TEST_ON_TRAIN = args.test_on_train
+TEST_ON_VAL = args.test_on_val
+
+assert(not (TEST_ON_TRAIN and TEST_ON_VAL)) # TODO: FIX TO BE LESS HACK
 
 target_repl = (args.target_repl_coef > 0.0 and args.mode == 'train')
 
@@ -174,6 +178,10 @@ elif args.mode == 'test':
         test_reader = InHospitalMortalityReader(dataset_dir=os.path.join(args.data, 'train'),
                                          listfile=os.path.join(args.data, 'train_listfile.csv'),
                                          period_length=48.0)
+    elif TEST_ON_VAL:
+        test_reader = InHospitalMortalityReader(dataset_dir=os.path.join(args.data, 'train'),
+                                                listfile=os.path.join(args.data, 'val_listfile.csv'),
+                                                period_length=48.0)
     else:
         test_reader = InHospitalMortalityReader(dataset_dir=os.path.join(args.data, 'test'),
                                                 listfile=os.path.join(args.data, 'test_listfile.csv'),
@@ -191,6 +199,8 @@ elif args.mode == 'test':
 
     if TEST_ON_TRAIN:
         path = os.path.join(args.output_dir, "train_predictions", os.path.basename(args.load_state)) + ".csv"
+    elif TEST_ON_VAL:
+        path = os.path.join(args.output_dir, "val_predictions", os.path.basename(args.load_state)) + ".csv"
     else:
         path = os.path.join(args.output_dir, "test_predictions", os.path.basename(args.load_state)) + ".csv"
     utils.save_results(names, predictions, labels, path)

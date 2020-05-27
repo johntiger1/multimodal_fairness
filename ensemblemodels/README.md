@@ -17,3 +17,7 @@ python2 -um ensemblemodels.logistic_regression
 --test_str_path \<PATH TO STRUCTURED TEST DATA\>  
 --test_ustr_path \<PATH TO UNSTRUCTURED TEST DATA\>
  --outdir \<PATH TO DIRECTORY IN WHICH TO SAVE PREDICTIONS\>
+ 
+ 
+NOTE: You can change the parameters to the regression by altering MODEL_ARGS dictionary in logistic_regression.py; 
+current parameters are those found during grid search that gave best AUC

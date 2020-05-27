@@ -58,6 +58,7 @@ class pseudo_classifier:
         accuracy = 1 - np.sum(np.power(true_Y - y_pred, 2))/len(true_Y) 
         print("Overall Accuracy: ", accuracy)
 
+        out_dict = {}   # The format is: {group:[tp, fp, tn, fn]}
         for index, group in enumerate(groups):
             indicies = np.where(sensitive_features==group)[0]
             true_class = true_Y[indicies]
@@ -77,8 +78,9 @@ class pseudo_classifier:
             tn_rate[group] = tn
             fp_rate[group] = fp 
             fn_rate[group] = fn 
-           
+
             accuracy = 1 - np.sum(np.power(true_class - pred_class, 2))/len(true_class) 
+            out_dict[group] = [tp, tn, fp, fn, accuracy]
             print(group, "confusion matrix")
             if tp == 0 and fp == 0:
                 print("None classified as Positive in group", group)
@@ -94,7 +96,7 @@ class pseudo_classifier:
                 print("\t False positive rate:", fp)
                 print("\t False negative rate:", fn)
         
-        return tp_rate, fp_rate, tn_rate, fn_rate
+        return out_dict
 
 
 class fair_classifier(pseudo_classifier):

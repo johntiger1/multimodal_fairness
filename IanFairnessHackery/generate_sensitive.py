@@ -47,6 +47,23 @@ def clean(x):
 #print(count[count > 1].index)
 
 
+def print_db(sensitive_dataframe):
+    # My sanity checking
+    print("Ethnicities in data:")
+    print(sensitive_dataframe['ETHNICITY'].value_counts())
+
+    print("Sex in data:")
+    print(sensitive_dataframe['GENDER'].value_counts())
+
+    print("Insurance in data:")
+    print(sensitive_dataframe['INSURANCE'].value_counts())
+
+    print("Religion in data:")
+    print(sensitive_dataframe['RELIGION'].value_counts())
+
+    print("Marital status in data:")
+    print(sensitive_dataframe['MARITAL_STATUS'].value_counts())
+
 
 # Load sensitive features from benchmark
 benchmark_df = pd.read_csv(PATH_TO_BENCHMARK_STAYS)
@@ -71,47 +88,23 @@ joined.to_csv("full_detail_sensitive.csv")
 
 
 print("ORIGINAL CLASSES")
-# My sanity checking
-print("Ethnicities in data:")
-print(joined['ETHNICITY'].value_counts())
-
-print("Sex in data:")
-print(joined['GENDER'].value_counts())
-
-print("Insurance in data:")
-print(joined['INSURANCE'].value_counts())
-
-print("Religion in data:")
-print(joined['RELIGION'].value_counts())
-
-print("Marital status in data:")
-print(joined['MARITAL_STATUS'].value_counts())
+print_db(joined)
 
 original = joined.copy()
 
-# Post-processing, merge ethnicities into WHITE & NON_WHITE
+# Create first version of sensitive attributes - merge ethnicities into WHITE & NON_WHITE & save
 joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x == "WHITE" else "NON_WHITE")
-# Save results
 joined.to_csv("sensitive_bin_eth.csv")
 
+# Create second version of sensitive attributes - bin ethnicities into 5 groups & save
 joined = original.copy()
 joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x in ["WHITE", "BLACK","HISPANIC","ASIAN"] else "OTHER")
 # Save results
 joined.to_csv("sensitive_5_eth.csv")
 
-print("ORIGINAL CLASSES")
-# My sanity checking
-print("Ethnicities in data:")
-print(joined['ETHNICITY'].value_counts())
 
-print("Sex in data:")
-print(joined['GENDER'].value_counts())
-
-print("Insurance in data:")
-print(joined['INSURANCE'].value_counts())
-
-print("Religion in data:")
-print(joined['RELIGION'].value_counts())
-
-print("Marital status in data:")
-print(joined['MARITAL_STATUS'].value_counts())
+# Create third version of sensitive attributes - LOSES DATA! Removes all with UNK ethnicity
+joined = joined[joined.ETHNICITY != "OTHER"]
+joined.to_csv("partial_sensitive_4_eth.csv")
+print("4 ethnicity variant")
+print_db(joined)

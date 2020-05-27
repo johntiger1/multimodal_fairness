@@ -12,6 +12,12 @@ READ_DECO2 = "../mimic3models/decompensation/train_predictions/nrk_channel_wise_
 READ_IHM2 = "../mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state.csv"
 READ_PHN2 = "../mimic3models/phenotyping/train_predictions/nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state.csv"
 
+# validation predictions
+READ_DECO3 = "../mimic3models/decompensation/val_predictions/nrk_channel_wise_lstms.n16.szc8.0.dep1.dsup.bs32.ts1.0.chunk6.test0.0810981076094.state.csv"
+READ_IHM3 = "../mimic3models/in_hospital_mortality/val_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state.csv"
+READ_PHN3 = "../mimic3models/phenotyping/val_predictions/nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state.csv"
+
+
 # Flags for which to run
 CLEAN_DECO = True
 CLEAN_IHM = True
@@ -139,16 +145,20 @@ if __name__ == '__main__':
     if CLEAN_DECO:
         split_first_col(READ_DECO, "id,episode,time,prediction,label\n", decomp_proc)
         split_first_col(READ_DECO2, "id,episode,time,prediction,label\n", decomp_proc)
+        split_first_col(READ_DECO3, "id,episode,time,prediction,label\n", decomp_proc)
 
     # process in-hospital mortality
     if CLEAN_IHM:
         split_first_col(READ_IHM, "id,episode,prediction,label\n")
         split_first_col(READ_IHM2, "id,episode,prediction,label\n")
+        split_first_col(READ_IHM3, "id,episode,prediction,label\n")
+
 
     # process phenotyping
     if CLEAN_PHN:
         proc_phen(READ_PHN)
         proc_phen(READ_PHN2)
+        proc_phen(READ_PHN3)
 
 
 
