@@ -112,4 +112,5 @@ if __name__ == '__main__':
     elif args.mode == "P":
         process_phen(args.inpath)
     else:
-        raise NotImplementedError
+        drop_cols(args.inpath,
+                  {",Unnamed: 0,patient_id,episode,hadm_id,time,probs_0,probs_1,label,predictions": [2, 3, 5, 7, 8]})

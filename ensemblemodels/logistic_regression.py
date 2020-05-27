@@ -22,7 +22,7 @@ from mimic3models import metrics
 # Command to run on validation mortality data
 # python3 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/val_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels/mortality/val
 
-#### Phenotyping commands
+#### Phenotyping commands (PATHS TO FOLDER INSTEAD OF FILE)
 
 # Command to run on validation phenotyping:
 # python3 -um ensemblemodels.logistic_regression --mode P --str_path ./mimic3models/phenotyping/train_predictions/ --ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --test_str_path ./mimic3models/phenotyping/val_predictions/  --test_ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --outdir ./ensemblemodels/phenotyping/val
@@ -34,8 +34,15 @@ from mimic3models import metrics
 # python3 -um ensemblemodels.logistic_regression --mode P --str_path ./mimic3models/phenotyping/train_predictions/ --ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --test_str_path ./mimic3models/phenotyping/train_predictions/  --test_ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --outdir ./ensemblemodels/phenotyping/train
 
 
+#### Decompensation commands
+# test decomp
+# python3 -um ensemblemodels.logistic_regression --mode D --str_path ./mimic3models/decompensation/train_predictions/nrk_channel_wise_lstms.n16.szc8.0.dep1.dsup.bs32.ts1.0.chunk6.test0.0810981076094.state_id_ep_fmt.csv --ustr_path ./IanFairnessHackery/john_results/Decompensation/train_final_preds_id_ep_fmt.csv --test_str_path ./mimic3models/decompensation/test_predictions/nrk_channel_wise_lstms.n16.szc8.0.dep1.dsup.bs32.ts1.0.chunk6.test0.0810981076094.state_id_ep_fmt.csv --test_ustr_path ./IanFairnessHackery/john_results/Decompensation/test_final_preds_id_ep_fmt.csv --outdir ./ensemblemodels/decompensation/test/
+
+# train decomp
+# python3 -um ensemblemodels.logistic_regression --mode D --str_path ./mimic3models/decompensation/train_predictions/nrk_channel_wise_lstms.n16.szc8.0.dep1.dsup.bs32.ts1.0.chunk6.test0.0810981076094.state_id_ep_fmt.csv --ustr_path ./IanFairnessHackery/john_results/Decompensation/train_final_preds_id_ep_fmt.csv --test_str_path ./mimic3models/decompensation/train_predictions/nrk_channel_wise_lstms.n16.szc8.0.dep1.dsup.bs32.ts1.0.chunk6.test0.0810981076094.state_id_ep_fmt.csv --test_ustr_path ./IanFairnessHackery/john_results/Decompensation/train_final_preds_id_ep_fmt.csv --outdir ./ensemblemodels/decompensation/train/
+
 #set args for model HERE so that args can go into save file name
-MODEL_ARGS={}#{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+MODEL_ARGS={} #{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
 
 PRED_TASKS = [
     "Acute and unspecified renal failure",
