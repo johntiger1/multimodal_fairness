@@ -24,7 +24,7 @@ from allennlp.modules.seq2vec_encoders import BertPooler
 
 
 
-
+from torch.nn import BCELoss, BCEWithLogitsLoss
 from allennlp.nn import util
 from allennlp.training.metrics import CategoricalAccuracy, Auc
 from allennlp.training.optimizers import AdamOptimizer
@@ -61,13 +61,13 @@ class MortalityClassifier(Model):
                  vocab: Vocabulary,
                  embedder: TextFieldEmbedder,
                  encoder: Seq2VecEncoder,
-                 regularizer_applicator: RegularizerApplicator = None
+                 regularizer_applicator: RegularizerApplicator = None,
+                 num_classes = 1
                  ):
         super().__init__(vocab, regularizer_applicator)
         self.embedder = embedder
         self.encoder = encoder
-        num_labels = vocab.get_vocab_size("labels")
-        self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_labels)
+        self.classifier = torch.nn.Linear(encoder.get_output_dim(), num_classes)
         self.accuracy = CategoricalAccuracy()
         self.auc = Auc()
         self.reg_app = regularizer_applicator
@@ -89,14 +89,19 @@ class MortalityClassifier(Model):
         # Shape: (batch_size, num_labels)
         logits = self.classifier(encoded_text)
         # Shape: (batch_size, num_labels)
-        probs = torch.nn.functional.softmax(logits, dim=-1)
+        # probs = torch.nn.functional.softmax(logits, dim=-1)
+        probs = torch.sigmoid(logits)
+
         # reg_loss = self.get_regularization_penalty() # should not have to manually apply the regularization
         # Shape: (1,)
-        loss = torch.nn.functional.cross_entropy(logits, label)
-        self.accuracy(logits, label)
+        # loss = torch.nn.functional.cross_entropy(logits, label)
+        loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, label.float())
+
+        # self.accuracy(logits, label.squeeze())
         # preds = logits.argmax(-1)
-        probs_1 = logits[:,-1]
-        self.auc(probs_1, label)
+        # probs_1 = logits[:,-1]
+        # AUC can no longer be computed directly now. instead, we will need to supply a user function
+        # self.auc(probs_1, label)
 
         # bleed everything through into the output
         output = {'loss': loss, 'probs': probs, "metadata": metadata, "label": label} #no need to yield the label here

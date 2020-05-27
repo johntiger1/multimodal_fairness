@@ -105,9 +105,19 @@ def read_all_test_data(reader, test_data_path):
 #     return training_data, validation_data
 
 #
-def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
-    print("Building the vocabulary")
-    return Vocabulary.from_instances(instances)
+def build_vocab_fixed_labels(labels: list, instances: Iterable[Instance]) -> Vocabulary:
+    logger.critical("Building the vocabulary")
+    logger.critical("Initializing the labels namespace")
+    vocab = Vocabulary()
+    indexes = vocab.add_tokens_to_namespace(labels, namespace="labels")
+    logger.critical(f"Mapped them\n{labels}\n{indexes}")
+    logger.critical("Initializing the regular namespace")
+    vocab.extend_from_instances(instances)
+
+    second_indexes = [vocab.get_token_index(token, namespace="labels") for token in labels]
+    # indexes = vocab.add_tokens_to_namespace(labels, namespace="labels")
+    logger.critical(f"Mapped them\n{labels}\n{second_indexes}")
+    return vocab
 #
 
 '''
@@ -115,13 +125,21 @@ we can actually reuse the same model for each one.
 (depending on if different architectures work better or not)
 '''
 def build_model(vocab: Vocabulary,
-                use_reg: bool = True) -> Model:
+                args,
+                **kwargs) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 200
+
+    if args.pretrained_WE_path:
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
-    embedder = BasicTextFieldEmbedder(
-        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
+        embedder = BasicTextFieldEmbedder(
+            {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size,
+                                 pretrained_file=args.pretrained_WE_path, vocab=vocab)})
+    else:
+        embedder = BasicTextFieldEmbedder(
+            {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
+
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
@@ -129,7 +147,7 @@ def build_model(vocab: Vocabulary,
 
     #     construct the regularizer applicator
     regularizer_applicator = None
-    if use_reg :
+    if args.use_reg :
         l2_reg = L2Regularizer()
         regexes = [("embedder", l2_reg),
                    ("encoder", l2_reg),
@@ -137,7 +155,7 @@ def build_model(vocab: Vocabulary,
                    ]
         regularizer_applicator = RegularizerApplicator(regexes)
 
-    return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
+    return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator,**kwargs)
 
 
 '''
@@ -197,7 +215,7 @@ def build_trainer(
         num_epochs=50,
         optimizer=optimizer,
         cuda_device=0,
-        validation_metric="+auc",
+        validation_metric="-loss",
         patience=5
 
     )
@@ -275,10 +293,11 @@ def make_predictions(name, model, eval_dataloader, args):
         # deal with the probs portion
 
         probs_df = pd.DataFrame( output["probs"].detach().cpu().numpy())
-        probs_df = probs_df.add_prefix("probs_")
+        probs_df = probs_df.add_prefix("probs_") #probs will be the probs for the "1" for each class
 
         labels_df = pd.DataFrame( output["label"].detach().cpu().numpy())
-        labels_df.columns = ["label"]
+        num_labels = len(labels_df.columns)
+        labels_df.columns = [f"label_{i}" for i in range(num_labels) ] # should change this accordingly
 
         metadata_df = pd.DataFrame.from_dict(metadata_dict)
         predictions_df = pd.concat((metadata_df,probs_df,labels_df ), axis=1)
@@ -296,7 +315,7 @@ def make_predictions(name, model, eval_dataloader, args):
 
 def main():
 
-
+    "dont schedule an innovation!"
     logger.setLevel(logging.INFO)
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
@@ -308,15 +327,18 @@ def main():
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = True
+    args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = 50000
+    args.limit_examples = None
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "DECOMPENSATION"
+    args.data_type = "PHENOTYPING"
     args.max_tokens = 768*2
     args.get_train_predictions = True
+    args.pretrained_WE_path = None
+    # args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
+
 
     CONST.set_config(args.data_type, args)
     serialize_args(args)
@@ -372,7 +394,7 @@ train_listfile = args.train_data,
     # functionality added.
     train_data, dev_data = read_data(dataset_reader, args.train_data, args.dev_data)
 
-    vocab = build_vocab(train_data + dev_data)
+    vocab = build_vocab_fixed_labels(dataset_reader.labels, train_data + dev_data)
 
     # make sure to index the vocab before adding it
     train_data.index_with(vocab)
@@ -386,7 +408,7 @@ train_listfile = args.train_data,
     # del dev_data
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab, use_reg=args.use_reg )
+    model = build_model(vocab, args ,num_classes=args.num_classes)
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
     logger.warning("We have finished training")
 
