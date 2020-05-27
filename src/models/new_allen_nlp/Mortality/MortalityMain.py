@@ -115,14 +115,20 @@ we can actually reuse the same model for each one.
 (depending on if different architectures work better or not)
 '''
 def build_model(vocab: Vocabulary,
+                args,
                 use_reg: bool = True,
                 **kwargs) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 200
+
+
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
     embedder = BasicTextFieldEmbedder(
-        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
+        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size,
+                             pretrained_file=args.pretrained_WE_path)})
+
+
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
@@ -319,6 +325,8 @@ def main():
     args.data_type = "PHENOTYPING"
     args.max_tokens = 768*2
     args.get_train_predictions = True
+    args.pretrained_WE_path = None
+
 
     CONST.set_config(args.data_type, args)
     serialize_args(args)
@@ -388,7 +396,7 @@ train_listfile = args.train_data,
     # del dev_data
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab, use_reg=args.use_reg , num_classes=args.num_classes)
+    model = build_model(vocab, args ,use_reg=args.use_reg , num_classes=args.num_classes)
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
     logger.warning("We have finished training")
 
