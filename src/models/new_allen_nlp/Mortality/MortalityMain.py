@@ -116,7 +116,6 @@ we can actually reuse the same model for each one.
 '''
 def build_model(vocab: Vocabulary,
                 args,
-                use_reg: bool = True,
                 **kwargs) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
@@ -136,7 +135,7 @@ def build_model(vocab: Vocabulary,
 
     #     construct the regularizer applicator
     regularizer_applicator = None
-    if use_reg :
+    if args.use_reg :
         l2_reg = L2Regularizer()
         regexes = [("embedder", l2_reg),
                    ("encoder", l2_reg),
@@ -396,7 +395,7 @@ train_listfile = args.train_data,
     # del dev_data
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab, args ,use_reg=args.use_reg , num_classes=args.num_classes)
+    model = build_model(vocab, args ,num_classes=args.num_classes)
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
     logger.warning("We have finished training")
 
