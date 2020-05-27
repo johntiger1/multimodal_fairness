@@ -25,12 +25,12 @@ def compute_auc(predictions_path: str=None, name: str="train"):
                 preds = pd.read_csv(os.path.join(root,file))
                 all_preds_df = pd.concat((all_preds_df, preds), axis=0)
 
-    all_preds_df["predictions"] = all_preds_df.apply(lambda row:  1 if row["probs_1"] > row["probs_0" ] else 0, axis=1)
-    print(metrics.roc_auc_score(all_preds_df["label"], all_preds_df["probs_1"] ))
+    all_preds_df["predictions"] = all_preds_df.apply(lambda row:  1 if row["probs_0" ] > 0.5 else 0, axis=1)
+    print(metrics.roc_auc_score(all_preds_df["label_0"], all_preds_df["probs_0"] ))
     all_preds_df.to_csv( os.path.join(predictions_path,f"{name}_final_preds.csv"))
     # computed a different way: first, find the p/r curves, then find the area under it
 
-    fpr,tpr, _ =metrics.roc_curve(all_preds_df["label"], all_preds_df["probs_1"] , 1)
+    fpr,tpr, _ =metrics.roc_curve(all_preds_df["label_0"], all_preds_df["probs_0"] , 1)
     print(metrics.auc(fpr, tpr))
     print(len(all_preds_df))
     print(all_preds_df)
@@ -47,11 +47,13 @@ The simple fact of the matter, is that we do indeed need to get all the data int
 '''
 def generate_predictions():
     import torch
-
+    import pickle
     checkpoint = allennlp.training.Checkpointer(serialization_dir="/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments/61-preproc-mort-get_train_preds/")
 
     model = torch.load("/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments/61-preproc-mort-get_train_preds/best.th")
-
+    path = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments/64-mort-no-preproc-all-preds-save-dsreader/dataset_reader.pkl"
+    with open(path, "rb") as file:
+        dataset_reader = pickle.load(file)
     # the model should know the vocab, indexers, and other info.
 
     # ideally, we would actually deserialize the args. Actually, it is irrelevant, since we just need to get the data into memory, and then run
@@ -127,23 +129,23 @@ def generate_predictions():
 
 
 if __name__ == "__main__":
-    import logging
-    logger = logging.getLogger("aa")
-    my_out_handle = logging.StreamHandler()
-    logger.addHandler(my_out_handle)
+    # import logging
+    # logger = logging.getLogger("aa")
+    # my_out_handle = logging.StreamHandler()
+    # logger.addHandler(my_out_handle)
 
     # don't use raw logging
-    logger.debug("this will cause a handler to be created")
-
-    logger.warning("???")
+    # logger.debug("this will cause a handler to be created")
+    #
+    # logger.warning("???")
 
     # make some
 
     # logger by default seems to use a stream handler which routes to std err
 
     # generate_predictions()
-    # experiments_dir = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments/"
-    # split = "train"
-    # predictions_path = os.path.join(experiments_dir, f"61-preproc-mort-get_train_preds/{split}")
-    # compute_auc(predictions_path=predictions_path, name=split)
+    experiments_dir = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/experiments/"
+    split = "train"
+    predictions_path = os.path.join(experiments_dir, f"80-mort-pretrained/{split}")
+    compute_auc(predictions_path=predictions_path, name=split)
 
