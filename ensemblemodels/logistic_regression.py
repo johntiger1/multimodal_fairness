@@ -1,3 +1,4 @@
+# NOTE: RUN in python3 to get more sklearn hyperparameters
 from __future__ import absolute_import
 
 
@@ -9,7 +10,17 @@ from sklearn.linear_model import LogisticRegression
 from mimic3models import metrics
 
 # Command to run on mortality data (may need to change paths to John's data):
-# python2 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/test_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels
+# python3 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/test_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels/mortality/test
+
+# Command to run on train mortality data
+# python3 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels/mortality/train
+
+# Command to run on validation mortality data
+# python3 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/val_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels/mortality/val
+
+#set args for model HERE so that args can go into save file name
+MODEL_ARGS={'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+
 
 def load_data(mode, str_path, unstr_path):
     unstructured = pd.read_csv(unstr_path)
@@ -81,9 +92,7 @@ if __name__ == '__main__':
     print(X)
     print(Y)
 
-    # TODO: Experiment with regularization
-    model_args={} #set args for model HERE so that args can go into save file name
-    model = LogisticRegression(*model_args).fit(X,Y)
+    model = LogisticRegression(**MODEL_ARGS).fit(X, Y)
     print(model)
     print(model.classes_)
 
@@ -93,8 +102,9 @@ if __name__ == '__main__':
     outname2 = os.path.basename(args.test_ustr_path)
     assert(outname1.endswith(".csv"))
     assert (outname2.endswith(".csv"))
-    outname = outname1[:-4]+'+'+outname2[:-4]+repr(model_args).replace(': ','=')+"_id_ep_fmt.csv"
+    outname = outname1[:-4] +'+' +outname2[:-4] + repr(MODEL_ARGS).replace(': ', '=') + "_id_ep_fmt.csv"
 
+    os.makedirs(args.outdir)
     outpath = os.path.join(args.outdir, outname)
 
     with open(outpath, 'w') as fw:
@@ -107,7 +117,9 @@ if __name__ == '__main__':
         test_X = np.stack((test.str_prediction.values, test.unstr_prediction.values), axis=1)
         preds = model.predict_proba(test_X)
         preds = preds.T[1] # get just probabilities of class 1
-        print(preds)
+        #print(preds)
+        print("Model Arguments:")
+        print(MODEL_ARGS)
         metrics.print_metrics_binary(test_Y, preds)
 
 

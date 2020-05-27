@@ -1,6 +1,9 @@
 Safwan's Comments to Run post-processgin fairness
 
 First install this module: pip3 install fairlearn
+
+NOTE: Might have to modify the library by commenting out line 112 ("check_is_fitted(self.estimator)") of fairlearn/postprocessing/_threshold_optimizer.py
+
 There are two key commands to note:
 python3 fair\_postprocess.py LOAD \<sensitive\_attribute\_file\> 
 call this with one of the sensitive attribute files Ian created and this will create a JSON dict. If this dict is already there (according to the groups you seek), then no need to run this
