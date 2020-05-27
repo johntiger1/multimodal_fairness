@@ -9,6 +9,10 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from mimic3models import metrics
 
+# Note all commands below, the "ustr" paths that point to the folder of Johns csv's
+# (after processing with merge_and_convery.py) needs to be set to the correct paths
+#### Mortality commands
+
 # Command to run on mortality data (may need to change paths to John's data):
 # python3 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/test_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels/mortality/test
 
@@ -18,9 +22,48 @@ from mimic3models import metrics
 # Command to run on validation mortality data
 # python3 -um ensemblemodels.logistic_regression --mode M --str_path ./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --test_str_path ./mimic3models/in_hospital_mortality/val_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv  --test_ustr_path ./IanFairnessHackery/john_results/train_final_preds_mort_id_ep_fmt.csv --outdir ./ensemblemodels/mortality/val
 
-#set args for model HERE so that args can go into save file name
-MODEL_ARGS={'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+#### Phenotyping commands
 
+# Command to run on validation phenotyping:
+# python3 -um ensemblemodels.logistic_regression --mode P --str_path ./mimic3models/phenotyping/train_predictions/ --ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --test_str_path ./mimic3models/phenotyping/val_predictions/  --test_ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --outdir ./ensemblemodels/phenotyping/val
+
+# test phenotyping
+# python3 -um ensemblemodels.logistic_regression --mode P --str_path ./mimic3models/phenotyping/train_predictions/ --ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --test_str_path ./mimic3models/phenotyping/test_predictions/  --test_ustr_path ./IanFairnessHackery/john_results/Phenotyping/test --outdir ./ensemblemodels/phenotyping/test
+
+# train phenotyping
+# python3 -um ensemblemodels.logistic_regression --mode P --str_path ./mimic3models/phenotyping/train_predictions/ --ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --test_str_path ./mimic3models/phenotyping/train_predictions/  --test_ustr_path ./IanFairnessHackery/john_results/Phenotyping/train --outdir ./ensemblemodels/phenotyping/train
+
+
+#set args for model HERE so that args can go into save file name
+MODEL_ARGS={}#{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+
+PRED_TASKS = [
+    "Acute and unspecified renal failure",
+    "Acute cerebrovascular disease",
+    "Acute myocardial infarction",
+    "Cardiac dysrhythmias",
+    "Chronic kidney disease",
+    "Chronic obstructive pulmonary disease and bronchiectasis",
+    "Complications of surgical procedures or medical care",
+    "Conduction disorders",
+    "Congestive heart failure",
+    "nonhypertensive",
+    "Coronary atherosclerosis and other heart disease",
+    "Diabetes mellitus with complications",
+    "Diabetes mellitus without complication",
+    "Disorders of lipid metabolism",
+    "Essential hypertension",
+    "Fluid and electrolyte disorders",
+    "Gastrointestinal hemorrhage",
+    "Hypertension with complications and secondary hypertension",
+    "Other liver diseases",
+    "Other lower respiratory disease",
+    "Other upper respiratory disease",
+    "Pleurisy",
+    "pneumothorax",
+    "pulmonary collapse",
+    "Pneumonia (except that caused by tuberculosis or sexually transmitted disease)"
+]
 
 def load_data(mode, str_path, unstr_path):
     unstructured = pd.read_csv(unstr_path)
@@ -50,31 +93,39 @@ def load_data(mode, str_path, unstr_path):
                                    structured.columns[3]: "str_prediction",
                                    structured.columns[4]: "label"}, inplace=True)
 
-    print("Structured")
-    print(structured)
-    print("Unstructured")
-    print(unstructured)
+    #print("Structured")
+    #print(structured.shape)
+    #print(structured["label"].value_counts())
+    #print("Unstructured")
+    #print(unstructured.shape)
+    #print(unstructured["label"].value_counts())
 
-    print("Joined")
+
+    #print("Joined")
     merged_results = structured.merge(unstructured, how="inner", on=key_cols, validate="one_to_one")
-    print(merged_results)
+    #print(merged_results.shape)
+    #print(merged_results["label"].value_counts())
+    #print("Joined NOT ON label")
+    #key_cols.remove("label")
+    #print(structured.merge(unstructured, how="inner", on=key_cols, validate="one_to_one").shape)
+
 
     # Sanity check
     assert(not merged_results.isnull().values.any())
     return merged_results
 
 def load_fit_save(mode, str_path, ustr_path, test_str_path, test_ustr_path, outdir, out_filename_prefix = None):
-    print("LOAD TRAIN DATA")
+    #print("LOAD TRAIN DATA")
     train = load_data(mode, str_path, ustr_path)
-    print("=========================\n")
-    print("LOAD TEST DATA")
+    #print("=========================\n")
+    #print("LOAD TEST DATA")
     test = train = load_data(mode, test_str_path, test_ustr_path)
-    print("=========================\n")
+    #print("=========================\n")
 
     Y = train.label.values
     X = np.stack((train.str_prediction.values, train.unstr_prediction.values), axis=1)
-    print(X)
-    print(Y)
+    #print(X)
+    #print(Y)
 
     model = LogisticRegression(**MODEL_ARGS).fit(X, Y)
     print(model)
@@ -120,7 +171,12 @@ def load_fit_save(mode, str_path, ustr_path, test_str_path, test_ustr_path, outd
                                                  test_Y):
                 fw.write("{},{},{},{},{}\n".format(id, ep, time, pred, label))
 
-        return test_Y, preds
+        return np.array(test_Y), np.array(preds)
+
+def retrieve_matching_file(prefix, dirpath):
+    matches = list(filter(lambda x: x.startswith(prefix), os.listdir(dirpath)))
+    assert(len(matches) == 1)
+    return os.path.join(dirpath, matches[0])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -140,6 +196,9 @@ if __name__ == '__main__':
 
     np.random.seed(42)
 
+    merged_pred = None
+    merged_Y = None
+
     if args.mode in ["M", "D"]:
         load_fit_save(args.mode,
                       args.str_path,
@@ -149,7 +208,34 @@ if __name__ == '__main__':
                       args.outdir)
     else:
         assert(args.mode == "P")
-        raise NotImplementedError
+        for task_prefix in PRED_TASKS: # Fixed order for reproducibility (random seed set before loop)
+
+            # Find specific files within the directory for this task
+            task_str_path = retrieve_matching_file(task_prefix, args.str_path)
+            task_ustr_path = retrieve_matching_file(task_prefix, args.ustr_path)
+
+            task_test_str_path = retrieve_matching_file(task_prefix, args.test_str_path)
+            task_test_ustr_path = retrieve_matching_file(task_prefix, args.test_ustr_path)
+
+            print("\n\n-----------------------\nFitting Model For {}\n".format(task_prefix))
+
+            labels, preds = load_fit_save(args.mode,
+                                          task_str_path,
+                                          task_ustr_path,
+                                          task_test_str_path,
+                                          task_test_ustr_path,
+                                          args.outdir,
+                                          out_filename_prefix=task_prefix)
+
+            if merged_pred is None:
+                merged_pred = np.expand_dims(preds, axis=1)
+                merged_Y = np.expand_dims(labels, axis=1)
+            else:
+                merged_pred = np.concatenate((merged_pred, np.expand_dims(preds, axis=1)),  axis=1)
+                merged_Y = np.concatenate((merged_Y, np.expand_dims(labels, axis=1)), axis=1)
+        print('\n============================')
+        print("Overall performance:")
+        metrics.print_metrics_multilabel(merged_Y, merged_pred)
 
 
 
