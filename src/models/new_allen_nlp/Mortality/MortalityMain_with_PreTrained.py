@@ -118,7 +118,7 @@ def build_model(vocab: Vocabulary,
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 200
     # turn the tokens into 200 dim embedding. Then, turn the embeddings into encodings
-    retrained_file = ''  # add pre_trained file here
+    pretrained_file = ''  # add pre_trained file here
     embedder = BasicTextFieldEmbedder(
         {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size, pretrained_file=pretrained_file, trainable=False)})
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
@@ -130,7 +130,7 @@ def build_model(vocab: Vocabulary,
     regularizer_applicator = None
     if use_reg :
         l2_reg = L2Regularizer()
-        regexes = [("embedder", l2_reg),
+        regexes = [#("embedder", l2_reg),
                    ("encoder", l2_reg),
                    ("classifier", l2_reg)
                    ]
