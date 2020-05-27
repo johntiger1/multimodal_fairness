@@ -14,6 +14,8 @@ This will do the above but also dump the output of the post-processed classifier
 
 Ian's quick and dirty notes:
 
+New flag: --test-on-val
+
 New design, just run the authors's test code with minimal modifications so that we can also get the predictions on the training data.
 Once their code is finished running, run a postprocessing script to clean their .csv into the format we're using
 
