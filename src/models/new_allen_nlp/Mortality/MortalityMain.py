@@ -121,12 +121,14 @@ def build_model(vocab: Vocabulary,
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 200
 
-
+    if args.pretrained_WE_path:
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
-    embedder = BasicTextFieldEmbedder(
-        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size,
-                             pretrained_file=args.pretrained_WE_path)})
-
+        embedder = BasicTextFieldEmbedder(
+            {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size,
+                                 pretrained_file=args.pretrained_WE_path, vocab=vocab)})
+    else:
+        embedder = BasicTextFieldEmbedder(
+            {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
 
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
@@ -318,13 +320,13 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = None
+    args.limit_examples = 100
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "PHENOTYPING"
+    args.data_type = "MORTALITY"
     args.max_tokens = 768*2
     args.get_train_predictions = True
-    args.pretrained_WE_path = None
+    args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
 
 
     CONST.set_config(args.data_type, args)

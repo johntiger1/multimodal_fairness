@@ -97,11 +97,11 @@ class MortalityClassifier(Model):
         # loss = torch.nn.functional.cross_entropy(logits, label)
         loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, label.float())
 
-        # self.accuracy(logits, label.squeeze())
+        self.accuracy(logits, label.squeeze())
         # preds = logits.argmax(-1)
         probs_1 = logits[:,-1]
         # AUC can no longer be computed directly now. instead, we will need to supply a user function
-        # self.auc(probs_1, label)
+        self.auc(probs_1, label)
 
         # bleed everything through into the output
         output = {'loss': loss, 'probs': probs, "metadata": metadata, "label": label} #no need to yield the label here
