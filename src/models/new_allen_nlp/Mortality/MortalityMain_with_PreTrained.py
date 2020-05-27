@@ -117,9 +117,10 @@ def build_model(vocab: Vocabulary,
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 200
-    # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
+    # turn the tokens into 200 dim embedding. Then, turn the embeddings into encodings
+    retrained_file = ''  # add pre_trained file here
     embedder = BasicTextFieldEmbedder(
-        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
+        {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size, pretrained_file=pretrained_file, trainable=False)})
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
     # encoder = BertPooler("bert-base-cased")
