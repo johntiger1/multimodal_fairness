@@ -1,3 +1,8 @@
+# may 27
+Note that testing the archive almost guarantees that you have a saved version of the source code somewhere.
+
+But for the weird mapping, it is an interesting problem! we can permute the labels columns to get the correct order synced. But much easier (perhaps not from a framework point of view, but from a logical/design perspective) is to simply enforce, or give a set vocabulary!
+
 # may 26
 testing the archive, as well as the phenotyping model. Well let's just quickly test the archive part. 
 
