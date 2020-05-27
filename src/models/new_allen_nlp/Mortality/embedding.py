@@ -347,7 +347,7 @@ def _read_pretrained_embeddings_file(
     file_ext = get_file_extension(file_uri)
     if file_ext in [".h5", ".hdf5"]:
         return _read_embeddings_from_hdf5(file_uri, embedding_dim, vocab, namespace)
-    else if file_ext == ".bin"
+    elif file_ext == ".bin":
         return _read_embeddings_from_bin_file(file_uri, embedding_dim, vocab, namespace)
 
     return _read_embeddings_from_text_file(file_uri, embedding_dim, vocab, namespace)
