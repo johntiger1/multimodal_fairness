@@ -29,6 +29,7 @@ parser.add_argument('--data', type=str, help='Path to the data of decompensation
 parser.add_argument('--output_dir', type=str, help='Directory relative which all output files are stored',
                     default='.')
 parser.add_argument('--test_on_train', help='If flag present and script in test mode, then get predictions on train data instead of test data', action='store_true')
+parser.add_argument('--test_on_val', help='If flag present and script in test mode, then get predictions on validation data instead of test data', action='store_true')
 parser.set_defaults(deep_supervision=False)
 args = parser.parse_args()
 print(args)
@@ -37,6 +38,9 @@ if args.small_part:
     args.save_every = 2**30
 
 test_on_train = args.test_on_train
+test_on_val = args.test_on_val
+
+assert(not (test_on_train and test_on_val)) # TODO: FIX TO BE LESS HACK
 
 # Build readers, discretizers, normalizers
 if args.deep_supervision:
@@ -175,6 +179,11 @@ elif args.mode == 'test':
             test_data_loader = common_utils.DeepSupervisionDataLoader(dataset_dir=os.path.join(args.data, 'train'),
                                                                       listfile=os.path.join(args.data, 'train_listfile.csv'),
                                                                       small_part=args.small_part)
+        elif test_on_val:
+            test_data_loader = common_utils.DeepSupervisionDataLoader(dataset_dir=os.path.join(args.data, 'train'),
+                                                                      listfile=os.path.join(args.data,
+                                                                                            'val_listfile.csv'),
+                                                                      small_part=args.small_part)
         else:
             test_data_loader = common_utils.DeepSupervisionDataLoader(dataset_dir=os.path.join(args.data, 'test'),
                                                                       listfile=os.path.join(args.data, 'test_listfile.csv'),
@@ -205,6 +214,9 @@ elif args.mode == 'test':
         if test_on_train:
             test_reader = DecompensationReader(dataset_dir=os.path.join(args.data, 'train'),
                                         listfile=os.path.join(args.data, 'train_listfile.csv'))
+        elif test_on_val:
+            test_reader = DecompensationReader(dataset_dir=os.path.join(args.data, 'train'),
+                                               listfile=os.path.join(args.data, 'val_listfile.csv'))
         else:
             test_reader = DecompensationReader(dataset_dir=os.path.join(args.data, 'test'),
                                                listfile=os.path.join(args.data, 'test_listfile.csv'))
@@ -230,6 +242,8 @@ elif args.mode == 'test':
     metrics.print_metrics_binary(labels, predictions)
     if test_on_train:
         path = os.path.join(args.output_dir, 'train_predictions', os.path.basename(args.load_state)) + '.csv'
+    elif test_on_val:
+        path = os.path.join(args.output_dir, 'val_predictions', os.path.basename(args.load_state)) + '.csv'
     else:
         path = os.path.join(args.output_dir, 'test_predictions', os.path.basename(args.load_state)) + '.csv'
     utils.save_results(names, ts, predictions, labels, path)

@@ -27,10 +27,14 @@ parser.add_argument('--data', type=str, help='Path to the data of phenotyping ta
 parser.add_argument('--output_dir', type=str, help='Directory relative which all output files are stored',
                     default='.')
 parser.add_argument('--test_on_train', help='If flag present and script in test mode, then get predictions on train data instead of test data', action='store_true')
+parser.add_argument('--test_on_val', help='If flag present and script in test mode, then get predictions on validation data instead of test data', action='store_true')
 args = parser.parse_args()
 print(args)
 
 test_on_train = args.test_on_train
+test_on_val = args.test_on_val
+
+assert(not (test_on_train and test_on_val)) # TODO: FIX TO BE LESS HACK
 
 if args.small_part:
     args.save_every = 2**30
@@ -154,6 +158,9 @@ elif args.mode == 'test':
     if test_on_train:
         test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'train'),
                                  listfile=os.path.join(args.data, 'train_listfile.csv'))
+    elif test_on_val:
+        test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'train'),
+                                 listfile=os.path.join(args.data, 'val_listfile.csv'))
     else:
         test_reader = PhenotypingReader(dataset_dir=os.path.join(args.data, 'test'),
                                         listfile=os.path.join(args.data, 'test_listfile.csv'))
@@ -184,6 +191,8 @@ elif args.mode == 'test':
     metrics.print_metrics_multilabel(labels, predictions)
     if test_on_train:
         path = os.path.join(args.output_dir, "train_predictions", os.path.basename(args.load_state)) + ".csv"
+    elif test_on_val:
+        path = os.path.join(args.output_dir, "val_predictions", os.path.basename(args.load_state)) + ".csv"
     else:
         path = os.path.join(args.output_dir, "test_predictions", os.path.basename(args.load_state)) + ".csv"
     utils.save_results(names, ts, predictions, labels, path)
