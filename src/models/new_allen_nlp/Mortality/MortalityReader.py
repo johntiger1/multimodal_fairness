@@ -493,16 +493,40 @@ class MortalityReader(DatasetReader):
 
         listfile_df = pd.read_csv(listfile_path)
 
+        def str_build(row):
+            labels = []
+            for col in row.index:
+                if row[col] == 1:
+                    labels.append(col)
+            # labels.join()
+            return labels
 
         for idx,row in listfile_df.iterrows():
 
             if self.mode == "test" or idx  in sampled_idx : #when test, use everything
-                if self.data_type == "PHENOTYPING" or self.data_type == "DECOMPENSATION":
-                    multi_labels = MultiLabelField(
-                        row.iloc[2:].astype(str))  # might be overindexing. but the labels are always at the end
+                if self.data_type == "PHENOTYPING" :
+
+                    # list_of_labels = row.iloc[2:].astype(str).values()
+                    list_of_labels =                     list(map(str, list(row.iloc[2:])))
+                    list_labels = str_build(row.iloc[2:])
+
+                    multi_labels = MultiLabelField(list_labels
+                    )  # might be overindexing. but the labels are always at the end
+
                 elif self.data_type == "MORTALITY":
+                    list_labels = str_build(row.iloc[1:])
+
                     multi_labels = MultiLabelField(
-                        row.iloc[1:].astype(str))  # might be overindexing. but the labels are always at the end
+                        list_labels)  # might be overindexing. but the labels are always at the end
+
+                    # row.iloc
+
+                elif self.data_type == "DECOMPENSATION":
+                    list_labels = str_build(row.iloc[2:])
+
+                    multi_labels = MultiLabelField(
+                        row.iloc[1:].astype(str))
+
                 else:
                     logger.critical("weird data type specified{}".format(self.data_type))
 
@@ -548,7 +572,7 @@ class MortalityReader(DatasetReader):
                         time_episode_specific_notes = episode_specific_notes[mask].copy(deep=True)
 
                     else:
-                        time_episode_specific_notes = episode_specific_notes
+                        time_episode_specific_notes = episode_specific_notes.copy(deep=True)
 
                     if len(time_episode_specific_notes) > 0:
 
@@ -593,4 +617,4 @@ class MortalityReader(DatasetReader):
                         # in this case, we ignore the patient
 
             else:
-                logger.debug("we are skipping  some indices {}".format(example_idx))
+                logger.debug("we are skipping  some indices {}".format(idx))

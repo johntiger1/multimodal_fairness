@@ -115,7 +115,8 @@ we can actually reuse the same model for each one.
 (depending on if different architectures work better or not)
 '''
 def build_model(vocab: Vocabulary,
-                use_reg: bool = True) -> Model:
+                use_reg: bool = True,
+                **kwargs) -> Model:
     print("Building the model")
     vocab_size = vocab.get_vocab_size("tokens")
     EMBED_DIMS = 200
@@ -137,7 +138,7 @@ def build_model(vocab: Vocabulary,
                    ]
         regularizer_applicator = RegularizerApplicator(regexes)
 
-    return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator)
+    return MortalityClassifier(vocab, embedder, encoder,regularizer_applicator,**kwargs)
 
 
 '''
@@ -197,7 +198,7 @@ def build_trainer(
         num_epochs=50,
         optimizer=optimizer,
         cuda_device=0,
-        validation_metric="+auc",
+        validation_metric="-loss",
         patience=5
 
     )
@@ -278,7 +279,7 @@ def make_predictions(name, model, eval_dataloader, args):
         probs_df = probs_df.add_prefix("probs_")
 
         labels_df = pd.DataFrame( output["label"].detach().cpu().numpy())
-        labels_df.columns = ["label"]
+        labels_df.columns = ["label"] # should change this accordingly
 
         metadata_df = pd.DataFrame.from_dict(metadata_dict)
         predictions_df = pd.concat((metadata_df,probs_df,labels_df ), axis=1)
@@ -302,19 +303,19 @@ def main():
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
 
-    args.batch_size = 256
+    args.batch_size = 76
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = True
+    args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = 50000
+    args.limit_examples = 5000
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "DECOMPENSATION"
+    args.data_type = "MORTALITY"
     args.max_tokens = 768*2
     args.get_train_predictions = True
 
@@ -386,7 +387,7 @@ train_listfile = args.train_data,
     # del dev_data
 
     # throw in all the regularizers to the regularizer applicators
-    model = build_model(vocab, use_reg=args.use_reg )
+    model = build_model(vocab, use_reg=args.use_reg , num_classes=args.num_classes)
     model = run_training_loop_over_dataloaders(model, train_dataloader, dev_dataloader, args)
     logger.warning("We have finished training")
 
