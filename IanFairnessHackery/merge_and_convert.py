@@ -40,14 +40,13 @@ PRED_TASKS = {
 
 NUM_TASKS = 25
 
-def drop_cols(infile, expected_header, cols_to_keep):
+def drop_cols(infile, header_to_cols):
     """
     Given .csv file at infile, read the file, check that the header matches expected_header, and create another file
     at the same path with _ep_id_fmt.csv suffixed which only contains the columns in cols_to_keep
 
     :param infile: Path to input .csv
-    :param expected_header: Header that input .csv should have
-    :param cols_to_keep: indices of columns to include in output
+    :param header_to_cols: Dictionary of string headers to list of indicies to keep if that header is detected
     :return: None, instead saves results as another file
     """
     dirname, out_filename = os.path.split(infile)
@@ -59,7 +58,7 @@ def drop_cols(infile, expected_header, cols_to_keep):
         with open(out_path, 'w') as fw:
             header = fr.readline()
             header = header.strip()
-            assert (header == expected_header)
+            cols_to_keep = header_to_cols[header]
             names = header.split(",")
             fw.write(",".join([names[col] for col in cols_to_keep]) + "\n")
 
@@ -108,7 +107,8 @@ if __name__ == '__main__':
     print(args)
 
     if args.mode == "M":
-        drop_cols(args.inpath, ",Unnamed: 0,patient_id,episode,hadm_id,probs_0,probs_1,label,predictions", [2,3,6,7])
+        drop_cols(args.inpath, {",Unnamed: 0,patient_id,episode,hadm_id,probs_0,probs_1,label,predictions" : [2,3,6,7],
+                                ",Unnamed: 0,patient_id,episode,hadm_id,time,probs_0,label_0,predictions" : [2,3,6,7]})
     elif args.mode == "P":
         process_phen(args.inpath)
     else:

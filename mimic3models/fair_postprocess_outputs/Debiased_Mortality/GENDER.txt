@@ -1,0 +1,45 @@
+Overall Accuracy:  0.8970988213961922
+F confusion matrix
+	 F1 score:  0.430934424133964
+	 Group Accuracy:  0.8949622166246851
+	 True positive rate: 0.27735849056603773
+	 True negative rate: 0.9901162790697674
+	 False positive rate: 0.009883720930232558
+	 False negative rate: 0.7226415094339622
+M confusion matrix
+	 F1 score:  0.4349092529787492
+	 Group Accuracy:  0.8988463123197363
+	 True positive rate: 0.2805755395683453
+	 True negative rate: 0.9903038902684167
+	 False positive rate: 0.009696109731583304
+	 False negative rate: 0.7194244604316546
+Overall Accuracy:  0.9092248413417952
+F confusion matrix
+	 F1 score:  0.6591566785251687
+	 Group Accuracy:  0.9076826196473552
+	 True positive rate: 0.5066037735849057
+	 True negative rate: 0.9694767441860465
+	 False positive rate: 0.030523255813953487
+	 False negative rate: 0.49339622641509434
+M confusion matrix
+	 F1 score:  0.6692460583465129
+	 Group Accuracy:  0.9104861969509683
+	 True positive rate: 0.518784972022382
+	 True negative rate: 0.9684285207520398
+	 False positive rate: 0.03157147924796027
+	 False negative rate: 0.4812150279776179
+Overall Accuracy:  0.9090548504079783
+F confusion matrix
+	 F1 score:  0.7203933801434604
+	 Group Accuracy:  0.9081863979848867
+	 True positive rate: 0.5867924528301887
+	 True negative rate: 0.9577034883720931
+	 False positive rate: 0.04229651162790698
+	 False negative rate: 0.41320754716981134
+M confusion matrix
+	 F1 score:  0.7231469463853606
+	 Group Accuracy:  0.9097651421508035
+	 True positive rate: 0.5907274180655475
+	 True negative rate: 0.9569587324110205
+	 False positive rate: 0.04304126758897955
+	 False negative rate: 0.40927258193445243
