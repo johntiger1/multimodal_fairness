@@ -19,6 +19,7 @@ from MortalityReader import MortalityReader
 from typing import Dict, Iterable, List, Tuple
 
 from allennlp.nn import util
+from allennlp.training import Checkpointer
 from allennlp.training.metrics import CategoricalAccuracy, Auc
 from allennlp.training.optimizers import AdamOptimizer
 from allennlp.training.trainer import Trainer, GradientDescentTrainer
@@ -206,17 +207,21 @@ def build_trainer(
         [n, p]
         for n, p in model.named_parameters() if p.requires_grad
     ]
+
+    checkpointer  = Checkpointer(serialization_dir, num_serialized_models_to_keep=0)
     optimizer = AdamOptimizer(parameters)
     trainer = GradientDescentTrainer(
         model=model,
         serialization_dir=serialization_dir,
+        checkpointer=checkpointer,
         data_loader=train_loader,
         validation_data_loader=dev_loader,
         num_epochs=50,
         optimizer=optimizer,
         cuda_device=0,
         validation_metric="-loss",
-        patience=5
+        patience=5,
+
 
     )
     return trainer
