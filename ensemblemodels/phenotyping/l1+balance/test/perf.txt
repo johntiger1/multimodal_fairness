@@ -1,0 +1,336 @@
+Evaluating Acute cerebrovascular disease
+confusion matrix:
+[[5459  387]
+ [  88  320]]
+accuracy = 0.924048602581
+precision class 0 = 0.984135568142
+precision class 1 = 0.452616691589
+recall class 0 = 0.933800876141
+recall class 1 = 0.784313738346
+AUC of ROC = 0.940180314343
+AUC of PRC = 0.669836589282
+min(+P, Se) = 0.620098039216
+----------------------------------------
+Evaluating Coronary atherosclerosis and other heart disease
+confusion matrix:
+[[5004  661]
+ [ 163  426]]
+accuracy = 0.868244349957
+precision class 0 = 0.968453645706
+precision class 1 = 0.391904324293
+recall class 0 = 0.883318603039
+recall class 1 = 0.723259747028
+AUC of ROC = 0.891321775954
+AUC of PRC = 0.579815060562
+min(+P, Se) = 0.521222410866
+----------------------------------------
+Evaluating Pleurisy
+confusion matrix:
+[[4191 1213]
+ [ 254  596]]
+accuracy = 0.765430152416
+precision class 0 = 0.942857146263
+precision class 1 = 0.329463779926
+recall class 0 = 0.77553665638
+recall class 1 = 0.701176464558
+AUC of ROC = 0.821779074324
+AUC of PRC = 0.420640407045
+min(+P, Se) = 0.455607476636
+----------------------------------------
+Evaluating Other lower respiratory disease
+confusion matrix:
+[[5331  653]
+ [ 126  144]]
+accuracy = 0.875439703465
+precision class 0 = 0.976910412312
+precision class 1 = 0.180677548051
+recall class 0 = 0.890875697136
+recall class 1 = 0.533333361149
+AUC of ROC = 0.788855466429
+AUC of PRC = 0.299310763624
+min(+P, Se) = 0.362637362637
+----------------------------------------
+Evaluating Gastrointestinal hemorrhage
+confusion matrix:
+[[4452  986]
+ [ 230  586]]
+accuracy = 0.805564463139
+precision class 0 = 0.95087569952
+precision class 1 = 0.372773528099
+recall class 0 = 0.818683326244
+recall class 1 = 0.718137264252
+AUC of ROC = 0.854505152558
+AUC of PRC = 0.476668780213
+min(+P, Se) = 0.483198146002
+----------------------------------------
+Evaluating pneumothorax
+confusion matrix:
+[[4519  630]
+ [ 244  861]]
+accuracy = 0.860249459743
+precision class 0 = 0.948771774769
+precision class 1 = 0.57746475935
+recall class 0 = 0.877646148205
+recall class 1 = 0.779185533524
+AUC of ROC = 0.907461010309
+AUC of PRC = 0.711211172809
+min(+P, Se) = 0.662443438914
+----------------------------------------
+Evaluating Conduction disorders
+confusion matrix:
+[[4391 1422]
+ [ 157  284]]
+accuracy = 0.747521579266
+precision class 0 = 0.965479314327
+precision class 1 = 0.166471272707
+recall class 0 = 0.755375862122
+recall class 1 = 0.643990933895
+AUC of ROC = 0.782726417019
+AUC of PRC = 0.226908141218
+min(+P, Se) = 0.294117647059
+----------------------------------------
+Evaluating Essential hypertension
+confusion matrix:
+[[3152 1446]
+ [ 526 1130]]
+accuracy = 0.68468183279
+precision class 0 = 0.856987476349
+precision class 1 = 0.438664585352
+recall class 0 = 0.685515463352
+recall class 1 = 0.682367146015
+AUC of ROC = 0.754575608383
+AUC of PRC = 0.509180658193
+min(+P, Se) = 0.509242695289
+----------------------------------------
+Evaluating Cardiac dysrhythmias
+confusion matrix:
+[[3150 1081]
+ [ 559 1464]]
+accuracy = 0.73776781559
+precision class 0 = 0.849285542965
+precision class 1 = 0.575245559216
+recall class 0 = 0.744504868984
+recall class 1 = 0.723677694798
+AUC of ROC = 0.795215340297
+AUC of PRC = 0.617773013813
+min(+P, Se) = 0.619725220805
+----------------------------------------
+Evaluating Disorders of lipid metabolism
+confusion matrix:
+[[2522 1091]
+ [ 932 1709]]
+accuracy = 0.676527023315
+precision class 0 = 0.730167925358
+precision class 1 = 0.610357165337
+recall class 0 = 0.698034882545
+recall class 1 = 0.647103369236
+AUC of ROC = 0.736337595328
+AUC of PRC = 0.649815370788
+min(+P, Se) = 0.622634367903
+----------------------------------------
+Evaluating Chronic kidney disease
+confusion matrix:
+[[4507  921]
+ [ 210  616]]
+accuracy = 0.819155752659
+precision class 0 = 0.955480158329
+precision class 1 = 0.4007807374
+recall class 0 = 0.830324232578
+recall class 1 = 0.745762705803
+AUC of ROC = 0.87068286403
+AUC of PRC = 0.533900611764
+min(+P, Se) = 0.523579201935
+----------------------------------------
+Evaluating Hypertension with complications and secondary hypertension
+confusion matrix:
+[[4593 1106]
+ [ 183  372]]
+accuracy = 0.793891906738
+precision class 0 = 0.961683392525
+precision class 1 = 0.251691460609
+recall class 0 = 0.80593085289
+recall class 1 = 0.670270264149
+AUC of ROC = 0.830985047163
+AUC of PRC = 0.357041531832
+min(+P, Se) = 0.389189189189
+----------------------------------------
+Evaluating Other upper respiratory disease
+confusion matrix:
+[[4038 1647]
+ [ 237  332]]
+accuracy = 0.698752820492
+precision class 0 = 0.944561421871
+precision class 1 = 0.167761489749
+recall class 0 = 0.710290253162
+recall class 1 = 0.583479762077
+AUC of ROC = 0.709914939725
+AUC of PRC = 0.188628590914
+min(+P, Se) = 0.242424242424
+----------------------------------------
+Evaluating Fluid and electrolyte disorders
+confusion matrix:
+[[4136 1622]
+ [ 166  330]]
+accuracy = 0.714102983475
+precision class 0 = 0.961413323879
+precision class 1 = 0.169057384133
+recall class 0 = 0.718304991722
+recall class 1 = 0.665322601795
+AUC of ROC = 0.770275087116
+AUC of PRC = 0.238234739552
+min(+P, Se) = 0.28313253012
+----------------------------------------
+Evaluating Chronic obstructive pulmonary disease and bronchiectasis
+confusion matrix:
+[[3923 1542]
+ [ 290  499]]
+accuracy = 0.707067489624
+precision class 0 = 0.931165456772
+precision class 1 = 0.24448800087
+recall class 0 = 0.717840790749
+recall class 1 = 0.632446110249
+AUC of ROC = 0.746299356314
+AUC of PRC = 0.29033007511
+min(+P, Se) = 0.32196969697
+----------------------------------------
+Evaluating Diabetes mellitus without complication
+confusion matrix:
+[[3432 1012]
+ [ 443 1367]]
+accuracy = 0.767348885536
+precision class 0 = 0.885677397251
+precision class 1 = 0.574611186981
+recall class 0 = 0.772277235985
+recall class 1 = 0.755248606205
+AUC of ROC = 0.835665569319
+AUC of PRC = 0.633516938032
+min(+P, Se) = 0.612850082372
+----------------------------------------
+Evaluating Acute myocardial infarction
+confusion matrix:
+[[4526 1052]
+ [ 187  489]]
+accuracy = 0.801886796951
+precision class 0 = 0.960322499275
+precision class 1 = 0.317326396704
+recall class 0 = 0.811401963234
+recall class 1 = 0.723372757435
+AUC of ROC = 0.856325622002
+AUC of PRC = 0.494318611204
+min(+P, Se) = 0.476608187135
+----------------------------------------
+Evaluating pulmonary collapse
+confusion matrix:
+[[4546  838]
+ [ 206  664]]
+accuracy = 0.833066821098
+precision class 0 = 0.956649839878
+precision class 1 = 0.442077219486
+recall class 0 = 0.844353616238
+recall class 1 = 0.763218402863
+AUC of ROC = 0.891069537668
+AUC of PRC = 0.605741276385
+min(+P, Se) = 0.579908675799
+----------------------------------------
+Evaluating Acute and unspecified renal failure
+confusion matrix:
+[[3869 1061]
+ [ 332  992]]
+accuracy = 0.777262568474
+precision class 0 = 0.920971214771
+precision class 1 = 0.483195334673
+recall class 0 = 0.784786999226
+recall class 1 = 0.749244689941
+AUC of ROC = 0.852350275458
+AUC of PRC = 0.579642752252
+min(+P, Se) = 0.568731117825
+----------------------------------------
+Evaluating Other liver diseases
+confusion matrix:
+[[4244 1658]
+ [ 155  197]]
+accuracy = 0.710105538368
+precision class 0 = 0.964764714241
+precision class 1 = 0.106199458241
+recall class 0 = 0.719078302383
+recall class 1 = 0.559659063816
+AUC of ROC = 0.692402517637
+AUC of PRC = 0.141912892323
+min(+P, Se) = 0.192634560907
+----------------------------------------
+Evaluating Diabetes mellitus with complications
+confusion matrix:
+[[3892 1158]
+ [ 374  830]]
+accuracy = 0.755036771297
+precision class 0 = 0.912330031395
+precision class 1 = 0.417505025864
+recall class 0 = 0.770693063736
+recall class 1 = 0.689368784428
+AUC of ROC = 0.800325153778
+AUC of PRC = 0.468198540971
+min(+P, Se) = 0.485501242751
+----------------------------------------
+Evaluating Complications of surgical procedures or medical care
+confusion matrix:
+[[3511 1407]
+ [ 503  833]]
+accuracy = 0.694595456123
+precision class 0 = 0.874688565731
+precision class 1 = 0.371874988079
+recall class 0 = 0.713908076286
+recall class 1 = 0.623502969742
+AUC of ROC = 0.728216097289
+AUC of PRC = 0.43149937639
+min(+P, Se) = 0.423652694611
+----------------------------------------
+Evaluating Congestive heart failure
+confusion matrix:
+[[3797  776]
+ [ 382 1299]]
+accuracy = 0.814838528633
+precision class 0 = 0.908590555191
+precision class 1 = 0.626024067402
+recall class 0 = 0.830308318138
+recall class 1 = 0.772754311562
+AUC of ROC = 0.88314802777
+AUC of PRC = 0.735546012017
+min(+P, Se) = 0.691438763377
+----------------------------------------
+Evaluating Pneumonia (except that caused by tuberculosis or sexually transmitted disease)
+confusion matrix:
+[[5036  714]
+ [ 116  388]]
+accuracy = 0.867284953594
+precision class 0 = 0.977484464645
+precision class 1 = 0.352087110281
+recall class 0 = 0.875826060772
+recall class 1 = 0.769841253757
+AUC of ROC = 0.90802484472
+AUC of PRC = 0.52296575073
+min(+P, Se) = 0.531746031746
+----------------------------------------
+Evaluating nonhypertensive
+confusion matrix:
+[[3556  626]
+ [ 408 1664]]
+accuracy = 0.834665834904
+precision class 0 = 0.897073686123
+precision class 1 = 0.726637542248
+recall class 0 = 0.850310862064
+recall class 1 = 0.803088784218
+AUC of ROC = 0.909044946258
+AUC of PRC = 0.84905327112
+min(+P, Se) = 0.760848601736
+----------------------------------------
+
+==========================================
+Evaluating all together:
+ROC AUC scores for labels: [ 0.94018031  0.89132178  0.82177907  0.78885547  0.85450515  0.90746101
+  0.78272642  0.75457561  0.79521534  0.7363376   0.87068286  0.83098505
+  0.70991494  0.77027509  0.74629936  0.83566557  0.85632562  0.89106954
+  0.85235028  0.69240252  0.80032515  0.7282161   0.88314803  0.90802484
+  0.90904495]
+ave_auc_micro = 0.831764667756
+ave_auc_macro = 0.822307505648
+ave_auc_weighted = 0.820655264009
