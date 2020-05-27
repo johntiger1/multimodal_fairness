@@ -99,7 +99,7 @@ if __name__ == "__main__":
             for test, score, y in zip(test_X, fair_score, test_Y):
                 csv_reader.writerow([str(int(test[0])), str(test[1]), str(score[1]), str(y)])
     
-    elif cmd == "PLOT":
+    elif cmd == "PLOT_ONE":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
@@ -110,17 +110,17 @@ if __name__ == "__main__":
         
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train)
         base_classifier.fit(train_X, train_Y)
-        base_confusion = base_classifier.get_group_confusion_matrix(sens_train, train_X, train_Y)
+        base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
         dp_fair_classifier.fit()
-        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_train, train_X, train_Y)
+        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
-        eo_confusion = eo_fair_classifier.get_group_confusion_matrix(sens_train, train_X, train_Y)
+        eo_confusion = eo_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
         
-        to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate']
+        to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate', "Accuracy"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
         colors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:gray', 'tab:olive']
         plots = []
@@ -134,7 +134,7 @@ if __name__ == "__main__":
             for j, group in enumerate(groups):
                 ax.plot(x_axis, [base_confusion[group][i], dp_confusion[group][i], \
                         eo_confusion[group][i]], marker='o', linestyle='-', \
-                        markersize=20, color=colors[j], label=group)
+                        markersize=15, color=colors[j], label=group)
            
             plt.legend()
             plt.grid(False)
@@ -142,4 +142,67 @@ if __name__ == "__main__":
             plt_name = sensitive_attr + "_" + str(to_plot[i])+".png"
             plt.savefig(plt_name)
 
+    elif cmd == "PLOT_ALL":
+        u_train_file = sys.argv[2]
+        u_test_file = sys.argv[3]
+        en_train_file = sys.argv[4]
+        en_test_file = sys.argv[5]
+        sensitive_attr = sys.argv[6]
+        
+        assert(sensitive_attr in ALL_SENSITIVE) 
+        train_X, train_score, train_Y, sens_train, \
+                test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr)
+        en_train_X, en_train_score, en_train_Y, en_sens_train, \
+                en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr)
+        
+        base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train)
+        base_classifier.fit(train_X, train_Y)
+        base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        
+        en_base_classifier = pseudo_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train)
+        en_base_classifier.fit(en_train_X, en_train_Y)
+        en_base_confusion = base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+
+        dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
+        dp_fair_classifier.fit()
+        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        
+        en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "demographic_parity")
+        en_dp_fair_classifier.fit()
+        en_dp_confusion = dp_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+
+        eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
+        eo_fair_classifier.fit()
+        eo_confusion = eo_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        
+        en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "equalized_odds")
+        en_eo_fair_classifier.fit()
+        en_eo_confusion = eo_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        
+        to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate', "Accuracy"]
+        x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
+        colors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:gray', 'tab:olive']
+        plots = []
+        groups = base_confusion.keys()
+
+        for i in range(len(to_plot)):
+            fig, ax = plt.subplots()
+            ax.set_xlabel("Classifier")
+            ax.set_ylabel(to_plot[i])
+
+            for j, group in enumerate(groups):
+                ax.plot(x_axis, [base_confusion[group][i], dp_confusion[group][i], \
+                        eo_confusion[group][i]], marker='o', linestyle='-', \
+                        markersize=15, color=colors[j], label=group)
+            
+            for j, group in enumerate(groups):
+                ax.plot(x_axis, [en_base_confusion[group][i], en_dp_confusion[group][i], \
+                        en_eo_confusion[group][i]], marker='x', linestyle="dotted", \
+                        markersize=15, color=colors[j], label=group)
+           
+            plt.legend()
+            plt.grid(False)
+            plt.tight_layout()
+            plt_name = sensitive_attr + "_" + str(to_plot[i])+".png"
+            plt.savefig(plt_name)
     

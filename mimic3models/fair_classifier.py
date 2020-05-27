@@ -78,9 +78,9 @@ class pseudo_classifier:
             tn_rate[group] = tn
             fp_rate[group] = fp 
             fn_rate[group] = fn 
-            out_dict[group] = [tp, tn, fp, fn]
 
             accuracy = 1 - np.sum(np.power(true_class - pred_class, 2))/len(true_class) 
+            out_dict[group] = [tp, tn, fp, fn, accuracy]
             print(group, "confusion matrix")
             if tp == 0 and fp == 0:
                 print("None classified as Positive in group", group)
