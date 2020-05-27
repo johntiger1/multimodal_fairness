@@ -276,10 +276,11 @@ def make_predictions(name, model, eval_dataloader, args):
         # deal with the probs portion
 
         probs_df = pd.DataFrame( output["probs"].detach().cpu().numpy())
-        probs_df = probs_df.add_prefix("probs_")
+        probs_df = probs_df.add_prefix("probs_") #probs will be the probs for the "1" for each class
 
         labels_df = pd.DataFrame( output["label"].detach().cpu().numpy())
-        labels_df.columns = ["label"] # should change this accordingly
+        num_labels = len(labels_df.columns)
+        labels_df.columns = [f"label_{i}" for i in range(num_labels) ] # should change this accordingly
 
         metadata_df = pd.DataFrame.from_dict(metadata_dict)
         predictions_df = pd.concat((metadata_df,probs_df,labels_df ), axis=1)
@@ -303,7 +304,7 @@ def main():
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
 
-    args.batch_size = 76
+    args.batch_size = 256
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -312,10 +313,10 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = 5000
+    args.limit_examples = None
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "MORTALITY"
+    args.data_type = "PHENOTYPING"
     args.max_tokens = 768*2
     args.get_train_predictions = True
 

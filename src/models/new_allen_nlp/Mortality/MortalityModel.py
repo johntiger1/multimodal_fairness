@@ -97,7 +97,6 @@ class MortalityClassifier(Model):
         # loss = torch.nn.functional.cross_entropy(logits, label)
         loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, label.float())
 
-        if any(label>1) : logger.error("uh oj")
         # self.accuracy(logits, label.squeeze())
         # preds = logits.argmax(-1)
         probs_1 = logits[:,-1]
