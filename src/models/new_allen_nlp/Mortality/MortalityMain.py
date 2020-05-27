@@ -105,9 +105,19 @@ def read_all_test_data(reader, test_data_path):
 #     return training_data, validation_data
 
 #
-def build_vocab(instances: Iterable[Instance]) -> Vocabulary:
-    print("Building the vocabulary")
-    return Vocabulary.from_instances(instances)
+def build_vocab_fixed_labels(labels: list, instances: Iterable[Instance]) -> Vocabulary:
+    logger.critical("Building the vocabulary")
+    logger.critical("Initializing the labels namespace")
+    vocab = Vocabulary()
+    indexes = vocab.add_tokens_to_namespace(labels, namespace="labels")
+    logger.critical(f"Mapped them\n{labels}\n{indexes}")
+    logger.critical("Initializing the regular namespace")
+    vocab.extend_from_instances(instances)
+
+    second_indexes = [vocab.get_token_index(token, namespace="labels") for token in labels]
+    # indexes = vocab.add_tokens_to_namespace(labels, namespace="labels")
+    logger.critical(f"Mapped them\n{labels}\n{second_indexes}")
+    return vocab
 #
 
 '''
@@ -305,7 +315,7 @@ def make_predictions(name, model, eval_dataloader, args):
 
 def main():
 
-
+    "dont schedule an innovation!"
     logger.setLevel(logging.INFO)
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
@@ -320,13 +330,14 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = 100
+    args.limit_examples = 10
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "MORTALITY"
+    args.data_type = "PHENOTYPING"
     args.max_tokens = 768*2
     args.get_train_predictions = True
-    args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
+    args.pretrained_WE_path = None
+    # args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
 
 
     CONST.set_config(args.data_type, args)
@@ -383,7 +394,7 @@ train_listfile = args.train_data,
     # functionality added.
     train_data, dev_data = read_data(dataset_reader, args.train_data, args.dev_data)
 
-    vocab = build_vocab(train_data + dev_data)
+    vocab = build_vocab_fixed_labels(dataset_reader.labels, train_data + dev_data)
 
     # make sure to index the vocab before adding it
     train_data.index_with(vocab)
