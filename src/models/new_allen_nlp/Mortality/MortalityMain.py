@@ -330,7 +330,7 @@ def main():
     args.use_preprocessing = False
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = 10
+    args.limit_examples = None
     args.sampler_type  = "balanced"
     args.use_reg = False
     args.data_type = "PHENOTYPING"

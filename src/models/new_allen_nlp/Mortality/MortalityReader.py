@@ -109,7 +109,13 @@ class MortalityReader(DatasetReader):
         self.vocab = None
         self.hadm2eps_path = hadm2eps_path
         self.listfile_df = pd.read_csv(train_listfile)
-        self.labels = self.listfile_df.columns[2:]
+
+        if self.data_type == "PHENOTYPING" or self.data_type == "DECOMPENSATION":
+            self.labels_start_idx = 2
+        elif self.data_type == "MORTALITY":
+            self.labels_start_idx = 1
+
+        self.labels = list(self.listfile_df.columns[self.labels_start_idx:])
     # def set_mode(self, mode: str):
     #     if mode == "train":
     #         self.limit_examples = None
@@ -516,7 +522,6 @@ class MortalityReader(DatasetReader):
                     )  # might be overindexing. but the labels are always at the end
 
 
-                    logger.critical("My labels {}\n".format(multi_labels._label_ids))
                 elif self.data_type == "MORTALITY":
                     list_labels = str_build(row.iloc[1:])
 
