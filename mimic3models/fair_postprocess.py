@@ -213,4 +213,88 @@ if __name__ == "__main__":
             plt.tight_layout()
             plt_name = sensitive_attr + "_" + str(to_plot[i])+".png"
             plt.savefig(plt_name)
+
+
+
+        LINE_OFFSET = 0.1
+        MARKER_SIZE = 20
+        U_MARK = "_"
+        EN_MARK = "_"
+        MEW = 4 # Marker Edge Width
+
+        LABEL1 = True
+        LABEL2 = False
+
+        OUTLINE_THICKNESS = 2
+
+        for i in range(len(to_plot)):
+            fig, ax = plt.subplots()
+            ax.set_xlabel("Classifier")
+            ax.set_xticks([1,2,3])
+            ax.set_xticklabels(x_axis)
+            ax.set_xlim([0.5,4.5])
+            ax.set_ylabel(to_plot[i])
+
+            labelled = False
+            for k, model_confusion in enumerate((base_confusion, dp_confusion, eo_confusion)):
+                max_val = -1
+                min_val = 10
+
+
+                for j, group in enumerate(groups):
+                    max_val = max(max_val, model_confusion[group][i])
+                    min_val = min(min_val, model_confusion[group][i])
+
+                    # draw black outline
+                    ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                            markersize=MARKER_SIZE + OUTLINE_THICKNESS, color="black", mew=MEW + OUTLINE_THICKNESS)
+
+                    if LABEL1 and not labelled:
+                        ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], label=group, mew=MEW)
+                    else:
+                        ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], mew=MEW)
+
+                if not labelled:
+                    ax.plot((1+k-LINE_OFFSET, 1+k-LINE_OFFSET),(min_val, max_val), color="black", label="Unstructured")
+                else:
+                    ax.plot((1 + k - LINE_OFFSET, 1 + k - LINE_OFFSET), (min_val, max_val), color="black")
+
+                labelled = True
+
+            labelled = False
+            for k, model_confusion in enumerate((en_base_confusion, en_dp_confusion, en_eo_confusion)):
+                max_val = -1
+                min_val = 10
+
+                for j, group in enumerate(groups):
+                    max_val = max(max_val, model_confusion[group][i])
+                    min_val = min(min_val, model_confusion[group][i])
+
+                    # draw black outline
+                    ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                            markersize=MARKER_SIZE+OUTLINE_THICKNESS, color="black", mew=MEW+OUTLINE_THICKNESS)
+
+                    if LABEL2 and not labelled:
+                        ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], label=group, mew=MEW)
+                    else:
+                        ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], mew=MEW)
+
+                if not labelled:
+                    ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
+                            label="Ensemble", linestyle="dotted")
+                else:
+                    ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
+                            linestyle="dotted")
+
+                labelled = True
+
+            plt.legend()
+            plt.grid(False)
+            plt.tight_layout()
+            plt_name = sensitive_attr + "_" + str(to_plot[i]) + "_t2.png"
+            plt.savefig(plt_name)
     
