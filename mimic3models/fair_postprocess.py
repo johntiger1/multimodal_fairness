@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
         my_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         my_fair_classifier.fit()
-        my_fair_classifier.get_group_confusion_matrix(sens_train, train_X, train_Y)
+        my_fair_classifier.get_avg_group_confusion_matrix(sens_train, train_X, train_Y)
 
         if len(sys.argv) == 7:
             train_dump_file = sys.argv[5]
@@ -122,11 +122,11 @@ if __name__ == "__main__":
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
         dp_fair_classifier.fit()
-        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        dp_confusion = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
-        eo_confusion = eo_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        eo_confusion = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
         
         to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate', "Accuracy"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
@@ -175,25 +175,25 @@ if __name__ == "__main__":
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
         dp_fair_classifier.fit()
-        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
-        dp_micro_macro = dp_fair_classifier.get_micro_macro(sens_test, test_X, test_Y)
+        dp_confusion = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
+        dp_micro_macro = dp_fair_classifier.get_avg_micro_macro(sens_test, test_X, test_Y)
 
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "demographic_parity")
         en_dp_fair_classifier.fit()
-        en_dp_confusion = dp_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
-        en_dp_micro_macro = dp_fair_classifier.get_micro_macro(en_sens_test, en_test_X, en_test_Y)
+        en_dp_confusion = dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_dp_micro_macro = dp_fair_classifier.get_avg_micro_macro(en_sens_test, en_test_X, en_test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
-        eo_confusion = eo_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
-        eo_micro_macro = eo_fair_classifier.get_micro_macro(sens_test, test_X, test_Y)
+        eo_confusion = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
+        eo_micro_macro = eo_fair_classifier.get_avg_micro_macro(sens_test, test_X, test_Y)
 
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "equalized_odds")
         en_eo_fair_classifier.fit()
-        en_eo_confusion = eo_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
-        en_eo_micro_macro = eo_fair_classifier.get_micro_macro(en_sens_test, en_test_X, en_test_Y)
+        en_eo_confusion = eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_eo_micro_macro = eo_fair_classifier.get_avg_micro_macro(en_sens_test, en_test_X, en_test_Y)
 
-        to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate', "Accuracy"]
+        to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
         colors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:gray', 'tab:olive']
         plots = []
@@ -342,8 +342,8 @@ if __name__ == "__main__":
                     min_val = min(min_val, model_confusion[group][i])
 
                 # If micro/macro statistics available, add diamond indicator
-                if to_plot[i] in model_micro_macro:
-                    micro, macro = model_micro_macro[to_plot[i]]
+                if to_plot[i][9:] in model_micro_macro: # TODO: Reduce Ugly hackiness
+                    micro, macro = model_micro_macro[to_plot[i][9:]]
                     ax.fill((1+k-LINE_OFFSET,
                              1+k-LINE_OFFSET, 1+k - (1 + DIAMOND_THICKNESS)*LINE_OFFSET),
                             (max_val,min_val,macro),
@@ -395,8 +395,8 @@ if __name__ == "__main__":
                     min_val = min(min_val, model_confusion[group][i])
 
                 # If micro/macro statistics available, add diamond indicator
-                if to_plot[i] in model_micro_macro:
-                    micro, macro = model_micro_macro[to_plot[i]]
+                if to_plot[i][9:] in model_micro_macro: # TODO: Reduce Ugly hackiness
+                    micro, macro = model_micro_macro[to_plot[i][9:]]
                     ax.fill((1+k+LINE_OFFSET,
                              1+k+LINE_OFFSET, 1+k - (-1 + DIAMOND_THICKNESS)*LINE_OFFSET),
                             (max_val, min_val, macro),
