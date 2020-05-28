@@ -192,7 +192,7 @@ class MortalityReader(DatasetReader):
 
     def get_sampler(self, listfile: str = ""):
         self.labels = []
-        self.class_counts = np.zeros(2)
+        self.class_counts = np.zeros(self.num_classes) # fix sampling for phenotypes
         with open(listfile, "r") as file:
             file.readline()
             for line in file:
