@@ -116,13 +116,13 @@ if __name__ == "__main__":
         train_X, train_score, train_Y, sens_train, \
                 test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr)
         
-        base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train)
-        base_classifier.fit(train_X, train_Y)
-        base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        #base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train)
+        #base_classifier.fit(train_X, train_Y)
+        #base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
-        dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
-        dp_fair_classifier.fit()
-        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        #dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
+        #dp_fair_classifier.fit()
+        #dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
@@ -165,19 +165,19 @@ if __name__ == "__main__":
         
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train)
         base_classifier.fit(train_X, train_Y)
-        base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        #base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
         
         en_base_classifier = pseudo_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train)
         en_base_classifier.fit(en_train_X, en_train_Y)
-        en_base_confusion = base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        #en_base_confusion = base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
         dp_fair_classifier.fit()
-        dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        #dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
         
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "demographic_parity")
         en_dp_fair_classifier.fit()
-        en_dp_confusion = dp_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        #en_dp_confusion = dp_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "equalized_odds")
         en_eo_fair_classifier.fit()
-        en_eo_confusion = eo_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        #en_eo_confusion = eo_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
         
         to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate', "Accuracy"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
