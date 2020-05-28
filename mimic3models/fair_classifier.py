@@ -98,6 +98,25 @@ class pseudo_classifier:
         
         return out_dict
 
+    def get_micro_macro(self, sensitive_features, X, true_Y):
+        # Get micro & macro avg accuracy of model; returns (micro, macro)
+        groups = np.unique(sensitive_features)
+
+        y_pred = self.predict_hard(X, sensitive_features)
+        micro_acc = 1 - np.sum(np.power(true_Y - y_pred, 2)) / len(true_Y)
+
+        macro_acc = 0
+
+        for index, group in enumerate(groups):
+            indicies = np.where(sensitive_features == group)[0]
+            true_class = true_Y[indicies]
+            pred_class = y_pred[indicies]
+            macro_acc += 1 - np.sum(np.power(true_class - pred_class, 2)) / len(true_class)
+
+        macro_acc/=len(groups)
+
+        return {"Accuracy": (micro_acc, macro_acc)}
+
 
 class fair_classifier(pseudo_classifier):
     def __init__(self, train_X, train_y, score_y, sensitive_train, \

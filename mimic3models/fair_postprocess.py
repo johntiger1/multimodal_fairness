@@ -166,27 +166,33 @@ if __name__ == "__main__":
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train)
         base_classifier.fit(train_X, train_Y)
         base_confusion = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
+        base_micro_macro = base_classifier.get_micro_macro(sens_test, test_X, test_Y)
         
         en_base_classifier = pseudo_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train)
         en_base_classifier.fit(en_train_X, en_train_Y)
         en_base_confusion = base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_base_micro_macro = base_classifier.get_micro_macro(en_sens_test, en_test_X, en_test_Y)
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
         dp_fair_classifier.fit()
         dp_confusion = dp_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
-        
+        dp_micro_macro = dp_fair_classifier.get_micro_macro(sens_test, test_X, test_Y)
+
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "demographic_parity")
         en_dp_fair_classifier.fit()
         en_dp_confusion = dp_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_dp_micro_macro = dp_fair_classifier.get_micro_macro(en_sens_test, en_test_X, en_test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
         eo_confusion = eo_fair_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
-        
+        eo_micro_macro = eo_fair_classifier.get_micro_macro(sens_test, test_X, test_Y)
+
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "equalized_odds")
         en_eo_fair_classifier.fit()
         en_eo_confusion = eo_fair_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
-        
+        en_eo_micro_macro = eo_fair_classifier.get_micro_macro(en_sens_test, en_test_X, en_test_Y)
+
         to_plot = ['TP Rate', 'TN Rate', 'FP Rate', 'FN Rate', "Accuracy"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
         colors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:gray', 'tab:olive']
@@ -216,6 +222,7 @@ if __name__ == "__main__":
 
 
 
+        # Type 2 Plot
         LINE_OFFSET = 0.1
         MARKER_SIZE = 20
         U_MARK = "_"
@@ -298,3 +305,141 @@ if __name__ == "__main__":
             plt_name = sensitive_attr + "_" + str(to_plot[i]) + "_t2.png"
             plt.savefig(plt_name)
     
+
+
+        # Type 3 Plot
+        LINE_OFFSET = 0.1
+        MARKER_SIZE = 20
+        U_MARK = "_"
+        EN_MARK = "_"
+        MEW = 4 # Marker Edge Width
+
+        LABEL1 = True
+        LABEL2 = False
+
+        OUTLINE_THICKNESS = 2
+
+        DIAMOND_THICKNESS = 0.75
+        DIAMOND_LINEWIDTH = 0.5
+
+        for i in range(len(to_plot)):
+            fig, ax = plt.subplots()
+            ax.set_xlabel("Classifier")
+            ax.set_xticks([1,2,3])
+            ax.set_xticklabels(x_axis)
+            ax.set_xlim([0.5,4.5])
+            ax.set_ylabel(to_plot[i])
+
+            labelled = False
+            for k, (model_confusion, model_micro_macro) in enumerate(((base_confusion, base_micro_macro),
+                                                                      (dp_confusion, dp_micro_macro),
+                                                                      (eo_confusion, eo_micro_macro))):
+                max_val = -1
+                min_val = 10
+
+                for group in groups:
+                    max_val = max(max_val, model_confusion[group][i])
+                    min_val = min(min_val, model_confusion[group][i])
+
+                # If micro/macro statistics available, add diamond indicator
+                if to_plot[i] in model_micro_macro:
+                    micro, macro = model_micro_macro[to_plot[i]]
+                    ax.fill((1+k-LINE_OFFSET,
+                             1+k-LINE_OFFSET, 1+k - (1 + DIAMOND_THICKNESS)*LINE_OFFSET),
+                            (max_val,min_val,macro),
+                            color="xkcd:light lavender") #xkcd:light lavender
+
+                    ax.fill((1+k-LINE_OFFSET, 1+k + (DIAMOND_THICKNESS-1) * LINE_OFFSET,
+                             1+k-LINE_OFFSET),
+                            (max_val, micro, min_val),
+                            color="xkcd:light grey")
+
+                    # Add outline
+                    ax.plot((1 + k - LINE_OFFSET, 1 + k + (DIAMOND_THICKNESS - 1) * LINE_OFFSET,
+                             1 + k - LINE_OFFSET),
+                            (max_val, micro, min_val),
+                            color="black", linewidth=DIAMOND_LINEWIDTH)
+
+                    ax.plot((1 + k - LINE_OFFSET,
+                             1 + k - (1 + DIAMOND_THICKNESS) * LINE_OFFSET, 1 + k - LINE_OFFSET),
+                            (max_val, macro, min_val), color="black", linewidth=DIAMOND_LINEWIDTH)
+
+                for j, group in enumerate(groups):
+                    # draw black outline
+                    ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                            markersize=MARKER_SIZE + OUTLINE_THICKNESS, color="black", mew=MEW + OUTLINE_THICKNESS)
+
+                    if LABEL1 and not labelled:
+                        ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], label=group, mew=MEW)
+                    else:
+                        ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], mew=MEW)
+
+                if not labelled:
+                    ax.plot((1+k-LINE_OFFSET, 1+k-LINE_OFFSET),(min_val, max_val), color="black", label="Unstructured")
+                else:
+                    ax.plot((1 + k - LINE_OFFSET, 1 + k - LINE_OFFSET), (min_val, max_val), color="black")
+
+                labelled = True
+
+            labelled = False
+            for k, (model_confusion, model_micro_macro) in enumerate(((en_base_confusion, en_base_micro_macro),
+                                                                      (en_dp_confusion, en_dp_micro_macro),
+                                                                      (en_eo_confusion, en_eo_micro_macro))):
+                max_val = -1
+                min_val = 10
+
+                for group in groups:
+                    max_val = max(max_val, model_confusion[group][i])
+                    min_val = min(min_val, model_confusion[group][i])
+
+                # If micro/macro statistics available, add diamond indicator
+                if to_plot[i] in model_micro_macro:
+                    micro, macro = model_micro_macro[to_plot[i]]
+                    ax.fill((1+k+LINE_OFFSET,
+                             1+k+LINE_OFFSET, 1+k - (-1 + DIAMOND_THICKNESS)*LINE_OFFSET),
+                            (max_val, min_val, macro),
+                            color="xkcd:light lavender")
+
+                    ax.fill((1+k+LINE_OFFSET, 1+k + (DIAMOND_THICKNESS+1) * LINE_OFFSET,
+                             1+k+LINE_OFFSET),
+                            (max_val, micro, min_val),
+                            color="xkcd:light grey")
+
+                    # Add outline
+                    ax.plot((1 + k + LINE_OFFSET, 1 + k + (DIAMOND_THICKNESS + 1) * LINE_OFFSET,
+                             1 + k + LINE_OFFSET),
+                            (max_val, micro, min_val),
+                            color="black", linewidth=DIAMOND_LINEWIDTH)
+
+                    ax.plot((1 + k + LINE_OFFSET,
+                             1 + k - (-1 + DIAMOND_THICKNESS) * LINE_OFFSET, 1 + k + LINE_OFFSET),
+                            (max_val, macro, min_val), color="black", linewidth=DIAMOND_LINEWIDTH)
+
+                for j, group in enumerate(groups):
+                    # draw black outline
+                    ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                            markersize=MARKER_SIZE+OUTLINE_THICKNESS, color="black", mew=MEW+OUTLINE_THICKNESS)
+
+                    if LABEL2 and not labelled:
+                        ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], label=group, mew=MEW)
+                    else:
+                        ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                                markersize=MARKER_SIZE, color=colors[j], mew=MEW)
+
+                if not labelled:
+                    ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
+                            label="Ensemble", linestyle="dotted")
+                else:
+                    ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
+                            linestyle="dotted")
+
+                labelled = True
+
+            plt.legend()
+            plt.grid(False)
+            plt.tight_layout()
+            plt_name = sensitive_attr + "_" + str(to_plot[i]) + "_t3.png"
+            plt.savefig(plt_name)
