@@ -7,11 +7,15 @@ Text model is run inside the `new_allen_nlp` branch
 ## Tabular
 Tabular model is the underlying 2017 paper. 
 
+## Ensemble
+Ensemble is a sklearn on the outputs of the text and tabular model. 
+
 ## Evaluation and Plotting
 
 1. First, ensure you have predictions saved to disk for both text and tabular models.
+2. Plotting code is here: https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models
 
-
+## Old instructions
 1. Get the data set-up as described below.
 2. Run `python src/preprocessing/extract_notes.py` to get all the notes for the (patient, episode) pairs. 
 3. Construct a reader. This reader will 
