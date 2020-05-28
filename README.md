@@ -2,7 +2,7 @@
 # Multimodal Fairness
 
 ## Text 
-Text model is run inside the `new_allen_nlp` branch
+Text model is run inside the `new_allen_nlp` folder
 
 ## Tabular
 Tabular model is the underlying 2017 paper. 
@@ -12,8 +12,11 @@ Ensemble is a sklearn on the outputs of the text and tabular model.
 
 ## Evaluation and Plotting
 
-1. First, ensure you have predictions saved to disk for both text and tabular models.
+1. First, ensure you have predictions saved to disk for both text and tabular models, and the ensemble models. 
 2. Plotting code is here: https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models
+3. You need to install a different (conflicting set of requirements). Make sure you switch to a new virtual environment.
+4. Need to edit line 112 in the fairlearn library.
+5. Run the python script file there: . It consists of two steps. First, run the LOAD command, which will map sensitive attributes for the purpose of fairness. This will produce an appropriate JSON dict. And then run the PLOT_ALL command to ingest all CSV of structured, unstructured, and ensemble data. You may need to run a "merge-coerce" script which will merge the unstructured predictions, and coerce them into the right, common format. 
 
 ## Old instructions
 1. Get the data set-up as described below.
