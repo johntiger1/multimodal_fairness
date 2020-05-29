@@ -459,7 +459,7 @@ def _read_embeddings_from_bin_file(
     vocab_size = vocab.get_vocab_size(namespace)
     
     import gensim.models
-    model =gensim.models.KeyedVectors.load_word2vec_format(file_uri, binary=True)
+    model =gensim.models.KeyedVectors.load_word2vec_format(file_uri, binary=True, unicode_errors='ignore')
     words = sorted([w for w in model.vocab], key=lambda w: model.vocab[w].index)
     vecs = [model[w] for w in words]
 
