@@ -456,6 +456,8 @@ def _read_embeddings_from_bin_file(
     """
     Reads from a bin formatted file using gensim    
     """
+    vocab_size = vocab.get_vocab_size(namespace)
+    
     import gensim.models
     model =gensim.models.KeyedVectors.load_word2vec_format(file_uri, binary=True)
     words = sorted([w for w in model.vocab], key=lambda w: model.vocab[w].index)
