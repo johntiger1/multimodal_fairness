@@ -181,7 +181,7 @@ if __name__ == "__main__":
         
         en_base_classifier = pseudo_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test)
         en_base_classifier.fit(en_train_X, en_train_Y)
-        en_base_confusion, en_base_micro_macro = base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_base_confusion, en_base_micro_macro = en_base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
                test_X, test_Y, test_score, sens_test, "demographic_parity")
@@ -191,7 +191,7 @@ if __name__ == "__main__":
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, \
                 en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "demographic_parity")
         en_dp_fair_classifier.fit()
-        en_dp_confusion, en_dp_micro_macro = dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_dp_confusion, en_dp_micro_macro = en_dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
                test_X, test_Y, test_score, sens_test, "equalized_odds")
@@ -201,7 +201,7 @@ if __name__ == "__main__":
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, \
                 en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "equalized_odds")
         en_eo_fair_classifier.fit()
-        en_eo_confusion, en_eo_micro_macro = eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
+        en_eo_confusion, en_eo_micro_macro = en_eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy", "AUC"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
