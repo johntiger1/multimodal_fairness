@@ -347,12 +347,12 @@ def main():
     args.max_tokens = 768*2
     args.get_train_predictions = True
     # args.pretrained_WE_path = None
-    pretrained_WE_folder = "/scratch/gobi1/johnchen/xindi_work/"
-    pretrained_WE_name = "BioWordVec_PubMed_MIMICIII_d200.vec.bin" # original
+    args.pretrained_WE_folder = "/scratch/gobi1/johnchen/xindi_work/"
+    args.pretrained_WE_name = "BioWordVec_PubMed_MIMICIII_d200.vec.bin" # original
     # pretrained_WE_name = "data_vocab_4class_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.txt" # debiased
     #
 
-    args.pretrained_WE_path = os.path.join(pretrained_WE_folder, pretrained_WE_name)
+    args.pretrained_WE_path = os.path.join(args.pretrained_WE_folder, args.pretrained_WE_name)
 
     # args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
 
