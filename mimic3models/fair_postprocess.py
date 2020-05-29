@@ -167,12 +167,19 @@ if __name__ == "__main__":
                 test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr)
         en_train_X, en_train_score, en_train_Y, en_sens_train, \
                 en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr)
-        
+       
+        print("Train")
+        print(train_X[0], train_score[0])
+        print(en_train_X[0], en_train_score[0])
+        print("Test")
+        print(test_X[0], test_score[0])
+        print(en_test_X[0], en_test_score[0])
+
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train, test_X, test_Y, test_score, sens_test)
         base_classifier.fit(train_X, train_Y)
         base_confusion, base_micro_macro = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
         
-        en_base_classifier = pseudo_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, test_X, test_Y, test_score, sens_test)
+        en_base_classifier = pseudo_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test)
         en_base_classifier.fit(en_train_X, en_train_Y)
         en_base_confusion, en_base_micro_macro = base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
@@ -182,7 +189,7 @@ if __name__ == "__main__":
         dp_confusion, dp_micro_macro = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, \
-                en_sens_train, test_X, test_Y, test_score, sens_test, "demographic_parity")
+                en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "demographic_parity")
         en_dp_fair_classifier.fit()
         en_dp_confusion, en_dp_micro_macro = dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
@@ -192,7 +199,7 @@ if __name__ == "__main__":
         eo_confusion, eo_micro_macro = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, \
-                en_sens_train, test_X, test_Y, test_score, sens_test, "equalized_odds")
+                en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "equalized_odds")
         en_eo_fair_classifier.fit()
         en_eo_confusion, en_eo_micro_macro = eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
