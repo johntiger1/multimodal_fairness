@@ -7,11 +7,18 @@ class pseudo_classifier:
     basically a wrapper around that prediction so we can pass it nicely onto the 
     fairlearn framework
     """
-    def __init__(self, train_X, train_y, score_y, sensitive_train, sensitive_features_dict=None):
+    def __init__(self, train_X, train_Y, train_score_Y, sensitive_train, \
+            test_X=None, test_Y=None, test_score_Y=None, sensitive_test=None, \
+            sensitive_features_dict=None):
         self.train_X = train_X
-        self.train_Y = train_y
-        self.score_Y = score_y
+        self.train_Y = train_Y
+        self.train_score_Y = train_score_Y
         self.sensitive_train = sensitive_train
+        
+        self.test_X = test_X
+        self.test_Y = test_Y
+        self.test_score_Y = test_score_Y
+        self.sensitive_test = sensitive_test
 
         self.sensitive_features_dict = sensitive_features_dict
         self.train_size = len(self.train_X)
@@ -24,7 +31,11 @@ class pseudo_classifier:
         """
         self.answers_map = {}
         for i, sample in enumerate(self.train_X):
-            self.answers_map[(sample[0], sample[1])] = (self.sensitive_train[i], self.score_Y[i], self.train_Y[i])
+            self.answers_map[(sample[0], sample[1])] = (self.sensitive_train[i], self.train_score_Y[i], self.train_Y[i])
+        
+        if self.test_X is not None:
+            for i, sample in enumerate(self.test_X):
+                self.answers_map[(sample[0], sample[1])] = (self.sensitive_test[i], self.test_score_Y[i], self.test_Y[i])
         pass
 
     def predict(self, samples, sensitive_features=None):
@@ -119,15 +130,21 @@ class pseudo_classifier:
 
 
 class fair_classifier(pseudo_classifier):
-    def __init__(self, train_X, train_y, score_y, sensitive_train, \
-            metric, sensitive_features_dict=None):
+    def __init__(self, train_X, train_y, train_score_y, sensitive_train, \
+            test_X, test_y, test_score_y, sensitive_test, metric, sensitive_features_dict=None):
         self.train_X = train_X
         self.train_Y = train_y
-        self.score_Y = score_y
+        self.train_score_Y = train_score_y
         self.sensitive_train = sensitive_train
+        
+        self.test_X = test_X
+        self.test_Y = test_y
+        self.test_score_Y = test_score_y
+        self.sensitive_test = sensitive_test
+        
         self.sensitive_features_dict = sensitive_features_dict
-        self.erm_classifier = pseudo_classifier(self.train_X, self.train_Y, self.score_Y, \
-                self.sensitive_train)
+        self.erm_classifier = pseudo_classifier(self.train_X, self.train_Y, self.train_score_Y, \
+                self.sensitive_train, self.test_X, self.test_Y, self.test_score_Y, self.sensitive_test)
         assert(metric in ["equalized_odds", "demographic_parity"])
         self.metric = metric
 
