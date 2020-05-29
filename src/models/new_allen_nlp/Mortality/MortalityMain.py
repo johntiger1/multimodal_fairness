@@ -9,7 +9,12 @@ from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
 from allennlp.models import Model
 from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
-from allennlp.modules.token_embedders import Embedding
+
+
+# from allennlp.modules.token_embedders import Embedding
+from embedding import Embedding
+
+
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder, CnnEncoder
 
 import psutil
@@ -332,16 +337,23 @@ def main():
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = False
+    args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = None
+    args.limit_examples = 50000
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "PHENOTYPING"
+    args.data_type = "DECOMPENSATION"
     args.max_tokens = 768*2
     args.get_train_predictions = True
-    args.pretrained_WE_path = None
+    # args.pretrained_WE_path = None
+    pretrained_WE_folder = "/scratch/gobi1/johnchen/xindi_work/"
+    pretrained_WE_name = "BioWordVec_PubMed_MIMICIII_d200.vec.bin" # original
+    # pretrained_WE_name = "data_vocab_4class_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.txt" # debiased
+    #
+
+    args.pretrained_WE_path = os.path.join(pretrained_WE_folder, pretrained_WE_name)
+
     # args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
 
 
