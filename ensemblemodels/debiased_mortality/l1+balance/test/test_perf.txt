@@ -1,0 +1,17 @@
+Namespace(mode='M', outdir='./ensemblemodels/debiased_mortality/test/', str_path='./mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv', test_str_path='./mimic3models/in_hospital_mortality/test_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv', test_ustr_path='./IanFairnessHackery/john_results/Debiased_Mortality/test_final_preds_id_ep_fmt.csv', ustr_path='./IanFairnessHackery/john_results/Debiased_Mortality/train_final_preds_id_ep_fmt.csv')
+LogisticRegression(C=0.25, class_weight='balanced', penalty='l1',
+                   solver='liblinear')
+[0 1]
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+confusion matrix:
+[[2423  406]
+ [ 115  249]]
+accuracy = 0.8368305563926697
+precision class 0 = 0.9546887278556824
+precision class 1 = 0.3801526725292206
+recall class 0 = 0.8564863801002502
+recall class 1 = 0.6840659379959106
+AUC of ROC = 0.8715734601206498
+AUC of PRC = 0.5378837048581031
+min(+P, Se) = 0.49725274725274726

@@ -3,8 +3,8 @@
 import pandas as pd
 
 PATH_TO_BENCHMARK_STAYS = "../data/root/all_stays.csv"
-PATH_TO_MIMIC_ADMISSIONS = "/home/administrator/00Projects/Fairness/MIMIC_III/MIMIC_III/ADMISSIONS.csv"
-
+#PATH_TO_MIMIC_ADMISSIONS = "/home/administrator/00Projects/Fairness/MIMIC_III/MIMIC_III/ADMISSIONS.csv"
+PATH_TO_MIMIC_ADMISSIONS = "/h/shossain/multimodal_fairness/data/physionet.org/files/mimiciii/1.4/ADMISSIONS.csv"
 
 # Define data processing helpers:
 # Aggregator such that if element of group is different, then UNKNOWN is returned, else value is returned
@@ -75,7 +75,7 @@ benchmark_df= benchmark_df.applymap(clean)
 #print(benchmark_df)
 
 # Load sensitive features from mimic, repeat processing
-mimic_df = pd.read_csv(PATH_TO_MIMIC_ADMISSIONS)
+mimic_df = pd.read_csv(PATH_TO_MIMIC_ADMISSIONS, engine="python")
 mimic_df = mimic_df[["SUBJECT_ID","INSURANCE","RELIGION", "MARITAL_STATUS"]]
 mimic_df = mimic_df.groupby("SUBJECT_ID").agg(unk_if_diff)
 mimic_df = mimic_df.applymap(clean)
@@ -108,3 +108,12 @@ joined = joined[joined.ETHNICITY != "OTHER"]
 joined.to_csv("partial_sensitive_4_eth.csv")
 print("4 ethnicity variant")
 print_db(joined)
+
+# Create fourth version of sensitive attributes - LOSES DATA! Removes all with UNK Insurance
+# and merged medicaid with government
+joined = joined[joined.INSURANCE != "UNKNOWN"]
+joined["INSURANCE"] = joined["INSURANCE"].apply(lambda x: x if x in ["Private", "Medicare","Self Pay"] else "Gov/Medicaid")
+joined.to_csv("partial_sensitive_all_4.csv")
+print("4 ethnicity/insurance variant")
+print_db(joined)
+

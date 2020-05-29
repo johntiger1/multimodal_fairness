@@ -57,7 +57,7 @@ if __name__ == '__main__':
               " filenames that are prefixed by the condition")
         exit(-1)
 
-    merged_X = None
+    merged_pred = None
     merged_Y = None
 
     indir = sys.argv[1]
@@ -75,25 +75,25 @@ if __name__ == '__main__':
 
         print("Evaluating {}".format(matches[0]))
 
-        match_X, match_Y = read_file(os.path.join(indir, filename))
+        match_pred, match_Y = read_file(os.path.join(indir, filename))
 
-        if merged_X is None:
-            merged_X = np.expand_dims(match_X.copy(), axis=0)
+        if merged_pred is None:
+            merged_pred = np.expand_dims(match_pred.copy(), axis=0)
             merged_Y = np.expand_dims(match_Y.copy(), axis=0)
         else:
-            merged_X =np.concatenate((merged_X, np.expand_dims(match_X ,axis=0)), axis=0)
+            merged_pred =np.concatenate((merged_pred, np.expand_dims(match_pred, axis=0)), axis=0)
             merged_Y =np.concatenate((merged_Y, np.expand_dims(match_Y ,axis=0)), axis=0)
 
         #print(merged_X.shape)
         #print(merged_Y.shape)
 
-        metrics.print_metrics_binary(match_Y, match_X)
+        metrics.print_metrics_binary(match_Y, match_pred)
         print("----------------------------------------")
 
 
     print("\n==========================================")
     print("Evaluating all together:")
-    metrics.print_metrics_multilabel(merged_Y.T, merged_X.T)
+    metrics.print_metrics_multilabel(merged_Y.T, merged_pred.T)
 
     for key in PRED_TASKS:
         if PRED_TASKS[key] != True:
