@@ -174,25 +174,21 @@ if __name__ == "__main__":
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "demographic_parity")
         dp_fair_classifier.fit()
-        dp_confusion = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
-        dp_micro_macro, dp_auc = dp_fair_classifier.get_avg_micro_macro(sens_test, test_X, test_Y)
+        dp_confusion, dp_micro_macro = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "demographic_parity")
         en_dp_fair_classifier.fit()
-        en_dp_confusion = dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
-        en_dp_micro_macro, en_dp_auc = dp_fair_classifier.get_avg_micro_macro(en_sens_test, en_test_X, en_test_Y)
+        en_dp_confusion, en_dp_micro_macro = dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, "equalized_odds")
         eo_fair_classifier.fit()
-        eo_confusion = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
-        eo_micro_macro, en_auc = eo_fair_classifier.get_avg_micro_macro(sens_test, test_X, test_Y)
+        eo_confusion, eo_micro_macro = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, en_sens_train, "equalized_odds")
         en_eo_fair_classifier.fit()
-        en_eo_confusion = eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
-        en_eo_micro_macro, en_eo_auc = eo_fair_classifier.get_avg_micro_macro(en_sens_test, en_test_X, en_test_Y)
+        en_eo_confusion, en_eo_micro_macro = eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
-        to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy"]
+        to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy", "AUC"]
         x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
         colors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:gray', 'tab:olive']
         plots = []
@@ -344,8 +340,11 @@ if __name__ == "__main__":
                     min_val = min(min_val, model_confusion[group][i])
 
                 # If micro/macro statistics available, add diamond indicator
-                if to_plot[i][9:] in model_micro_macro: # TODO: Reduce Ugly hackiness
-                    micro, macro = model_micro_macro[to_plot[i][9:]]
+                if to_plot[i][9:] in model_micro_macro or to_plot[i] in model_micro_macro: # TODO: Reduce Ugly hackiness
+                    if to_plot[i][9:] in model_micro_macro:
+                        micro, macro = model_micro_macro[to_plot[i][9:]]
+                    else:
+                        micro, macro = model_micro_macro[to_plot[i]]
                     ax.fill((1+k-LINE_OFFSET,
                              1+k-LINE_OFFSET, 1+k - (1 + DIAMOND_THICKNESS)*LINE_OFFSET),
                             (max_val,min_val,macro),
@@ -394,8 +393,11 @@ if __name__ == "__main__":
                     min_val = min(min_val, model_confusion[group][i])
 
                 # If micro/macro statistics available, add diamond indicator
-                if to_plot[i][9:] in model_micro_macro: # TODO: Reduce Ugly hackiness
-                    micro, macro = model_micro_macro[to_plot[i][9:]]
+                if to_plot[i][9:] in model_micro_macro or to_plot[i] in model_micro_macro:  # TODO: Reduce Ugly hackiness
+                    if to_plot[i][9:] in model_micro_macro:
+                        micro, macro = model_micro_macro[to_plot[i][9:]]
+                    else:
+                        micro, macro = model_micro_macro[to_plot[i]]
                     ax.fill((1+k+LINE_OFFSET,
                              1+k+LINE_OFFSET, 1+k - (-1 + DIAMOND_THICKNESS)*LINE_OFFSET),
                             (max_val, min_val, macro),
@@ -441,10 +443,16 @@ if __name__ == "__main__":
                                              markersize=MARKER_SIZE, color=colors[j], mew=MEW) for j, group in enumerate(groups)]
             labels = groups.copy()
 
-            if to_plot[i][9:] in model_micro_macro: # TODO: Reduce Ugly hackiness
+            if to_plot[i][9:] in model_micro_macro or to_plot[i] in model_micro_macro:  # TODO: Reduce Ugly hackiness
+                if to_plot[i][9:] in model_micro_macro:
+                    name = to_plot[i][9:]
+                    micro, macro = model_micro_macro[to_plot[i][9:]]
+                else:
+                    name = to_plot[i]
+                    micro, macro = model_micro_macro[to_plot[i]]
                 lines += [mpl.lines.Line2D([0],[0],color=col,
                                 marker='o', mec=mec, markersize=DIAMOND_MARKERSIZE) for col, mec in (("xkcd:light lavender", "red"),("xkcd:light grey", "black"))]
-                labels += ["Macro Avg", "Micro Avg"]
+                labels += ["Macro "+name, "Micro "+name]
 
             lines += [mpl.lines.Line2D([0], [0], color="black", linestyle=style) for style in ('solid', 'dotted')]
             labels += ['Unstructured', 'Ensemble']

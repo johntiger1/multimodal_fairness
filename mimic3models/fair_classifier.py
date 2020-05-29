@@ -79,7 +79,8 @@ class pseudo_classifier:
             tn = len(np.where(pred_class[true_neg_index]==0)[0])/len(true_neg_index)
             fp = len(np.where(pred_class[true_neg_index]==1)[0])/len(true_neg_index)
             fn = len(np.where(pred_class[true_pos_index]==0)[0])/len(true_pos_index)
-            auc = roc_auc_score(true_class, pred_class)
+            auc = roc_auc_score(true_class, y_pred_probs[indicies])
+            macro_auc += auc
 
             accuracy = 1 - np.sum(np.power(true_class - pred_class, 2))/len(true_class)
             macro_acc += accuracy
@@ -154,10 +155,17 @@ class fair_classifier(pseudo_classifier):
         # Calculate probability of classification for each input
         y_pred_prob = self.predict_prob(X, sensitive_features)
         # Calculate average probability of correct classification (i.e. expected accuracy)
-        accuracy = (np.sum(y_pred_prob[true_pos_index][:,1]) + np.sum(y_pred_prob[true_neg_index][:,0])) / len(true_Y)
-        print("Average Overall Accuracy: ", accuracy)
+        avg_micro_acc = (np.sum(y_pred_prob[true_pos_index][:,1]) + np.sum(y_pred_prob[true_neg_index][:,0])) / len(true_Y)
+        print("Average Overall Accuracy: ", avg_micro_acc)
+
+        micro_auc = roc_auc_score(true_Y, y_pred_prob[:,1])
+        print("Overall AUC: ", micro_auc)
 
         out_dict = {}  # The format is: {group:[tp, fp, tn, fn]}
+
+        avg_macro_acc = 0
+        macro_auc = 0
+
         for index, group in enumerate(groups):
             indicies = np.where(sensitive_features == group)[0]
             true_class = true_Y[indicies]
@@ -181,11 +189,16 @@ class fair_classifier(pseudo_classifier):
 
             # Expected accuracy
             accuracy = (np.sum(pred_prob[true_pos_index][:,1]) + np.sum(pred_prob[true_neg_index][:,0])) / len(true_class)
-            out_dict[group] = [tp, tn, fp, fn, accuracy]
+            avg_macro_acc += accuracy
+
+            auc = roc_auc_score(true_class, pred_prob[:,1])
+            macro_auc += auc
+
+            out_dict[group] = [tp, tn, fp, fn, accuracy, auc]
             print(group, "average confusion matrix")
             if tp == 0 and fp == 0:
                 print("None classified as Positive in group", group)
-                print("\t Group Accuracy: ", accuracy)
+                print("\t Average Group Accuracy: ", accuracy)
             else:
                 # Can't compute F1 out of these since dealing with average values
                 #precision = tp / (tp + fp)
@@ -193,37 +206,13 @@ class fair_classifier(pseudo_classifier):
                 #f1 = 2 * precision * recall / (precision + recall)
                 #print("\t F1 score: ", f1)
                 print("\t Average Group Accuracy: ", accuracy)
+                print("\t Group AUC: ", auc)
                 print("\t Average True positive rate:", tp)
                 print("\t Average True negative rate:", tn)
                 print("\t Average False positive rate:", fp)
                 print("\t Average False negative rate:", fn)
 
-        return out_dict
+        avg_macro_acc /= len(groups)
+        macro_auc /= len(groups)
 
-
-    def get_avg_micro_macro(self, sensitive_features, X, true_Y):
-        # Get Expected micro & macro avg accuracy of model; returns dictionary of statistic to (micro, macro)
-        # Also returns as second argument the ROC AUC
-        groups = np.unique(sensitive_features)
-
-        true_pos_index = np.where(true_Y == 1)
-        true_neg_index = np.where(true_Y == 0)
-        # Calculate probability of classification for each input
-        y_pred_prob = self.predict_prob(X, sensitive_features)
-        # Calculate average probability of correct classification (i.e. expected accuracy)
-        avg_micro_acc = (np.sum(y_pred_prob[true_pos_index][:, 1]) + np.sum(y_pred_prob[true_neg_index][:, 0])) / len(true_Y)
-
-        avg_macro_acc = 0
-
-        for index, group in enumerate(groups):
-            indicies = np.where(sensitive_features == group)[0]
-            true_class = true_Y[indicies]
-            pred_prob = y_pred_prob[indicies]
-
-            true_pos_index = np.where(true_class == 1)[0]
-            true_neg_index = np.where(true_class == 0)[0]
-            avg_macro_acc += (np.sum(pred_prob[true_pos_index][:,1]) + np.sum(pred_prob[true_neg_index][:,0])) / len(true_class)
-
-        avg_macro_acc/=len(groups)
-
-        return {"Accuracy": (avg_micro_acc, avg_macro_acc)}, roc_auc_score(true_Y, y_pred_prob[:,1])
+        return out_dict, {"Accuracy": (avg_micro_acc, avg_macro_acc), "AUC": (micro_auc, macro_auc)}
