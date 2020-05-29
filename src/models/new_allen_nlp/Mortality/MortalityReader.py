@@ -192,7 +192,25 @@ class MortalityReader(DatasetReader):
 
     def get_sampler(self, listfile: str = ""):
         self.labels = []
-        self.class_counts = np.zeros(self.num_classes) # fix sampling for phenotypes
+
+        # read out the personal statement, and expand upon this
+        # current events
+        # politics and area studies
+        # controversial issues: pipeline protests
+        # saudi arms deal!
+        # conservative, etc.
+        # african and canadian politics
+        # excerpt from the referee letter!
+        # sampling_num_classes
+        sampling_num_classes = None
+        if self.data_type == "DECOMPENSATION" or self.data_type == "MORTALITY":
+            sampling_num_classes = 2
+        else:
+            sampling_num_classes = 25
+
+
+
+        self.class_counts = np.zeros(sampling_num_classes) # fix sampling for phenotypes
         with open(listfile, "r") as file:
             file.readline()
             for line in file:
