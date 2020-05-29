@@ -1,5 +1,6 @@
 import numpy as np
 from fairlearn.postprocessing import ThresholdOptimizer
+from sklearn.metrics import roc_auc_score
 
 class pseudo_classifier:
     """ Note that the actual classifier is already trained (unaware as it ought to be) and 
@@ -47,16 +48,20 @@ class pseudo_classifier:
         # For a trained classifier, get the true positive and true negative rates based on
         # group identity. Dobased on groups (currently only works for binary)
         # sensitive_index is the index of the sensitive attribute.
+        #
+        # Two returned dictionaries
         groups = np.unique(sensitive_features)
-        n_groups = len(groups)
-        tp_rate = {}
-        fp_rate = {}
-        tn_rate = {}
-        fn_rate = {}
-        
-        y_pred = self.predict_hard(X, sensitive_features)
-        accuracy = 1 - np.sum(np.power(true_Y - y_pred, 2))/len(true_Y) 
-        print("Overall Accuracy: ", accuracy)
+
+        y_pred_probs = self.predict(X, sensitive_features)
+        y_pred = np.round(y_pred_probs)
+        micro_acc = 1 - np.sum(np.power(true_Y - y_pred, 2))/len(true_Y)
+        print("Overall Accuracy: ", micro_acc)
+
+        micro_auc = roc_auc_score(true_Y, y_pred_probs)
+        print("Overall AUC: ", micro_auc)
+
+        macro_acc = 0
+        macro_auc = 0
 
         out_dict = {}   # The format is: {group:[tp, fp, tn, fn]}
         for index, group in enumerate(groups):
@@ -74,13 +79,11 @@ class pseudo_classifier:
             tn = len(np.where(pred_class[true_neg_index]==0)[0])/len(true_neg_index)
             fp = len(np.where(pred_class[true_neg_index]==1)[0])/len(true_neg_index)
             fn = len(np.where(pred_class[true_pos_index]==0)[0])/len(true_pos_index)
-            tp_rate[group] = tp 
-            tn_rate[group] = tn
-            fp_rate[group] = fp 
-            fn_rate[group] = fn 
+            auc = roc_auc_score(true_class, pred_class)
 
-            accuracy = 1 - np.sum(np.power(true_class - pred_class, 2))/len(true_class) 
-            out_dict[group] = [tp, tn, fp, fn, accuracy]
+            accuracy = 1 - np.sum(np.power(true_class - pred_class, 2))/len(true_class)
+            macro_acc += accuracy
+            out_dict[group] = [tp, tn, fp, fn, accuracy, auc]
             print(group, "confusion matrix")
             if tp == 0 and fp == 0:
                 print("None classified as Positive in group", group)
@@ -90,32 +93,17 @@ class pseudo_classifier:
                 recall = tp / (tp + fn)
                 f1 = 2*precision*recall/(precision+recall)
                 print("\t F1 score: ", f1)
+                print("\t AUC: ", auc)
                 print("\t Group Accuracy: ", accuracy)
                 print("\t True positive rate:", tp)
                 print("\t True negative rate:", tn)
                 print("\t False positive rate:", fp)
                 print("\t False negative rate:", fn)
-        
-        return out_dict
 
-    def get_micro_macro(self, sensitive_features, X, true_Y):
-        # Get micro & macro avg accuracy of model; returns (micro, macro)
-        groups = np.unique(sensitive_features)
+        macro_acc /= len(groups)
+        macro_auc /= len(groups)
 
-        y_pred = self.predict_hard(X, sensitive_features)
-        micro_acc = 1 - np.sum(np.power(true_Y - y_pred, 2)) / len(true_Y)
-
-        macro_acc = 0
-
-        for index, group in enumerate(groups):
-            indicies = np.where(sensitive_features == group)[0]
-            true_class = true_Y[indicies]
-            pred_class = y_pred[indicies]
-            macro_acc += 1 - np.sum(np.power(true_class - pred_class, 2)) / len(true_class)
-
-        macro_acc/=len(groups)
-
-        return {"Accuracy": (micro_acc, macro_acc)}
+        return out_dict, {"Accuracy": (micro_acc, macro_acc), "AUC": (micro_auc, macro_auc)}
 
 
 class fair_classifier(pseudo_classifier):
@@ -215,6 +203,7 @@ class fair_classifier(pseudo_classifier):
 
     def get_avg_micro_macro(self, sensitive_features, X, true_Y):
         # Get Expected micro & macro avg accuracy of model; returns dictionary of statistic to (micro, macro)
+        # Also returns as second argument the ROC AUC
         groups = np.unique(sensitive_features)
 
         true_pos_index = np.where(true_Y == 1)
@@ -237,4 +226,4 @@ class fair_classifier(pseudo_classifier):
 
         avg_macro_acc/=len(groups)
 
-        return {"Accuracy": (avg_micro_acc, avg_macro_acc)}
+        return {"Accuracy": (avg_micro_acc, avg_macro_acc)}, roc_auc_score(true_Y, y_pred_prob[:,1])
