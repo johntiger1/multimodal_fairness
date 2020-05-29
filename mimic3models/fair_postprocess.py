@@ -679,3 +679,136 @@ if __name__ == "__main__":
             plt.tight_layout()
             plt_name = sensitive_attr + "_" + str(to_plot[i]) + "_t4.png"
             plt.savefig(plt_name)
+
+    elif cmd == "PLOT_ALL3":
+        # unstructured
+        u_train_file = sys.argv[2]
+        u_test_file = sys.argv[3]
+
+        # structured
+        s_train_file = sys.argv[4]
+        s_test_file = sys.argv[5]
+
+        # ensemble
+        en_train_file = sys.argv[6]
+        en_test_file = sys.argv[7]
+
+        # Debiased Word Embeds
+        d_train_file = sys.argv[8]
+        d_test_file = sys.argv[9]
+
+        # Debiased Word Embeds Ensemble
+        den_train_file = sys.argv[10]
+        den_test_file = sys.argv[11]
+
+        sensitive_attr = sys.argv[12]
+
+        assert (sensitive_attr in ALL_SENSITIVE)
+
+
+        # Get Base classifier performance
+        base_confusion, base_micro_macro = get_conf_base(create_train_test_data(u_train_file, u_test_file, sensitive_attr))
+        en_base_confusion, en_base_micro_macro = get_conf_base(create_train_test_data(en_train_file, en_test_file, sensitive_attr))
+        s_base_confusion, s_base_micro_macro = get_conf_base(create_train_test_data(s_train_file, s_test_file, sensitive_attr))
+        d_base_confusion, d_base_micro_macro = get_conf_base(create_train_test_data(d_train_file, d_test_file, sensitive_attr))
+        den_base_confusion, den_base_micro_macro = get_conf_base(create_train_test_data(den_train_file, den_test_file, sensitive_attr))
+
+        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity")
+        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity")
+        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity")
+
+        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds")
+        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds")
+        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds")
+
+        to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy",
+                   "AUC"]
+        x_axis = ["Base Classifier", "DP Classifier", "EO Classifier"]
+        colors = ['tab:red', 'tab:blue', 'tab:green', 'tab:orange', 'tab:gray', 'tab:olive']
+        plots = []
+        groups = base_confusion.keys()
+
+        # Fix order
+        groups = list(groups)
+
+        # Type 3 Plot
+        LINE_OFFSET = 0.2
+        MARKER_SIZE = 20
+        U_MARK = "_"
+        EN_MARK = "_"
+        MEW = 4  # Marker Edge Width
+
+        LABEL1 = True
+        LABEL2 = False
+
+        OUTLINE_THICKNESS = 2
+
+        DIAMOND_THICKNESS = 0.3 * LINE_OFFSET
+        DIAMOND_LINEWIDTH = 0.5
+        DIAMOND_MARKERSIZE = 2
+
+        for i in range(len(to_plot)):
+            fig, ax = plt.subplots()
+            ax.set_xlabel("Classifier")
+            ax.set_xticks([1, 2, 3, 4])
+            ax.set_xticklabels(x_axis + ["Debiased WE"])
+            #ax.set_xlim([0.5, 6])
+            ax.set_ylabel(to_plot[i])
+
+            plot_line_with_offset(ax,
+                                  ((base_confusion, base_micro_macro),
+                                       (dp_confusion, dp_micro_macro),
+                                       (eo_confusion, eo_micro_macro)),
+                                  groups,
+                                  LINE_OFFSET,
+                                  DIAMOND_THICKNESS,
+                                  to_plot,
+                                  i,
+                                  'solid')
+
+            plot_line_with_offset(ax,
+                                  ((s_base_confusion, s_base_micro_macro),
+                                   (s_dp_confusion, s_dp_micro_macro),
+                                   (s_eo_confusion, s_eo_micro_macro)),
+                                  groups,
+                                  0,
+                                  DIAMOND_THICKNESS,
+                                  to_plot,
+                                  i,
+                                  'dashdot')
+
+            plot_line_with_offset(ax,
+                                  ((en_base_confusion, en_base_micro_macro),
+                                   (en_dp_confusion, en_dp_micro_macro),
+                                   (en_eo_confusion, en_eo_micro_macro)),
+                                  groups,
+                                  -1*LINE_OFFSET,
+                                  DIAMOND_THICKNESS,
+                                  to_plot,
+                                  i,
+                                  'dotted')
+
+            ax.axvline(x=3.5, color="black")
+
+            plot_line_with_offset(ax,
+                                  ((d_base_confusion, d_base_micro_macro),),
+                                  groups,
+                                  -3 + LINE_OFFSET,
+                                  DIAMOND_THICKNESS,
+                                  to_plot,
+                                  i,
+                                  'solid')
+
+            plot_line_with_offset(ax,
+                                  ((den_base_confusion, den_base_micro_macro),),
+                                  groups,
+                                  -3 + -1 * LINE_OFFSET,
+                                  DIAMOND_THICKNESS,
+                                  to_plot,
+                                  i,
+                                  'dotted', generate_legend=True)
+
+            plt.grid(False)
+            plt.tight_layout()
+            plt_name = sensitive_attr + "_" + str(to_plot[i]) + "_t4.png"
+            plt.savefig(plt_name)
