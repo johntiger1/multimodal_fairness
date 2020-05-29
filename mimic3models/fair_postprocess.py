@@ -3,6 +3,7 @@ import sys, csv
 import json
 from fair_classifier import *
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 ALL_SENSITIVE = {"ETHNICITY":0, "GENDER":1, "INSURANCE":2, "RELIGION":3, "MARITIAL_STATUS":4}
 
@@ -201,6 +202,9 @@ if __name__ == "__main__":
         plots = []
         groups = base_confusion.keys()
 
+        # Fix order
+        groups = list(groups)
+
         for i in range(len(to_plot)):
             fig, ax = plt.subplots()
             ax.set_xlabel("Classifier")
@@ -321,6 +325,7 @@ if __name__ == "__main__":
 
         DIAMOND_THICKNESS = 0.75
         DIAMOND_LINEWIDTH = 0.5
+        DIAMOND_MARKERSIZE = 2
 
         for i in range(len(to_plot)):
             fig, ax = plt.subplots()
@@ -330,7 +335,6 @@ if __name__ == "__main__":
             ax.set_xlim([0.5,4.5])
             ax.set_ylabel(to_plot[i])
 
-            labelled = False
             for k, (model_confusion, model_micro_macro) in enumerate(((base_confusion, base_micro_macro),
                                                                       (dp_confusion, dp_micro_macro),
                                                                       (eo_confusion, eo_micro_macro))):
@@ -364,26 +368,23 @@ if __name__ == "__main__":
                              1 + k - (1 + DIAMOND_THICKNESS) * LINE_OFFSET, 1 + k - LINE_OFFSET),
                             (max_val, macro, min_val), color="black", linewidth=DIAMOND_LINEWIDTH)
 
+                    # Add star to points
+                    ax.plot(1 + k - (1 + DIAMOND_THICKNESS) * LINE_OFFSET, macro, color="xkcd:light lavender",
+                            marker='o', mec="red", markersize=DIAMOND_MARKERSIZE)
+                    ax.plot(1 + k + (DIAMOND_THICKNESS - 1) * LINE_OFFSET, micro, color="xkcd:light grey",
+                            marker='o', mec="black", markersize=DIAMOND_MARKERSIZE)
+
                 for j, group in enumerate(groups):
                     # draw black outline
                     ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
                             markersize=MARKER_SIZE + OUTLINE_THICKNESS, color="black", mew=MEW + OUTLINE_THICKNESS)
 
-                    if LABEL1 and not labelled:
-                        ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
-                                markersize=MARKER_SIZE, color=colors[j], label=group, mew=MEW)
-                    else:
-                        ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
-                                markersize=MARKER_SIZE, color=colors[j], mew=MEW)
+                    ax.plot(1 + k - LINE_OFFSET, model_confusion[group][i], marker=U_MARK, \
+                            markersize=MARKER_SIZE, color=colors[j], mew=MEW)
 
-                if not labelled:
-                    ax.plot((1+k-LINE_OFFSET, 1+k-LINE_OFFSET),(min_val, max_val), color="black", label="Unstructured")
-                else:
-                    ax.plot((1 + k - LINE_OFFSET, 1 + k - LINE_OFFSET), (min_val, max_val), color="black")
 
-                labelled = True
+                ax.plot((1 + k - LINE_OFFSET, 1 + k - LINE_OFFSET), (min_val, max_val), color="black")
 
-            labelled = False
             for k, (model_confusion, model_micro_macro) in enumerate(((en_base_confusion, en_base_micro_macro),
                                                                       (en_dp_confusion, en_dp_micro_macro),
                                                                       (en_eo_confusion, en_eo_micro_macro))):
@@ -417,28 +418,40 @@ if __name__ == "__main__":
                              1 + k - (-1 + DIAMOND_THICKNESS) * LINE_OFFSET, 1 + k + LINE_OFFSET),
                             (max_val, macro, min_val), color="black", linewidth=DIAMOND_LINEWIDTH)
 
+                    # Add star to points
+                    ax.plot(1 + k - (-1 + DIAMOND_THICKNESS) * LINE_OFFSET, macro, color="xkcd:light lavender",
+                            marker='o', mec="red", markersize=DIAMOND_MARKERSIZE)
+                    ax.plot(1 + k + (DIAMOND_THICKNESS + 1) * LINE_OFFSET, micro, color="xkcd:light grey", marker='o',
+                            mec="black", markersize=DIAMOND_MARKERSIZE)
+
                 for j, group in enumerate(groups):
                     # draw black outline
                     ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
                             markersize=MARKER_SIZE+OUTLINE_THICKNESS, color="black", mew=MEW+OUTLINE_THICKNESS)
 
-                    if LABEL2 and not labelled:
-                        ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
-                                markersize=MARKER_SIZE, color=colors[j], label=group, mew=MEW)
-                    else:
-                        ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
-                                markersize=MARKER_SIZE, color=colors[j], mew=MEW)
+                    ax.plot(1 + k + LINE_OFFSET, model_confusion[group][i], marker=EN_MARK, \
+                            markersize=MARKER_SIZE, color=colors[j], mew=MEW)
 
-                if not labelled:
-                    ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
-                            label="Ensemble", linestyle="dotted")
-                else:
-                    ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
-                            linestyle="dotted")
 
-                labelled = True
+                ax.plot((1 + k + LINE_OFFSET, 1 + k + LINE_OFFSET), (min_val, max_val), color="black",
+                        linestyle="dotted")
 
-            plt.legend()
+
+
+            # Create Legend
+            lines = [mpl.lines.Line2D([0], [0], marker=EN_MARK,
+                                             markersize=MARKER_SIZE, color=colors[j], mew=MEW) for j, group in enumerate(groups)]
+            labels = groups.copy()
+
+            if to_plot[i][9:] in model_micro_macro: # TODO: Reduce Ugly hackiness
+                lines += [mpl.lines.Line2D([0],[0],color=col,
+                                marker='o', mec=mec, markersize=DIAMOND_MARKERSIZE) for col, mec in (("xkcd:light lavender", "red"),("xkcd:light grey", "black"))]
+                labels += ["Macro Avg", "Micro Avg"]
+
+            lines += [mpl.lines.Line2D([0], [0], color="black", linestyle=style) for style in ('solid', 'dotted')]
+            labels += ['Unstructured', 'Ensemble']
+            plt.legend(lines, labels)
+
             plt.grid(False)
             plt.tight_layout()
             plt_name = sensitive_attr + "_" + str(to_plot[i]) + "_t3.png"
