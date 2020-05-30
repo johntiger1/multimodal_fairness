@@ -1256,8 +1256,8 @@ if __name__ == "__main__":
         labels += ["Macro ", "Micro "]
 
         lines += [mpl.lines.Line2D([0], [0], color="black", linestyle=style) for style in
-                  ('dashdot', 'dotted')]
-        labels += ['Structured', 'Ensemble']
+                  ('solid', 'dashdot', 'dotted')]
+        labels += ['Unstructured', 'Structured', 'Ensemble']
 
         plt.grid(False)
         plt.tight_layout()
