@@ -1274,7 +1274,7 @@ if __name__ == "__main__":
             plt.subplots_adjust(left=0.07, bottom=0.25, right=0.98, top=None, wspace=0.2, hspace=None)
         plt.savefig(plt_name)
 
-    elif "GENERATE_LEGEND":
+    elif cmd == "GENERATE_LEGEND":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
