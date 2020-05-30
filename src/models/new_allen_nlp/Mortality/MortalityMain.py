@@ -141,13 +141,15 @@ def build_model(vocab: Vocabulary,
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
         embedder = BasicTextFieldEmbedder(
             {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size,
-                                 pretrained_file=args.pretrained_WE_path, vocab=vocab)})
+                                 pretrained_file=args.pretrained_WE_path, vocab=vocab, )})
+
     else:
         embedder = BasicTextFieldEmbedder(
             {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
 
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
+
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
 
@@ -330,7 +332,7 @@ def main():
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
-
+    args.hl_results = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/Mortality/summary_results"
     args.batch_size = 256
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
@@ -340,10 +342,10 @@ def main():
     args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
-    args.limit_examples = 50000
+    args.limit_examples = None
     args.sampler_type  = "balanced"
     args.use_reg = False
-    args.data_type = "DECOMPENSATION"
+    args.data_type = "PHENOTYPING"
     args.max_tokens = 768*2
     args.get_train_predictions = True
     # args.pretrained_WE_path = None
@@ -469,7 +471,8 @@ train_listfile = args.train_data,
     make_predictions("test", model, test_dataloader, args)
 
     logger.critical("we succ fulfilled it\n")
-    with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
+    high_results_path = os.path.join(args.hl_results, f"nice_srun_time_{args.run_name}.txt")
+    with open(high_results_path, "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
     logger.critical("{}\n".format(results["auc"]))
 
