@@ -29,7 +29,7 @@ def load_sensitive_dict():
         new_out[int(key)] = data[key]
     return new_out
 
-def create_train_test_data(train_file, test_file, sensitive):
+def create_train_test_data(train_file, test_file, sensitive, hard):
     train_csv = open(train_file, mode='r')
     train_csv_reader = csv.reader(train_csv, delimiter=',')
     
@@ -54,7 +54,10 @@ def create_train_test_data(train_file, test_file, sensitive):
 
                 sensitive_attr.append(sensitive_dict[subject_id][ALL_SENSITIVE[sensitive]])
                 X.append((int(row[0]), float(row[1])))
-                score.append(float(row[2]))
+                if hard == True:
+                    score.append(np.round(float(row[2])))
+                else:
+                    score.append(float(row[2]))
                 Y.append(int(row[3]))
         return X, score, Y, sensitive_attr
 
@@ -76,10 +79,11 @@ if __name__ == "__main__":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
+        hard = True if (sys.argv[5] == "HARD") else False
                 
         assert(sensitive_attr in ALL_SENSITIVE) 
         train_X, train_score, train_Y, sens_train, \
-                test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr)
+                test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr, hard)
        
         classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train, test_X, test_Y, test_score, sens_test)
         classifier.fit(train_X, train_Y)
@@ -114,10 +118,11 @@ if __name__ == "__main__":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
+        hard = True if (sys.argv[5] == "HARD") else False
         
         assert(sensitive_attr in ALL_SENSITIVE) 
         train_X, train_score, train_Y, sens_train, \
-                test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr)
+                test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr, hard)
         
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train, test_X, test_Y, test_score, sens_test)
         base_classifier.fit(train_X, train_Y)
@@ -161,12 +166,13 @@ if __name__ == "__main__":
         en_train_file = sys.argv[4]
         en_test_file = sys.argv[5]
         sensitive_attr = sys.argv[6]
+        hard = True if (sys.argv[7] == "HARD") else False
         
         assert(sensitive_attr in ALL_SENSITIVE) 
         train_X, train_score, train_Y, sens_train, \
-                test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr)
+                test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr, hard)
         en_train_X, en_train_score, en_train_Y, en_sens_train, \
-                en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr)
+                en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr, hard)
        
         print("Train")
         print(train_X[0], train_score[0])
