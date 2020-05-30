@@ -1,0 +1,250 @@
+### Trying different regularizations
+
+Model Arguments:
+{'penalty': 'none'}
+confusion matrix:
+[[2698   64]
+ [ 223  191]]
+accuracy = 0.9096347689628601
+precision class 0 = 0.9236562848091125
+precision class 1 = 0.7490196228027344
+recall class 0 = 0.976828396320343
+recall class 1 = 0.4613526463508606
+AUC of ROC = 0.9200056319897014
+AUC of PRC = 0.6981535227647581
+min(+P, Se) = 0.6220095693779905
+
+
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear'}
+confusion matrix:
+[[2699   63]
+ [ 226  188]]
+accuracy = 0.9090050458908081
+precision class 0 = 0.9227350354194641
+precision class 1 = 0.7490040063858032
+recall class 0 = 0.9771904349327087
+recall class 1 = 0.45410627126693726
+AUC of ROC = 0.920014377315325
+AUC of PRC = 0.6981651914689184
+min(+P, Se) = 0.6211031175059952
+
+Model Arguments:
+{'penalty': 'l2'}
+confusion matrix:
+[[2709   53]
+ [ 235  179]]
+accuracy = 0.9093198776245117
+precision class 0 = 0.92017662525177
+precision class 1 = 0.7715517282485962
+recall class 0 = 0.9808109998703003
+recall class 1 = 0.43236714601516724
+AUC of ROC = 0.919890193691472
+AUC of PRC = 0.6978170072579819
+min(+P, Se) = 0.6231884057971014
+
+### Trying balanced classes
+
+Model Arguments:
+{'penalty': 'none', 'class_weight': 'balanced'}
+confusion matrix:
+[[2455  307]
+ [  85  329]]
+accuracy = 0.8765742778778076
+precision class 0 = 0.9665354490280151
+precision class 1 = 0.5172955989837646
+recall class 0 = 0.8888486623764038
+recall class 1 = 0.7946860194206238
+AUC of ROC = 0.9200720964644398
+AUC of PRC = 0.6985538191514647
+min(+P, Se) = 0.6328502415458938
+
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced'}
+confusion matrix:
+[[2457  305]
+ [  85  329]]
+accuracy = 0.8772040009498596
+precision class 0 = 0.9665617346763611
+precision class 1 = 0.5189274549484253
+recall class 0 = 0.88957279920578
+recall class 1 = 0.7946860194206238
+AUC of ROC = 0.9200764691272515
+AUC of PRC = 0.698544435602042
+min(+P, Se) = 0.6328502415458938
+
+Model Arguments:
+{'penalty': 'l2', 'class_weight': 'balanced'}
+confusion matrix:
+[[2468  294]
+ [  88  326]]
+accuracy = 0.8797228932380676
+precision class 0 = 0.9655712246894836
+precision class 1 = 0.5258064270019531
+recall class 0 = 0.8935554027557373
+recall class 1 = 0.7874395847320557
+AUC of ROC = 0.9200441114224448
+AUC of PRC = 0.6983098323324001
+min(+P, Se) = 0.6231884057971014
+
+#################################3
+### Try again with stronger regularization
+
+******************************************
+MODEL WITH BEST ACCURACY
+******************************************
+# Still pretty good AUC
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear', 'C': 0.5}
+confusion matrix:
+[[2707   55]
+ [ 229  185]]
+accuracy = 0.9105793237686157
+precision class 0 = 0.9220027327537537
+precision class 1 = 0.7708333134651184
+recall class 0 = 0.9800869226455688
+recall class 1 = 0.4468598961830139
+AUC of ROC = 0.920014377315325
+AUC of PRC = 0.698190908091357
+min(+P, Se) = 0.6216867469879518
+
+Model Arguments:
+{'penalty': 'l2', 'solver': 'liblinear', 'C': 0.5}
+confusion matrix:
+[[2714   48]
+ [ 243  171]]
+accuracy = 0.9083753228187561
+precision class 0 = 0.9178221225738525
+precision class 1 = 0.7808219194412231
+recall class 0 = 0.9826213121414185
+recall class 1 = 0.41304346919059753
+AUC of ROC = 0.9197555156768707
+AUC of PRC = 0.6976000816319379
+min(+P, Se) = 0.6207729468599034
+
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.5}
+confusion matrix:
+[[2460  302]
+ [  85  329]]
+accuracy = 0.87814861536026
+precision class 0 = 0.9666011929512024
+precision class 1 = 0.5213946104049683
+recall class 0 = 0.8906589150428772
+recall class 1 = 0.7946860194206238
+AUC of ROC = 0.9200790927249385
+AUC of PRC = 0.6985820776922553
+min(+P, Se) = 0.6328502415458938
+
+Model Arguments:
+{'penalty': 'l2', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.5}
+confusion matrix:
+[[2469  293]
+ [  88  326]]
+accuracy = 0.880037784576416
+precision class 0 = 0.9655846953392029
+precision class 1 = 0.526655912399292
+recall class 0 = 0.893917441368103
+recall class 1 = 0.7874395847320557
+AUC of ROC = 0.9199776469477063
+AUC of PRC = 0.6980627945148573
+min(+P, Se) = 0.6240963855421687
+
+
+
+******************************************
+MODEL WITH BEST AUC
+******************************************
+Barely better AUC, better class 1 recall because of the class balancing, accuracy is 4% worse
+
+### Experiment with regularization strength with balanced classes for L1
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+confusion matrix:
+[[2464  298]
+ [  86  328]]
+accuracy = 0.8790931701660156
+precision class 0 = 0.9662744998931885
+precision class 1 = 0.5239616632461548
+recall class 0 = 0.8921071887016296
+recall class 1 = 0.7922705411911011
+AUC of ROC = 0.920087838050562
+AUC of PRC = 0.6986298560984386
+min(+P, Se) = 0.6328502415458938
+
+Model Arguments:
+{'penalty': 'l1', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.125}
+confusion matrix:
+[[2468  294]
+ [  88  326]]
+accuracy = 0.8797228932380676
+precision class 0 = 0.9655712246894836
+precision class 1 = 0.5258064270019531
+recall class 0 = 0.8935554027557373
+recall class 1 = 0.7874395847320557
+AUC of ROC = 0.920077343659814
+AUC of PRC = 0.6986518637815009
+min(+P, Se) = 0.6328502415458938
+
+
+### Rest of comb's
+
+Model Arguments:
+{'penalty': 'l2', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.125}
+confusion matrix:
+[[2501  261]
+ [ 100  314]]
+accuracy = 0.886335015296936
+precision class 0 = 0.9615532755851746
+precision class 1 = 0.5460869669914246
+recall class 0 = 0.9055032730102539
+recall class 1 = 0.7584540843963623
+AUC of ROC = 0.9195500005247196
+AUC of PRC = 0.697057450651093
+min(+P, Se) = 0.6207729468599034
+
+Model Arguments:
+{'penalty': 'l2', 'solver': 'liblinear', 'C': 0.125}
+confusion matrix:
+[[2741   21]
+ [ 286  128]]
+accuracy = 0.9033375382423401
+precision class 0 = 0.905517041683197
+precision class 1 = 0.8590604066848755
+recall class 0 = 0.9923968315124512
+recall class 1 = 0.30917873978614807
+AUC of ROC = 0.9193611014912529
+AUC of PRC = 0.6966357012559758
+min(+P, Se) = 0.6183574879227053
+
+Model Arguments:
+{'penalty': 'l2', 'solver': 'liblinear', 'class_weight': 'balanced', 'C': 0.25}
+confusion matrix:
+[[2490  272]
+ [  94  320]]
+accuracy = 0.8847606778144836
+precision class 0 = 0.9636222720146179
+precision class 1 = 0.5405405163764954
+recall class 0 = 0.9015206098556519
+recall class 1 = 0.772946834564209
+AUC of ROC = 0.9197747553932424
+AUC of PRC = 0.697554622152948
+min(+P, Se) = 0.6231884057971014
+
+Model Arguments:
+{'penalty': 'l2', 'solver': 'liblinear', 'C': 0.25}
+confusion matrix:
+[[2731   31]
+ [ 257  157]]
+accuracy = 0.9093198776245117
+precision class 0 = 0.9139893054962158
+precision class 1 = 0.835106372833252
+recall class 0 = 0.9887762665748596
+recall class 1 = 0.37922704219818115
+AUC of ROC = 0.9195762365015899
+AUC of PRC = 0.6970899078346733
+min(+P, Se) = 0.6207729468599034
+
+
+
+

@@ -3,8 +3,8 @@
 import pandas as pd
 
 PATH_TO_BENCHMARK_STAYS = "../data/root/all_stays.csv"
-#PATH_TO_MIMIC_ADMISSIONS = "/home/administrator/00Projects/Fairness/MIMIC_III/MIMIC_III/ADMISSIONS.csv"
-PATH_TO_MIMIC_ADMISSIONS = "/h/shossain/multimodal_fairness/data/physionet.org/files/mimiciii/1.4/ADMISSIONS.csv"
+PATH_TO_MIMIC_ADMISSIONS = "/home/administrator/00Projects/Fairness/MIMIC_III/MIMIC_III/ADMISSIONS.csv"
+#PATH_TO_MIMIC_ADMISSIONS = "/h/shossain/multimodal_fairness/data/physionet.org/files/mimiciii/1.4/ADMISSIONS.csv"
 
 # Define data processing helpers:
 # Aggregator such that if element of group is different, then UNKNOWN is returned, else value is returned
@@ -95,6 +95,12 @@ original = joined.copy()
 # Create first version of sensitive attributes - merge ethnicities into WHITE & NON_WHITE & save
 joined["ETHNICITY"] = joined["ETHNICITY"].apply(lambda x: x if x == "WHITE" else "NON_WHITE")
 joined.to_csv("sensitive_bin_eth.csv")
+
+
+# Create first version of sensitive attributes - merge ethnicities into WHITE & NON_WHITE & save
+joined = original.copy()
+joined["INSURANCE"] = joined["INSURANCE"].apply(lambda x: x if x == "Medicare" else "Non-Medicare")
+joined.to_csv("sensitive_bin_ins.csv")
 
 # Create second version of sensitive attributes - bin ethnicities into 5 groups & save
 joined = original.copy()

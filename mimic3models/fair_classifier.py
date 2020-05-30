@@ -103,8 +103,11 @@ class pseudo_classifier:
             else:
                 precision = tp / (tp + fp)
                 recall = tp / (tp + fn)
-                f1 = 2*precision*recall/(precision+recall)
-                print("\t F1 score: ", f1)
+                if (precision+recall) != 0:
+                    f1 = 2*precision*recall/(precision+recall)
+                    print("\t F1 score: ", f1)
+                else:
+                    print("\t F1 score: Undefined, precision=recall=0")
                 print("\t AUC: ", auc)
                 print("\t Group Accuracy: ", accuracy)
                 print("\t True positive rate:", tp)
