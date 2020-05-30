@@ -407,6 +407,7 @@ class MortalityReader(DatasetReader):
                 patient_id = info[0]
 
                 # verify string inside a list of string
+                # null patients are thrown out. But only on a task specific basis.
                 if patient_id not in self.null_patients: # could also just do try except here
 
                     eps = int("".join([c for c in info[1] if c.isdigit()]))
@@ -424,7 +425,9 @@ class MortalityReader(DatasetReader):
                     hadm_id = episode_specific_notes["HADM_ID"]
                     one_hadm_id = hadm_id.unique()
 
-
+                    if len(one_hadm_id) <= 0:
+                        logger.critical("MISSING DATA FOR PATIENT EPS TIME {} {} {}. Skipping\n".format(patient_id, eps, time ))
+                        continue
 
 
                     if self.data_type != "PHENOTYPING":
