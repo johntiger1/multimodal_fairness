@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 ALL_SENSITIVE = {"ETHNICITY":0, "GENDER":1, "INSURANCE":2, "RELIGION":3, "MARITIAL_STATUS":4}
+HARD = False
 
 def create_sensitive_dict(filename):
     sensitive_dict = {}
@@ -29,7 +30,7 @@ def load_sensitive_dict():
         new_out[int(key)] = data[key]
     return new_out
 
-def create_train_test_data(train_file, test_file, sensitive, hard):
+def create_train_test_data(train_file, test_file, sensitive):
     train_csv = open(train_file, mode='r')
     train_csv_reader = csv.reader(train_csv, delimiter=',')
     
@@ -54,7 +55,7 @@ def create_train_test_data(train_file, test_file, sensitive, hard):
 
                 sensitive_attr.append(sensitive_dict[subject_id][ALL_SENSITIVE[sensitive]])
                 X.append((int(row[0]), float(row[1])))
-                if hard == True:
+                if HARD == True:
                     score.append(np.round(float(row[2])))
                 else:
                     score.append(float(row[2]))
@@ -169,7 +170,7 @@ if __name__ == "__main__":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
-        hard = True if (sys.argv[5] == "HARD") else False
+        HARD = True if (sys.argv[13] == "HARD") else False
                 
         assert(sensitive_attr in ALL_SENSITIVE) 
         train_X, train_score, train_Y, sens_train, \
@@ -208,11 +209,11 @@ if __name__ == "__main__":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
-        hard = True if (sys.argv[5] == "HARD") else False
+        HARD = True if (sys.argv[5] == "HARD") else False
         
         assert(sensitive_attr in ALL_SENSITIVE) 
         train_X, train_score, train_Y, sens_train, \
-                test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr, hard)
+                test_X, test_score, test_Y, sens_test = create_train_test_data(train_file, test_file, sensitive_attr)
         
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train, test_X, test_Y, test_score, sens_test)
         base_classifier.fit(train_X, train_Y)
@@ -256,21 +257,14 @@ if __name__ == "__main__":
         en_train_file = sys.argv[4]
         en_test_file = sys.argv[5]
         sensitive_attr = sys.argv[6]
-        hard = True if (sys.argv[7] == "HARD") else False
+        HARD = True if (sys.argv[7] == "HARD") else False
         
         assert(sensitive_attr in ALL_SENSITIVE) 
         train_X, train_score, train_Y, sens_train, \
-                test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr, hard)
+                test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr)
         en_train_X, en_train_score, en_train_Y, en_sens_train, \
-                en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr, hard)
+                en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr)
        
-        print("Train")
-        print(train_X[0], train_score[0])
-        print(en_train_X[0], en_train_score[0])
-        print("Test")
-        print(test_X[0], test_score[0])
-        print(en_test_X[0], en_test_score[0])
-
         base_classifier = pseudo_classifier(train_X, train_Y, train_score, sens_train, test_X, test_Y, test_score, sens_test)
         base_classifier.fit(train_X, train_Y)
         base_confusion, base_micro_macro = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
@@ -581,6 +575,7 @@ if __name__ == "__main__":
         en_train_file = sys.argv[6]
         en_test_file = sys.argv[7]
         sensitive_attr = sys.argv[8]
+        HARD = True if (sys.argv[9] == "HARD") else False
 
         assert (sensitive_attr in ALL_SENSITIVE)
 
@@ -588,14 +583,6 @@ if __name__ == "__main__":
         test_X, test_score, test_Y, sens_test = create_train_test_data(u_train_file, u_test_file, sensitive_attr)
         en_train_X, en_train_score, en_train_Y, en_sens_train, \
         en_test_X, en_test_score, en_test_Y, en_sens_test = create_train_test_data(en_train_file, en_test_file, sensitive_attr)
-
-        print("Train")
-        print(train_X[0], train_score[0])
-        print(en_train_X[0], en_train_score[0])
-        print("Test")
-        print(test_X[0], test_score[0])
-        print(en_test_X[0], en_test_score[0])
-
 
         # Get Base classifier performance
         base_confusion, base_micro_macro = get_conf_base(create_train_test_data(u_train_file, u_test_file, sensitive_attr))
@@ -708,6 +695,7 @@ if __name__ == "__main__":
         den_test_file = sys.argv[11]
 
         sensitive_attr = sys.argv[12]
+        HARD = True if (sys.argv[13] == "HARD") else False
 
         assert (sensitive_attr in ALL_SENSITIVE)
 
@@ -841,6 +829,7 @@ if __name__ == "__main__":
         den_test_file = sys.argv[11]
 
         sensitive_attr = sys.argv[12]
+        HARD = True if (sys.argv[13] == "HARD") else False
 
         assert (sensitive_attr in ALL_SENSITIVE)
 
@@ -989,6 +978,7 @@ if __name__ == "__main__":
         den_test_file = sys.argv[11]
 
         sensitive_attr = sys.argv[12]
+        HARD = True if (sys.argv[13] == "HARD") else False
 
         assert (sensitive_attr in ALL_SENSITIVE)
 
@@ -1149,6 +1139,7 @@ if __name__ == "__main__":
         den_train_file = sys.argv[8]
         den_test_file = sys.argv[9]
 
+        HARD = True if (sys.argv[13] == "HARD") else False
         sensitive_attr = sys.argv[10]
 
         assert (sensitive_attr in ALL_SENSITIVE)
@@ -1284,6 +1275,7 @@ if __name__ == "__main__":
         train_file = sys.argv[2]
         test_file = sys.argv[3]
         sensitive_attr = sys.argv[4]
+        HARD = True if (sys.argv[13] == "HARD") else False
 
         assert (sensitive_attr in ALL_SENSITIVE)
         train_X, train_score, train_Y, sens_train, \
