@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 ALL_SENSITIVE = {"ETHNICITY":0, "GENDER":1, "INSURANCE":2, "RELIGION":3, "MARITIAL_STATUS":4}
-HARD = False
 
 def create_sensitive_dict(filename):
     sensitive_dict = {}
@@ -55,10 +54,7 @@ def create_train_test_data(train_file, test_file, sensitive):
 
                 sensitive_attr.append(sensitive_dict[subject_id][ALL_SENSITIVE[sensitive]])
                 X.append((int(row[0]), float(row[1])))
-                if HARD == True:
-                    score.append(np.round(float(row[2])))
-                else:
-                    score.append(float(row[2]))
+                score.append(float(row[2]))
                 Y.append(int(row[3]))
         return X, score, Y, sensitive_attr
 
@@ -76,10 +72,10 @@ def get_conf_base(input):
     base_classifier.fit(train_X, train_Y)
     return base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
-def get_conf_fair(input, fairness_type):
+def get_conf_fair(input, fairness_type, HARD):
     train_X, train_score, train_Y, sens_train, test_X, test_score, test_Y, sens_test = input
     base_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
-                                             test_X, test_Y, test_score, sens_test, fairness_type)
+                                             test_X, test_Y, test_score, sens_test, fairness_type, HARD=HARD)
     base_classifier.fit()
     return base_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
@@ -181,7 +177,7 @@ if __name__ == "__main__":
         classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
         my_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
-                test_X, test_Y, test_score, sens_test, "equalized_odds")
+                test_X, test_Y, test_score, sens_test, "equalized_odds", HARD=HARD)
         my_fair_classifier.fit()
         my_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
@@ -220,12 +216,12 @@ if __name__ == "__main__":
         base_confusion, _ = base_classifier.get_group_confusion_matrix(sens_test, test_X, test_Y)
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
-                test_X, test_Y, test_score, sens_test, "demographic_parity")
+                test_X, test_Y, test_score, sens_test, "demographic_parity",  HARD=HARD)
         dp_fair_classifier.fit()
         dp_confusion = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
-                test_X, test_Y, test_score, sens_test, "equalized_odds")
+                test_X, test_Y, test_score, sens_test, "equalized_odds", HARD=HARD)
         eo_fair_classifier.fit()
         eo_confusion = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
         
@@ -274,22 +270,22 @@ if __name__ == "__main__":
         en_base_confusion, en_base_micro_macro = en_base_classifier.get_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         dp_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
-               test_X, test_Y, test_score, sens_test, "demographic_parity")
+               test_X, test_Y, test_score, sens_test, "demographic_parity",  HARD=HARD)
         dp_fair_classifier.fit()
         dp_confusion, dp_micro_macro = dp_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         en_dp_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, \
-                en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "demographic_parity")
+                en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "demographic_parity",  HARD=HARD)
         en_dp_fair_classifier.fit()
         en_dp_confusion, en_dp_micro_macro = en_dp_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
         eo_fair_classifier = fair_classifier(train_X, train_Y, train_score, sens_train, \
-               test_X, test_Y, test_score, sens_test, "equalized_odds")
+               test_X, test_Y, test_score, sens_test, "equalized_odds",  HARD=HARD)
         eo_fair_classifier.fit()
         eo_confusion, eo_micro_macro = eo_fair_classifier.get_avg_group_confusion_matrix(sens_test, test_X, test_Y)
 
         en_eo_fair_classifier = fair_classifier(en_train_X, en_train_Y, en_train_score, \
-                en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "equalized_odds")
+                en_sens_train, en_test_X, en_test_Y, en_test_score, en_sens_test, "equalized_odds",  HARD=HARD)
         en_eo_fair_classifier.fit()
         en_eo_confusion, en_eo_micro_macro = en_eo_fair_classifier.get_avg_group_confusion_matrix(en_sens_test, en_test_X, en_test_Y)
 
@@ -589,13 +585,13 @@ if __name__ == "__main__":
         en_base_confusion, en_base_micro_macro = get_conf_base(create_train_test_data(en_train_file, en_test_file, sensitive_attr))
         s_base_confusion, s_base_micro_macro = get_conf_base(create_train_test_data(s_train_file, s_test_file, sensitive_attr))
 
-        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity")
-        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity")
-        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity")
+        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity", HARD)
+        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity", HARD)
+        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity", HARD)
 
-        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds")
-        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds")
-        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds")
+        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds", HARD)
+        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds", HARD)
+        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds", HARD)
 
         to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy",
                    "AUC"]
@@ -707,13 +703,13 @@ if __name__ == "__main__":
         d_base_confusion, d_base_micro_macro = get_conf_base(create_train_test_data(d_train_file, d_test_file, sensitive_attr))
         den_base_confusion, den_base_micro_macro = get_conf_base(create_train_test_data(den_train_file, den_test_file, sensitive_attr))
 
-        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity")
-        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity")
-        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity")
+        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity", HARD)
+        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity", HARD)
+        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity", HARD)
 
-        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds")
-        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds")
-        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds")
+        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds", HARD)
+        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds", HARD)
+        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds", HARD)
 
         to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy",
                    "AUC"]
@@ -841,13 +837,13 @@ if __name__ == "__main__":
         d_base_confusion, d_base_micro_macro = get_conf_base(create_train_test_data(d_train_file, d_test_file, sensitive_attr))
         den_base_confusion, den_base_micro_macro = get_conf_base(create_train_test_data(den_train_file, den_test_file, sensitive_attr))
 
-        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity")
-        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity")
-        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity")
+        dp_confusion, dp_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "demographic_parity", HARD)
+        s_dp_confusion, s_dp_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "demographic_parity", HARD)
+        en_dp_confusion, en_dp_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "demographic_parity", HARD)
 
-        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds")
-        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds")
-        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds")
+        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds", HARD)
+        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds", HARD)
+        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds", HARD)
 
         to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy",
                    "AUC"]
@@ -991,9 +987,9 @@ if __name__ == "__main__":
         den_base_confusion, den_base_micro_macro = get_conf_base(create_train_test_data(den_train_file, den_test_file, sensitive_attr))
 
         # EO confusion
-        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds")
-        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds")
-        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds")
+        eo_confusion, eo_micro_macro = get_conf_fair(create_train_test_data(u_train_file, u_test_file, sensitive_attr), "equalized_odds", HARD)
+        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds", HARD)
+        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds", HARD)
 
         to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy",
                    "AUC"]
@@ -1139,8 +1135,8 @@ if __name__ == "__main__":
         den_train_file = sys.argv[8]
         den_test_file = sys.argv[9]
 
-        HARD = True if (sys.argv[13] == "HARD") else False
         sensitive_attr = sys.argv[10]
+        HARD = True if (sys.argv[11] == "HARD") else False
 
         assert (sensitive_attr in ALL_SENSITIVE)
 
@@ -1152,8 +1148,8 @@ if __name__ == "__main__":
         den_base_confusion, den_base_micro_macro = get_conf_base(create_train_test_data(den_train_file, den_test_file, sensitive_attr))
 
         # EO confusion
-        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds")
-        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds")
+        s_eo_confusion, s_eo_micro_macro = get_conf_fair(create_train_test_data(s_train_file, s_test_file, sensitive_attr), "equalized_odds", HARD)
+        en_eo_confusion, en_eo_micro_macro = get_conf_fair(create_train_test_data(en_train_file, en_test_file, sensitive_attr), "equalized_odds", HARD)
 
         to_plot = ['Expected TP Rate', 'Expected TN Rate', 'Expected FP Rate', 'Expected FN Rate', "Expected Accuracy",
                    "AUC"]
