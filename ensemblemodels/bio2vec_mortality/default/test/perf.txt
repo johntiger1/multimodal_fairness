@@ -1,0 +1,15 @@
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[2776   53]
+ [ 242  122]]
+accuracy = 0.9076104164123535
+precision class 0 = 0.9198144674301147
+precision class 1 = 0.6971428394317627
+recall class 0 = 0.9812654852867126
+recall class 1 = 0.3351648449897766
+AUC of ROC = 0.8855301644273013
+AUC of PRC = 0.5824992421373663
+min(+P, Se) = 0.5327868852459017
+

@@ -103,8 +103,11 @@ class pseudo_classifier:
             else:
                 precision = tp / (tp + fp)
                 recall = tp / (tp + fn)
-                f1 = 2*precision*recall/(precision+recall)
-                print("\t F1 score: ", f1)
+                if (precision+recall) != 0:
+                    f1 = 2*precision*recall/(precision+recall)
+                    print("\t F1 score: ", f1)
+                else:
+                    print("\t F1 score: Undefined, precision=recall=0")
                 print("\t AUC: ", auc)
                 print("\t Group Accuracy: ", accuracy)
                 print("\t True positive rate:", tp)
@@ -120,15 +123,21 @@ class pseudo_classifier:
 
 class fair_classifier(pseudo_classifier):
     def __init__(self, train_X, train_y, train_score_y, sensitive_train, \
-            test_X, test_y, test_score_y, sensitive_test, metric, sensitive_features_dict=None):
+            test_X, test_y, test_score_y, sensitive_test, metric, sensitive_features_dict=None, HARD=False):
         self.train_X = train_X
         self.train_Y = train_y
-        self.train_score_Y = train_score_y
+        if HARD:
+            self.train_score_Y = np.round(train_score_y)
+        else:
+            self.train_score_Y = train_score_y
         self.sensitive_train = sensitive_train
         
         self.test_X = test_X
         self.test_Y = test_y
-        self.test_score_Y = test_score_y
+        if HARD:
+            self.test_score_Y = np.round(test_score_y)
+        else:
+            self.test_score_Y = test_score_y
         self.sensitive_test = sensitive_test
         
         self.sensitive_features_dict = sensitive_features_dict
