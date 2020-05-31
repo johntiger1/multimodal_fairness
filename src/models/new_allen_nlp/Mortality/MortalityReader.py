@@ -192,7 +192,25 @@ class MortalityReader(DatasetReader):
 
     def get_sampler(self, listfile: str = ""):
         self.labels = []
-        self.class_counts = np.zeros(2)
+
+        # read out the personal statement, and expand upon this
+        # current events
+        # politics and area studies
+        # controversial issues: pipeline protests
+        # saudi arms deal!
+        # conservative, etc.
+        # african and canadian politics
+        # excerpt from the referee letter!
+        # sampling_num_classes
+        sampling_num_classes = None
+        if self.data_type == "DECOMPENSATION" or self.data_type == "MORTALITY":
+            sampling_num_classes = 2
+        else:
+            sampling_num_classes = 25
+
+
+
+        self.class_counts = np.zeros(sampling_num_classes) # fix sampling for phenotypes
         with open(listfile, "r") as file:
             file.readline()
             for line in file:
@@ -389,6 +407,7 @@ class MortalityReader(DatasetReader):
                 patient_id = info[0]
 
                 # verify string inside a list of string
+                # null patients are thrown out. But only on a task specific basis.
                 if patient_id not in self.null_patients: # could also just do try except here
 
                     eps = int("".join([c for c in info[1] if c.isdigit()]))
@@ -406,7 +425,9 @@ class MortalityReader(DatasetReader):
                     hadm_id = episode_specific_notes["HADM_ID"]
                     one_hadm_id = hadm_id.unique()
 
-
+                    if len(one_hadm_id) <= 0:
+                        logger.critical("MISSING DATA FOR PATIENT EPS TIME {} {} {}. Skipping\n".format(patient_id, eps, time ))
+                        continue
 
 
                     if self.data_type != "PHENOTYPING":

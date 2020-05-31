@@ -25,6 +25,7 @@ with warnings.catch_warnings():
     import h5py
 
 logger = logging.getLogger(__name__)
+logger.critical("Importing embedding from local")
 
 
 @TokenEmbedder.register("embedding")
@@ -451,6 +452,9 @@ def _read_embeddings_from_hdf5(
 
     return torch.FloatTensor(embeddings)
 
+'''
+xindi code
+'''
 def _read_embeddings_from_bin_file(
     file_uri: str, embedding_dim: int, vocab: Vocabulary, namespace: str = "tokens") -> torch.FloatTensor:
     """
@@ -459,7 +463,9 @@ def _read_embeddings_from_bin_file(
     vocab_size = vocab.get_vocab_size(namespace)
     
     import gensim.models
-    model =gensim.models.KeyedVectors.load_word2vec_format(file_uri, binary=True, unicode_errors='ignore')
+
+    model =gensim.models.KeyedVectors.load_word2vec_format(file_uri, binary=True, unicode_errors="ignore")
+
     words = sorted([w for w in model.vocab], key=lambda w: model.vocab[w].index)
     vecs = [model[w] for w in words]
 
@@ -467,7 +473,7 @@ def _read_embeddings_from_bin_file(
     all_embeddings = numpy.asarray(vecs)
     embeddings_mean = float(numpy.mean(all_embeddings))
     embeddings_std = float(numpy.std(all_embeddings))
-
+    vocab_size = vocab.get_vocab_size(namespace="tokens")
     logger.info("Initializing pre-trained embedding layer")
     embedding_matrix = torch.FloatTensor(vocab_size, embedding_dim).normal_(
         embeddings_mean, embeddings_std

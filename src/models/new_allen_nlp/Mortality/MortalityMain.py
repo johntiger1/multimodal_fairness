@@ -9,7 +9,12 @@ from allennlp.data.tokenizers import Token, Tokenizer, WhitespaceTokenizer
 from allennlp.models import Model
 from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
-from allennlp.modules.token_embedders import Embedding
+
+
+# from allennlp.modules.token_embedders import Embedding
+from embedding import Embedding
+
+
 from allennlp.modules.seq2vec_encoders import BagOfEmbeddingsEncoder, CnnEncoder
 
 import psutil
@@ -19,6 +24,7 @@ from MortalityReader import MortalityReader
 from typing import Dict, Iterable, List, Tuple
 
 from allennlp.nn import util
+from allennlp.training import Checkpointer
 from allennlp.training.metrics import CategoricalAccuracy, Auc
 from allennlp.training.optimizers import AdamOptimizer
 from allennlp.training.trainer import Trainer, GradientDescentTrainer
@@ -135,13 +141,15 @@ def build_model(vocab: Vocabulary,
     # turn the tokens into 300 dim embedding. Then, turn the embeddings into encodings
         embedder = BasicTextFieldEmbedder(
             {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size,
-                                 pretrained_file=args.pretrained_WE_path, vocab=vocab)})
+                                 pretrained_file=args.pretrained_WE_path, vocab=vocab, )})
+
     else:
         embedder = BasicTextFieldEmbedder(
             {"tokens": Embedding(embedding_dim=EMBED_DIMS, num_embeddings=vocab_size)})
 
     encoder = CnnEncoder(embedding_dim=EMBED_DIMS, ngram_filter_sizes = (2,3,5),
                          num_filters=5) # num_filters is a tad bit dangerous: the reason is that we have this many filters for EACH ngram f
+
     # encoder = BertPooler("bert-base-cased")
     # the output dim is just the num filters *len(ngram_filter_sizes)
 
@@ -206,17 +214,21 @@ def build_trainer(
         [n, p]
         for n, p in model.named_parameters() if p.requires_grad
     ]
+
+    checkpointer  = Checkpointer(serialization_dir, num_serialized_models_to_keep=0)
     optimizer = AdamOptimizer(parameters)
     trainer = GradientDescentTrainer(
         model=model,
         serialization_dir=serialization_dir,
+        checkpointer=checkpointer,
         data_loader=train_loader,
         validation_data_loader=dev_loader,
         num_epochs=50,
         optimizer=optimizer,
         cuda_device=0,
         validation_metric="-loss",
-        patience=5
+        patience=5,
+
 
     )
     return trainer
@@ -320,14 +332,14 @@ def main():
     args = get_args.get_args()
     assert getattr(args, "run_name",None) is not None
     # args.run_name = "54-ihp-fixed-val-met"
-
+    args.hl_results = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/src/models/new_allen_nlp/Mortality/summary_results"
     args.batch_size = 256
     args.train_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/train/listfile.csv"
     args.dev_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.test_data = "/scratch/gobi1/johnchen/new_git_stuff/multimodal_fairness/data/decompensation/test/listfile.csv"
     args.use_gpu = True
     args.lazy = False #should be hardcoded to True, unless you have a good reason otherwise
-    args.use_preprocessing = False
+    args.use_preprocessing = True
     args.device = torch.device("cuda:0" if args.use_gpu  else "cpu")
     args.use_subsampling  = True # this argument doesn't really control anything. It is all in the limit_examples param
     args.limit_examples = None
@@ -336,7 +348,14 @@ def main():
     args.data_type = "PHENOTYPING"
     args.max_tokens = 768*2
     args.get_train_predictions = True
-    args.pretrained_WE_path = None
+    # args.pretrained_WE_path = None
+    args.pretrained_WE_folder = "/scratch/gobi1/johnchen/xindi_work/"
+    args.pretrained_WE_name = "BioWordVec_PubMed_MIMICIII_d200.vec.bin" # original
+    # pretrained_WE_name = "data_vocab_4class_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.txt" # debiased
+    #
+
+    args.pretrained_WE_path = os.path.join(args.pretrained_WE_folder, args.pretrained_WE_name)
+
     # args.pretrained_WE_path = "/scratch/gobi1/johnchen/xindi_work/data_vocab_race_attributes_optm_json_role_hardDebiasedEmbeddingsOut.w2v"
 
 
@@ -452,7 +471,8 @@ train_listfile = args.train_data,
     make_predictions("test", model, test_dataloader, args)
 
     logger.critical("we succ fulfilled it\n")
-    with open(f"nice_srun_time_{args.run_name}.txt", "w") as file:
+    high_results_path = os.path.join(args.hl_results, f"nice_srun_time_{args.run_name}.txt")
+    with open(high_results_path, "w") as file:
         file.write("it is done\n{}\nTook {}".format(results, time.time() - start_time))
     logger.critical("{}\n".format(results["auc"]))
 
