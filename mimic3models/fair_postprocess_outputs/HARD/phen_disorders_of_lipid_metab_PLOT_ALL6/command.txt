@@ -1,0 +1,20 @@
+python3 mimic3models/fair_postprocess.py PLOT_ALL6 IanFairnessHackery/john_results/phenotyping-biow2vec/train/Disorders\ of\ lipid\ metabolism.csv IanFairnessHackery/john_results/phenotyping-biow2vec/test/Disorders\ of\ lipid\ metabolism.csv mimic3models/phenotyping/train_predictions/Disorders\ of\ lipid\ metabolism_nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state_id_ep_fmt.csv mimic3models/phenotyping/test_predictions/Disorders\ of\ lipid\ metabolism_nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state_id_ep_fmt.csv ensemblemodels/phenotyping-biow2vec/default/train/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv ensemblemodels/phenotyping-biow2vec/default/test/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv IanFairnessHackery/john_results/phenotyping-debiased/train/Disorders\ of\ lipid\ metabolism.csv IanFairnessHackery/john_results/phenotyping-debiased/test/Disorders\ of\ lipid\ metabolism.csv ensemblemodels/phenotyping-debiased/default/train/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv ensemblemodels/phenotyping-debiased/default/test/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv ETHNICITY HARD
+
+
+
+
+python3 
+mimic3models/fair_postprocess.py 
+PLOT_ALL6 
+IanFairnessHackery/john_results/phenotyping-biow2vec/train/Disorders\ of\ lipid\ metabolism.csv 
+IanFairnessHackery/john_results/phenotyping-biow2vec/test/Disorders\ of\ lipid\ metabolism.csv 
+mimic3models/phenotyping/train_predictions/Disorders\ of\ lipid\ metabolism_nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state_id_ep_fmt.csv 
+mimic3models/phenotyping/test_predictions/Disorders\ of\ lipid\ metabolism_nr6k_channel_wise_lstms.n16.szc8.0.d0.3.dep1.bs64.ts1.0.epoch49.test0.348234337795.state_id_ep_fmt.csv 
+ensemblemodels/phenotyping-biow2vec/default/train/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv 
+ensemblemodels/phenotyping-biow2vec/default/test/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv 
+IanFairnessHackery/john_results/phenotyping-debiased/train/Disorders\ of\ lipid\ metabolism.csv 
+IanFairnessHackery/john_results/phenotyping-debiased/test/Disorders\ of\ lipid\ metabolism.csv 
+ensemblemodels/phenotyping-debiased/default/train/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv 
+ensemblemodels/phenotyping-debiased/default/test/Disorders\ of\ lipid\ metabolism\{\}_id_ep_fmt.csv 
+ETHNICITY 
+HARD
