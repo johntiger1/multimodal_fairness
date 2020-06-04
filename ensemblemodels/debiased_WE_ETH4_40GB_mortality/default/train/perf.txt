@@ -1,0 +1,16 @@
+Namespace(mode='M', outdir='./ensemblemodels/debiased_WE_ETH4_40GB_mortality/train/', str_path='mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv', test_str_path='mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv', test_ustr_path='IanFairnessHackery/john_results/Debiased_WE_ETH_4_40GB_Mortality/train_final_preds_id_ep_fmt.csv', ustr_path='IanFairnessHackery/john_results/Debiased_WE_ETH_4_40GB_Mortality/train_final_preds_id_ep_fmt.csv')
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[12313   262]
+ [  890  1007]]
+accuracy = 0.9203979969024658
+precision class 0 = 0.9325910806655884
+precision class 1 = 0.7935382127761841
+recall class 0 = 0.9791650176048279
+recall class 1 = 0.5308381915092468
+AUC of ROC = 0.927421742607088
+AUC of PRC = 0.7395213873429274
+min(+P, Se) = 0.6765015806111696

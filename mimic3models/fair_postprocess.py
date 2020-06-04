@@ -29,37 +29,38 @@ def load_sensitive_dict():
         new_out[int(key)] = data[key]
     return new_out
 
+def get_data(csv_reader, sensitive_dict, sensitive):
+    sensitive_dict_incomplete = False
+    X, score, Y, sensitive_attr = [], [], [], []
+    for i, row in enumerate(csv_reader):
+        if i == 0:
+            continue
+        else:
+            subject_id = int(row[0])
+
+            if not subject_id in sensitive_dict:
+                if not sensitive_dict_incomplete:
+                    sensitive_dict_incomplete = True
+                    print("WARNING: Sensitive dictionary is missing patient IDs", file=sys.stderr)
+                continue
+
+            sensitive_attr.append(sensitive_dict[subject_id][ALL_SENSITIVE[sensitive]])
+            X.append((int(row[0]), float(row[1])))
+            score.append(float(row[2]))
+            Y.append(int(row[3]))
+    return X, score, Y, sensitive_attr
+
 def create_train_test_data(train_file, test_file, sensitive):
     train_csv = open(train_file, mode='r')
     train_csv_reader = csv.reader(train_csv, delimiter=',')
     
     test_csv = open(test_file, mode='r')
     test_csv_reader = csv.reader(test_csv, delimiter=',')
+
     sensitive_dict = load_sensitive_dict()
 
-    def get_data(csv_reader):
-        sensitive_dict_incomplete = False
-        X, score, Y, sensitive_attr = [], [], [], []
-        for i, row in enumerate(csv_reader):
-            if i == 0:
-                continue
-            else:
-                subject_id = int(row[0])
-
-                if not subject_id in sensitive_dict:
-                    if not sensitive_dict_incomplete:
-                        sensitive_dict_incomplete = True
-                        print("WARNING: Sensitive dictionary is missing patient IDs", file=sys.stderr)
-                    continue
-
-                sensitive_attr.append(sensitive_dict[subject_id][ALL_SENSITIVE[sensitive]])
-                X.append((int(row[0]), float(row[1])))
-                score.append(float(row[2]))
-                Y.append(int(row[3]))
-        return X, score, Y, sensitive_attr
-
-    train_X, train_score, train_Y, sens_train = get_data(train_csv_reader)
-    test_X, test_score, test_Y, sens_test = get_data(test_csv_reader)
+    train_X, train_score, train_Y, sens_train = get_data(train_csv_reader, sensitive_dict, sensitive)
+    test_X, test_score, test_Y, sens_test = get_data(test_csv_reader, sensitive_dict, sensitive)
 
     return np.array(train_X), np.array(train_score), np.array(train_Y), np.array(sens_train, dtype='<U16'), \
             np.array(test_X), np.array(test_score), np.array(test_Y), np.array(sens_test, dtype='<U16')
@@ -1545,3 +1546,31 @@ if __name__ == "__main__":
             fig.set_size_inches(12, 4.6)
             plt.subplots_adjust(left=0.07, bottom=0.25, right=0.98, top=None, wspace=0.2, hspace=None)
         plt.savefig(plt_name)
+
+    elif cmd == "COUNT_COH": # Get cohort stats for sensitive attr
+        # unstructured
+        in_file = sys.argv[2]
+
+        sensitive_attr = sys.argv[3]
+
+        assert (sensitive_attr in ALL_SENSITIVE)
+
+        in_csv = open(in_file, mode='r')
+        in_csv_reader = csv.reader(in_csv, delimiter=',')
+        sensitive_dict = load_sensitive_dict()
+
+        _,_,labels,sensitive = get_data(in_csv_reader, sensitive_dict, sensitive_attr)
+
+        print("Sensitive Attr. Data")
+
+        values, counts = np.unique(sensitive, return_counts=True)
+
+        for val, count in zip(values, counts):
+            print(val,count)
+
+        print("Label Data")
+
+        values, counts = np.unique(labels, return_counts=True)
+
+        for val, count in zip(values, counts):
+            print(val, count)

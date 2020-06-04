@@ -1,0 +1,512 @@
+Namespace(mode='P', outdir='ensemblemodels/phenotyping-debiased/default/test', str_path='mimic3models/phenotyping/train_predictions/', test_str_path='mimic3models/phenotyping/test_predictions/', test_ustr_path='IanFairnessHackery/john_results/phenotyping-debiased/test/', ustr_path='IanFairnessHackery/john_results/phenotyping-debiased/train/')
+
+
+-----------------------
+Fitting Model For Acute and unspecified renal failure
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[4641  289]
+ [ 751  573]]
+accuracy = 0.8337064385414124
+precision class 0 = 0.8607195615768433
+precision class 1 = 0.6647331714630127
+recall class 0 = 0.9413793087005615
+recall class 1 = 0.432779461145401
+AUC of ROC = 0.8650493617594969
+AUC of PRC = 0.609554615731849
+min(+P, Se) = 0.5983483483483484
+
+
+-----------------------
+Fitting Model For Acute cerebrovascular disease
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5783   63]
+ [ 218  190]]
+accuracy = 0.9550687670707703
+precision class 0 = 0.9636726975440979
+precision class 1 = 0.7509881258010864
+recall class 0 = 0.9892234206199646
+recall class 1 = 0.46568626165390015
+AUC of ROC = 0.9457413481985335
+AUC of PRC = 0.6790726507659305
+min(+P, Se) = 0.6326034063260341
+
+
+-----------------------
+Fitting Model For Acute myocardial infarction
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5486   92]
+ [ 422  254]]
+accuracy = 0.9178125858306885
+precision class 0 = 0.9285714030265808
+precision class 1 = 0.7341040372848511
+recall class 0 = 0.9835066199302673
+recall class 1 = 0.3757396340370178
+AUC of ROC = 0.8947380983194757
+AUC of PRC = 0.6048278545674334
+min(+P, Se) = 0.5636094674556213
+
+
+-----------------------
+Fitting Model For Cardiac dysrhythmias
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[3829  402]
+ [ 746 1277]]
+accuracy = 0.8164374828338623
+precision class 0 = 0.8369398713111877
+precision class 1 = 0.7605717778205872
+recall class 0 = 0.9049869775772095
+recall class 1 = 0.631240725517273
+AUC of ROC = 0.8420081144362872
+AUC of PRC = 0.7591616949913872
+min(+P, Se) = 0.7010869565217391
+
+
+-----------------------
+Fitting Model For Chronic kidney disease
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5271  157]
+ [ 292  534]]
+accuracy = 0.9282059669494629
+precision class 0 = 0.9475103616714478
+precision class 1 = 0.7727930545806885
+recall class 0 = 0.9710758924484253
+recall class 1 = 0.6464890837669373
+AUC of ROC = 0.9357720081150381
+AUC of PRC = 0.7581171979370956
+min(+P, Se) = 0.7227602905569007
+
+
+-----------------------
+Fitting Model For Chronic obstructive pulmonary disease and bronchiectasis
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5330  135]
+ [ 256  533]]
+accuracy = 0.9374800324440002
+precision class 0 = 0.9541711211204529
+precision class 1 = 0.7979041934013367
+recall class 0 = 0.9752973318099976
+recall class 1 = 0.6755386590957642
+AUC of ROC = 0.9313597185453694
+AUC of PRC = 0.7496243709327602
+min(+P, Se) = 0.7661188369152971
+
+
+-----------------------
+Fitting Model For Complications of surgical procedures or medical care
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[4753  165]
+ [1106  230]]
+accuracy = 0.7967700958251953
+precision class 0 = 0.8112305998802185
+precision class 1 = 0.5822784900665283
+recall class 0 = 0.9664497971534729
+recall class 1 = 0.1721556931734085
+AUC of ROC = 0.7492594112304062
+AUC of PRC = 0.4481220173692348
+min(+P, Se) = 0.44691907943578324
+
+
+-----------------------
+Fitting Model For Conduction disorders
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5799   14]
+ [ 431   10]]
+accuracy = 0.9288455247879028
+precision class 0 = 0.9308186173439026
+precision class 1 = 0.4166666567325592
+recall class 0 = 0.9975916147232056
+recall class 1 = 0.022675737738609314
+AUC of ROC = 0.7915809938861719
+AUC of PRC = 0.23641153157749353
+min(+P, Se) = 0.2925170068027211
+
+
+-----------------------
+Fitting Model For Congestive heart failure
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[4215  358]
+ [ 803  878]]
+accuracy = 0.8143588304519653
+precision class 0 = 0.8399760723114014
+precision class 1 = 0.7103559970855713
+recall class 0 = 0.9217144250869751
+recall class 1 = 0.5223081707954407
+AUC of ROC = 0.8627218993411526
+AUC of PRC = 0.6970306281868747
+min(+P, Se) = 0.6543723973825104
+
+
+-----------------------
+Fitting Model For nonhypertensive
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[3848  334]
+ [ 407 1665]]
+accuracy = 0.8815158009529114
+precision class 0 = 0.904347836971283
+precision class 1 = 0.8329164385795593
+recall class 0 = 0.9201338887214661
+recall class 1 = 0.8035714030265808
+AUC of ROC = 0.9416653279637497
+AUC of PRC = 0.8959981257698405
+min(+P, Se) = 0.8214285714285714
+
+
+-----------------------
+Fitting Model For Coronary atherosclerosis and other heart disease
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5571   94]
+ [ 365  224]]
+accuracy = 0.9266069531440735
+precision class 0 = 0.9385107755661011
+precision class 1 = 0.704402506351471
+recall class 0 = 0.9834069013595581
+recall class 1 = 0.38030558824539185
+AUC of ROC = 0.9198162247859777
+AUC of PRC = 0.6158611710488885
+min(+P, Se) = 0.5540540540540541
+
+
+-----------------------
+Fitting Model For Diabetes mellitus with complications
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[4757  293]
+ [ 575  629]]
+accuracy = 0.8612088561058044
+precision class 0 = 0.8921605348587036
+precision class 1 = 0.6822125911712646
+recall class 0 = 0.9419801831245422
+recall class 1 = 0.5224252343177795
+AUC of ROC = 0.9003975198184271
+AUC of PRC = 0.6594916161457028
+min(+P, Se) = 0.6349840255591054
+
+
+-----------------------
+Fitting Model For Diabetes mellitus without complication
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[3991  453]
+ [1108  702]]
+accuracy = 0.7503997683525085
+precision class 0 = 0.7827025055885315
+precision class 1 = 0.6077921986579895
+recall class 0 = 0.8980647921562195
+recall class 1 = 0.38784530758857727
+AUC of ROC = 0.7874011019886518
+AUC of PRC = 0.5710577091143363
+min(+P, Se) = 0.5553109521188773
+
+
+-----------------------
+Fitting Model For Disorders of lipid metabolism
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[2793  820]
+ [ 965 1676]]
+accuracy = 0.7145826816558838
+precision class 0 = 0.74321448802948
+precision class 1 = 0.6714743375778198
+recall class 0 = 0.7730417847633362
+recall class 1 = 0.6346080899238586
+AUC of ROC = 0.7921267105941743
+AUC of PRC = 0.6913311625602572
+min(+P, Se) = 0.6661637118068653
+
+
+-----------------------
+Fitting Model For Essential hypertension
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[4252  346]
+ [1177  479]]
+accuracy = 0.7564758658409119
+precision class 0 = 0.7832013368606567
+precision class 1 = 0.5806060433387756
+recall class 0 = 0.9247499108314514
+recall class 1 = 0.2892512083053589
+AUC of ROC = 0.7671029779803444
+AUC of PRC = 0.5208460399648434
+min(+P, Se) = 0.5066425120772947
+
+
+-----------------------
+Fitting Model For Fluid and electrolyte disorders
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5746   12]
+ [ 471   25]]
+accuracy = 0.9227694272994995
+precision class 0 = 0.924239993095398
+precision class 1 = 0.6756756901741028
+recall class 0 = 0.9979159235954285
+recall class 1 = 0.05040322616696358
+AUC of ROC = 0.7829667559300385
+AUC of PRC = 0.27368514263930555
+min(+P, Se) = 0.33601609657947684
+
+
+-----------------------
+Fitting Model For Gastrointestinal hemorrhage
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5260  178]
+ [ 367  449]]
+accuracy = 0.9128557443618774
+precision class 0 = 0.9347787499427795
+precision class 1 = 0.7161084413528442
+recall class 0 = 0.9672673940658569
+recall class 1 = 0.5502451062202454
+AUC of ROC = 0.9150954791626105
+AUC of PRC = 0.6601427957203304
+min(+P, Se) = 0.6629901960784313
+
+
+-----------------------
+Fitting Model For Hypertension with complications and secondary hypertension
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5630   69]
+ [ 398  157]]
+accuracy = 0.9253277778625488
+precision class 0 = 0.9339748024940491
+precision class 1 = 0.6946902871131897
+recall class 0 = 0.9878926277160645
+recall class 1 = 0.2828828692436218
+AUC of ROC = 0.8694653242468648
+AUC of PRC = 0.5125120717150914
+min(+P, Se) = 0.49280575539568344
+
+
+-----------------------
+Fitting Model For Other liver diseases
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5902    0]
+ [ 352    0]]
+accuracy = 0.9437160491943359
+precision class 0 = 0.9437160491943359
+precision class 1 = nan
+recall class 0 = 1.0
+recall class 1 = 0.0
+AUC of ROC = 0.7162941683866794
+AUC of PRC = 0.13761981626401473
+min(+P, Se) = 0.1846590909090909
+
+
+-----------------------
+Fitting Model For Other lower respiratory disease
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5966   18]
+ [ 240   30]]
+accuracy = 0.9587463736534119
+precision class 0 = 0.9613277316093445
+precision class 1 = 0.625
+recall class 0 = 0.9969919919967651
+recall class 1 = 0.1111111119389534
+AUC of ROC = 0.8107168498712618
+AUC of PRC = 0.30103561001441764
+min(+P, Se) = 0.3527272727272727
+
+
+-----------------------
+Fitting Model For Other upper respiratory disease
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5683    2]
+ [ 563    6]]
+accuracy = 0.9096578359603882
+precision class 0 = 0.9098623394966125
+precision class 1 = 0.75
+recall class 0 = 0.9996482133865356
+recall class 1 = 0.010544815100729465
+AUC of ROC = 0.7269504894482288
+AUC of PRC = 0.21507660142925966
+min(+P, Se) = 0.2425828970331588
+
+
+-----------------------
+Fitting Model For Pleurisy
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5248  156]
+ [ 639  211]]
+accuracy = 0.8728813529014587
+precision class 0 = 0.8914557695388794
+precision class 1 = 0.5749318599700928
+recall class 0 = 0.9711325168609619
+recall class 1 = 0.2482353001832962
+AUC of ROC = 0.8560578220925676
+AUC of PRC = 0.4793654896947896
+min(+P, Se) = 0.49588719153936545
+
+
+-----------------------
+Fitting Model For pneumothorax
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[4947  202]
+ [ 469  636]]
+accuracy = 0.8927086591720581
+precision class 0 = 0.9134047031402588
+precision class 1 = 0.758949875831604
+recall class 0 = 0.9607690572738647
+recall class 1 = 0.5755656361579895
+AUC of ROC = 0.9268235540178693
+AUC of PRC = 0.755175885269717
+min(+P, Se) = 0.6968325791855203
+
+
+-----------------------
+Fitting Model For pulmonary collapse
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5233  151]
+ [ 474  396]]
+accuracy = 0.9000639319419861
+precision class 0 = 0.9169440865516663
+precision class 1 = 0.7239488363265991
+recall class 0 = 0.9719539284706116
+recall class 1 = 0.45517241954803467
+AUC of ROC = 0.9059868746904408
+AUC of PRC = 0.6522838532788613
+min(+P, Se) = 0.6222732491389208
+
+
+-----------------------
+Fitting Model For Pneumonia (except that caused by tuberculosis or sexually transmitted disease)
+
+LogisticRegression()
+[0 1]
+Model Arguments:
+{}
+confusion matrix:
+[[5662   88]
+ [ 318  186]]
+accuracy = 0.9350815415382385
+precision class 0 = 0.9468227624893188
+precision class 1 = 0.6788321137428284
+recall class 0 = 0.9846956729888916
+recall class 1 = 0.369047611951828
+AUC of ROC = 0.9209648033126294
+AUC of PRC = 0.5688848531712776
+min(+P, Se) = 0.5522682445759369
+
+============================
+Overall performance:
+ROC AUC scores for labels: [0.86504936 0.94574135 0.8947381  0.84200811 0.93577201 0.93135972
+ 0.74925941 0.79158099 0.8627219  0.94166533 0.91981622 0.90039752
+ 0.7874011  0.79212671 0.76710298 0.78296676 0.91509548 0.86946532
+ 0.71629417 0.81071685 0.72695049 0.85605782 0.92682355 0.90598687
+ 0.9209648 ]
+ave_auc_micro = 0.8878827523842102
+ave_auc_macro = 0.8543225175248977
+ave_auc_weighted = 0.8513511083285381
