@@ -17,7 +17,7 @@ This will do the above but also dump the output of the post-processed classifier
 
 Final Plotting Code Command:
 
-python3 fair\_postprocess.py \<unstructured train file\> \<unstructured test file\> 
+python3 fair\_postprocess.py PLOT_ALL7 \<unstructured train file\> \<unstructured test file\> 
 \<structured train file\> \<structured test file\>
 \<ensemble train file\> \<ensemble test file\>
 \<debiased WE train file\> \<debiased WE test file\>
