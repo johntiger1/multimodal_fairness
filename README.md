@@ -13,7 +13,7 @@ Ensemble is a sklearn on the outputs of the text and tabular model.
 ## Evaluation and Plotting
 
 1. First, ensure you have predictions saved to disk for both text and tabular models, and the ensemble models. 
-2. Plotting code is here: https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models/fair\_postprocess.py
+2. Plotting code is here: https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models/fair_postprocess.py
 3. You need to install a different (conflicting set of requirements). Make sure you switch to a new virtual environment.
 4. Edit the sourcecode of the fairlearn library; commenting out line 112 ("check_is_fitted(self.estimator)") of fairlearn/postprocessing/\_threshold_optimizer.py
 5. Run fair\_postprocess.py . It consists of two steps. First, run the LOAD command, which will map sensitive attributes for the purpose of fairness. This will produce an appropriate JSON dict. And then run the PLOT_ALL command to ingest all CSV of structured, unstructured, and ensemble data. You may need to run a "merge-coerce" script which will merge the unstructured predictions, and coerce them into the right, common format. The script to convert a csv into the standard format is IanFairnessHackery/merge\_and\_convert.py which uses the python2 environment (mmvenv, i.e. the environment that the baseline models use). Check the README's in the corresponding subdirectories for further details
