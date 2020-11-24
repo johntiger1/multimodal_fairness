@@ -1,6 +1,8 @@
 
 # Multimodal Fairness
 
+Code for the paper "Exploring Text Specific and Blackbox Fairness Algorithms in Multimodal Clinical NLP"
+
 ## Text 
 Text model is run inside the `new_allen_nlp` folder
 
