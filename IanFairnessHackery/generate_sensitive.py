@@ -5,6 +5,8 @@ import pandas as pd
 PATH_TO_BENCHMARK_STAYS = "../data/root/all_stays.csv"
 PATH_TO_MIMIC_ADMISSIONS = "/home/administrator/00Projects/Fairness/MIMIC_III/MIMIC_III/ADMISSIONS.csv"
 #PATH_TO_MIMIC_ADMISSIONS = "/h/shossain/multimodal_fairness/data/physionet.org/files/mimiciii/1.4/ADMISSIONS.csv"
+PATH_TO_MIMIC_ADMISSIONS = "/h/johnchen/multimodal_fairness/data/physionet.org/files/mimiciii/1.4/ADMISSIONS.csv"
+
 
 # Define data processing helpers:
 # Aggregator such that if element of group is different, then UNKNOWN is returned, else value is returned
