@@ -1,8 +1,11 @@
 
 # Multimodal Fairness
 
+Code for the paper "Exploring Text Specific and Blackbox Fairness Algorithms in Multimodal Clinical NLP"
+
 ## Text 
-Text model is run inside the `new_allen_nlp` folder
+Text model is run inside the `new_allen_nlp` folder: 
+`https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp`
 
 ## Tabular
 Tabular model is the underlying 2017 paper. 
@@ -16,7 +19,12 @@ Ensemble is a sklearn on the outputs of the text and tabular model.
 2. Plotting code is here: https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models/fair_postprocess.py
 3. You need to install a different (conflicting set of requirements). Make sure you switch to a new virtual environment.
 4. Edit the sourcecode of the fairlearn library; commenting out line 112 ("check_is_fitted(self.estimator)") of fairlearn/postprocessing/\_threshold_optimizer.py
-5. Run fair\_postprocess.py . It consists of two steps. First, run the LOAD command, which will map sensitive attributes for the purpose of fairness. This will produce an appropriate JSON dict. And then run the PLOT_ALL command to ingest all CSV of structured, unstructured, and ensemble data. You may need to run a "merge-coerce" script which will merge the unstructured predictions, and coerce them into the right, common format. The script to convert a csv into the standard format is IanFairnessHackery/merge\_and\_convert.py which uses the python2 environment (mmvenv, i.e. the environment that the baseline models use). Check the README's in the corresponding subdirectories for further details
+5. Generate the file of sensitive attributes. This is a file which maps sensitive attributes to the cohort. Note that the cohort is mainly fixed by the mimic-3 benchmark itself.  
+6. Run fair\_postprocess.py . It consists of two steps. First, run the LOAD command, which will map sensitive attributes for the purpose of fairness. This will produce an appropriate JSON dict. And then run the PLOT_ALL command to ingest all CSV of structured, unstructured, and ensemble data. You may need to run a "merge-coerce" script which will merge the unstructured predictions, and coerce them into the right, common format. The script to convert a csv into the standard format is IanFairnessHackery/merge\_and\_convert.py which uses the python2 environment (mmvenv, i.e. the environment that the baseline models use). Check the README's in the corresponding subdirectories for further details
+
+An example of the PLOT_ALL command:
+`PLOT_ALL7 IanFairnessHackery/john_results/biow2vec_mortality/train_final_preds_id_ep_fmt.csv IanFairnessHackery/john_results/biow2vec_mortality/test_final_preds_id_ep_fmt.csv mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv mimic3models/in_hospital_mortality/test_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv ensemblemodels/bio2vec_mortality/default/train/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+train_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv ensemblemodels/bio2vec_mortality/default/test/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+test_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv IanFairnessHackery/john_results/Debiased_WE_ETH_4_Mortality/train_final_preds_id_ep_fmt.csv IanFairnessHackery/john_results/Debiased_WE_ETH_4_Mortality/test_final_preds_id_ep_fmt.csv ensemblemodels/debiased_WE_ETH_4_mortality/default/train/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+train_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv ensemblemodels/debiased_WE_ETH_4_mortality/default/test/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+test_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv ETHNICITY HARD`
+## Additional slides and documentation
 
 ## Old instructions
 1. Get the data set-up as described below.
