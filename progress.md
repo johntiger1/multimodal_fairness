@@ -1,7 +1,7 @@
 # April 11 
 Current location of code: `/scratch/gobi1/johnchen/new_git_stuff`
 
-Current environment: `source activate hurtfulwords`
+Current environment: `conda activate hurtfulwords`
 
 # may 27
 Note that testing the archive almost guarantees that you have a saved version of the source code somewhere.
