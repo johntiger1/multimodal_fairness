@@ -3,6 +3,14 @@
 
 Code for the paper "Exploring Text Specific and Blackbox Fairness Algorithms in Multimodal Clinical NLP"
 
+# Environment setup
+This is a complex repo with 3 main portions:
+- AllenNLP
+- Fairness processing
+- Ensemble and Physiological signals Modality classifier
+
+Each of these could be run independently, and so we have 3 separate environments (although there is work to consolidate these dependencies)
+
 ## Text 
 Text model is run inside the `new_allen_nlp` folder: 
 `https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp`
