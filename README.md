@@ -13,6 +13,9 @@ Tabular model is the underlying 2017 paper.
 ## Ensemble
 Ensemble is a sklearn on the outputs of the text and tabular model. 
 
+# Fairness
+Bulk of fairness code is: `https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models/fair_postprocess.py`
+
 ## Evaluation and Plotting
 
 1. First, ensure you have predictions saved to disk for both text and tabular models, and the ensemble models. 
