@@ -5,9 +5,9 @@ Code for the paper "Exploring Text Specific and Blackbox Fairness Algorithms in 
 
 # Environment setup
 This is a complex repo with 3 main portions:
-- AllenNLP
-- Fairness processing
-- Ensemble and Physiological signals Modality classifier
+- AllenNLP: https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp
+- Fairness processing: https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models
+- Ensemble and Physiological signals Modality classifier: https://github.com/johntiger1/multimodal_fairness/tree/master/ensemblemodels
 
 Each of these could be run independently, and so we have 3 separate environments (although there is work to consolidate these dependencies)
 
