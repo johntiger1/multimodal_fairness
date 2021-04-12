@@ -4,7 +4,8 @@
 Code for the paper "Exploring Text Specific and Blackbox Fairness Algorithms in Multimodal Clinical NLP"
 
 ## Text 
-Text model is run inside the `new_allen_nlp` folder
+Text model is run inside the `new_allen_nlp` folder: 
+`https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp`
 
 ## Tabular
 Tabular model is the underlying 2017 paper. 
