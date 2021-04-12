@@ -13,6 +13,9 @@ This is a complex repo with 3 main portions:
 
 Each of these could be run independently, and so we have 3 separate environments (although there is work to consolidate these dependencies)
 
+## Data location
+Data is available locally on: `./data`. It will also be available more widely, at e.g. `/scratch/gobi2/johnchen/...`
+
 ## Text 
 Text model is run inside the `new_allen_nlp` folder: 
 `https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp`
