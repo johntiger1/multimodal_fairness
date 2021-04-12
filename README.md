@@ -20,9 +20,7 @@ Fairness is computed via the following steps:
 
 See: https://drive.google.com/drive/u/1/folders/16dZI4lfA9ORp-_z5CJOiFzThj39iIQbJ
 
-This will bring everything to a episode/id/pred/label format. Then, you can evaluate the metrics
-
-
+This will bring everything to a episode/id/pred/label format. Then, you can evaluate the metrics using `evaluate_phenotype_preds.py`
 
 ## Data location
 Data is available locally on: `./data`. It will also be available more widely, at e.g. `/scratch/gobi2/johnchen/...`
