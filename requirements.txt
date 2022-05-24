@@ -19,7 +19,7 @@ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.2.4/en_core_sci_m
 # Requirements for the Keras backend, with python 2
 # For Vector set: LD_LIBRARY_PATH=/pkgs/cuda-9.0/lib64:/pkgs/cudnn-9.2-v7.1/lib64:$LD_LIBRARY_PATH
 wheel
-tensorflow-gpu==1.5.0
+tensorflow-gpu==2.6.4
 h5py==2.10.0
 cython==0.29.17
 #Original Requirements
