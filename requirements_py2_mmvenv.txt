@@ -6,7 +6,7 @@ enum34==1.1.10
 funcsigs==1.0.2
 futures==3.3.0
 h5py==2.10.0
-html5lib==0.9999999
+html5lib==0.99999999
 Keras==2.1.2
 Markdown==3.1.1
 mock==3.0.5
