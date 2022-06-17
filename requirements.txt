@@ -1,5 +1,5 @@
 matplotlib==2.2.2
-numpy==1.16.1
+numpy==1.21.0
 pandas==0.25.0
 pyodbc==4.0.23
 pytorch-pretrained-bert==0.6.2
