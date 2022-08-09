@@ -51,6 +51,10 @@ An example of the PLOT_ALL command:
 `PLOT_ALL7 IanFairnessHackery/john_results/biow2vec_mortality/train_final_preds_id_ep_fmt.csv IanFairnessHackery/john_results/biow2vec_mortality/test_final_preds_id_ep_fmt.csv mimic3models/in_hospital_mortality/train_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv mimic3models/in_hospital_mortality/test_predictions/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt.csv ensemblemodels/bio2vec_mortality/default/train/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+train_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv ensemblemodels/bio2vec_mortality/default/test/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+test_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv IanFairnessHackery/john_results/Debiased_WE_ETH_4_Mortality/train_final_preds_id_ep_fmt.csv IanFairnessHackery/john_results/Debiased_WE_ETH_4_Mortality/test_final_preds_id_ep_fmt.csv ensemblemodels/debiased_WE_ETH_4_mortality/default/train/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+train_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv ensemblemodels/debiased_WE_ETH_4_mortality/default/test/r2k_channel_wise_lstms.n8.szc4.0.d0.3.dep1.bs8.ts1.0.epoch32.test0.279926446841.state_id_ep_fmt+test_final_preds_id_ep_fmt\{\}_id_ep_fmt.csv ETHNICITY HARD`
 ## Additional slides and documentation
 
+Decomp results:
+https://drive.google.com/drive/u/0/folders/1r7NamihCr8axiFs2m3gqJTwfBqggUGy4
+
+
 ## Old instructions
 1. Get the data set-up as described below.
 2. Run `python src/preprocessing/extract_notes.py` to get all the notes for the (patient, episode) pairs. 
