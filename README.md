@@ -3,6 +3,8 @@
 
 Code for the paper "Exploring Text Specific and Blackbox Fairness Algorithms in Multimodal Clinical NLP"
 
+[Best Paper Award at Clinical NLP 2020](https://clinical-nlp.github.io/2020/program.html)
+
 # Environment setup
 This is a complex repo with 3 main portions:
 - AllenNLP: https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp
