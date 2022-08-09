@@ -54,3 +54,5 @@ An example of the PLOT_ALL command:
 Decomp results:
 https://drive.google.com/drive/u/0/folders/1r7NamihCr8axiFs2m3gqJTwfBqggUGy4
 
+Clinical NLP paper:
+https://clinical-nlp.github.io/2020/program.html
