@@ -31,11 +31,13 @@ Data is available locally on: `./data`. It will also be available more widely, a
 Text model is run inside the `new_allen_nlp` folder: 
 `https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp`
 
+At a high level this is a CNNEncoder. 
+
 ## Tabular
-Tabular model is the underlying 2017 paper. 
+Tabular model is the underlying 2019 *Nature* paper. This is a channel-wise LSTM classifier. 
 
 ## Ensemble
-Ensemble is a sklearn on the outputs of the text and tabular model. 
+Ensemble is a sklearn (logistic regression) on the outputs of the text and tabular model. 
 
 # Fairness
 Bulk of fairness code is: `https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models/fair_postprocess.py`
