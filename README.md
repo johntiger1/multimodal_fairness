@@ -15,6 +15,12 @@ This is a complex repo with 3 main portions:
 
 Each of these could be run independently, and so we have 3 separate environments (although there is work to consolidate these dependencies)
 
+## Installation
+```
+cd src/models/new_allen_nlp/
+conda env create -n hurtful_words -f text_model_requirements.yml
+```
+
 ## Fairness pipeline
 Fairness is computed via the following steps:
 1. Generate fairness_dict, mapping patients to their sensitive attributes `generate_sensitive.py`
