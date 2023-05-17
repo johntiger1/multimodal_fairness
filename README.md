@@ -37,7 +37,7 @@ At a high level this is a CNNEncoder.
 Tabular model is the underlying 2019 *Nature* paper. This is a channel-wise LSTM classifier. 
 
 ## Ensemble
-Ensemble is a sklearn (logistic regression) on the outputs of the text and tabular model. 
+Ensemble is a sklearn (logistic regression) on the outputs of the text and tabular model. We train the logistic regression model on the outputs of the model, along with the final label. Note that the individual performances of the ensemble are fairly close; hence why we can perform a discrete ensembling step on just the outputs. 
 
 # Fairness
 Bulk of fairness code is: `https://github.com/johntiger1/multimodal_fairness/tree/master/mimic3models/fair_postprocess.py`
