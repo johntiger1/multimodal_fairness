@@ -17,8 +17,20 @@ Each of these could be run independently, and so we have 3 separate environments
 
 ## Installation
 ```
-cd src/models/new_allen_nlp/
-conda env create -n hurtful_words -f text_model_requirements.yml
+# create the conda environments
+conda env create -f requirements.yml
+conda create -n fairness_env python=3.8 
+conda create -n timeseries_env python=3.8
+
+# install the fairness depedencies in its env
+conda activate fairness_env
+pip install -r requirements.txt
+
+# install the timeseries dependencies in its env
+conda activate timeseries_env
+-- fetch requirements from here: https://github.com/YerevaNN/mimic3-benchmarks/blob/master/requirements.txt -- 
+pip install -r requirements.txt
+
 ```
 
 ## Fairness pipeline
@@ -66,3 +78,7 @@ https://drive.google.com/drive/u/0/folders/1r7NamihCr8axiFs2m3gqJTwfBqggUGy4
 
 Clinical NLP paper:
 https://clinical-nlp.github.io/2020/program.html
+
+
+## Additional resources
+Original time series LSTM classifier: https://github.com/YerevaNN/mimic3-benchmarks
