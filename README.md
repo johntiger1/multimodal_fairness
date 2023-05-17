@@ -38,7 +38,11 @@ Fairness is computed via the following steps:
 1. Generate fairness_dict, mapping patients to their sensitive attributes `generate_sensitive.py`
 2. Get results from text (unstructured) model, and pass them through: `merge_and_convert.py`
 
-See: https://drive.google.com/drive/u/1/folders/16dZI4lfA9ORp-_z5CJOiFzThj39iIQbJ
+## Debiased word embeddings
+Word embeddings are debiased according to https://aclanthology.org/N19-1062/. You can request the exact debiased word embeddings from here:
+https://drive.google.com/drive/u/1/folders/16dZI4lfA9ORp-_z5CJOiFzThj39iIQbJ
+
+Alternatively, you can run their github maually. 
 
 This will bring everything to a episode/id/pred/label format. Then, you can evaluate the metrics using `evaluate_phenotype_preds.py`
 
