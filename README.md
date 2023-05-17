@@ -49,7 +49,7 @@ Data is available locally on: `./data`. It will also be available more widely, a
 Text model is run inside the `new_allen_nlp` folder: 
 `https://github.com/johntiger1/multimodal_fairness/tree/master/src/models/new_allen_nlp`
 
-At a high level this is a CNNEncoder. 
+At a high level this is a CNNEncoder, which is trained from scratch (i.e. does not use any pretrained LM)
 
 ## Tabular
 Tabular model is the underlying 2019 *Nature* paper. This is a channel-wise LSTM classifier. 
